@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Procedural Music Studio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0d0d;
+      --bg2:       #121212;
+      --bg3:       #1a1a1a;
+      --bg4:       #222222;
+      --border:    #2a2a2a;
+      --cyan:      #00d4ff;
+      --cyan-dim:  #007fa0;
+      --red:       #ff1744;
+      --green:     #00e676;
+      --amber:     #ffab00;
+      --text:      #e0e0e0;
+      --text-dim:  #666;
+      --text-mid:  #999;
+      --radius:    6px;
+      --pad:       14px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    #app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      display: grid;
+      gap: 18px;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    header h1 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--cyan);
+      letter-spacing: 0.04em;
+      flex: 1;
+    }
+    header h1 span { color: var(--text-dim); font-weight: 400; }
+
+    #status-pill {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    #status-pill.playing { border-color: var(--green); color: var(--green); }
+
+    /* ── Panel ───────────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--pad);
+    }
+    .panel-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    /* ── Transport ───────────────────────────────────────────────────────── */
+    #transport {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr 1fr auto;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #btn-play {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      background: transparent;
+      color: var(--cyan);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    #btn-play:hover { background: rgba(0,212,255,0.12); }
+    #btn-play:active { transform: scale(0.93); }
+    #btn-play.playing { border-color: var(--red); color: var(--red); }
+    #btn-play.playing:hover { background: rgba(255,23,68,0.12); }
+
+    /* ── Sliders ─────────────────────────────────────────────────────────── */
+    .ctrl {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .ctrl-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-mid);
+    }
+    .ctrl-label span:last-child { color: var(--cyan); font-variant-numeric: tabular-nums; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--cyan);
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 6px rgba(0,212,255,0.5);
+      transition: transform 0.1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type=range].layer-slider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 0 6px rgba(255,171,0,0.4); }
+    input[type=range].layer-slider.muted::-webkit-slider-thumb { background: var(--text-dim); box-shadow: none; }
+
+    /* ── Phase timeline ──────────────────────────────────────────────────── */
+    #phase-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .phase-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-mid);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .phase-btn:hover { border-color: var(--cyan-dim); color: var(--cyan); }
+    .phase-btn.active {
+      border-color: var(--cyan);
+      background: rgba(0,212,255,0.1);
+      color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0,212,255,0.15);
+    }
+
+    /* ── Phase/Chord display ─────────────────────────────────────────────── */
+    #info-row {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+    }
+    .info-chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-chip .info-key { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .info-chip .info-val { color: var(--cyan); font-size: 14px; font-weight: 600; min-width: 60px; }
+    #chord-val { color: var(--amber) !important; }
+
+    /* ── Oscilloscope ────────────────────────────────────────────────────── */
+    #scope-wrap {
+      position: relative;
+    }
+    #scope {
+      width: 100%;
+      height: 130px;
+      display: block;
+      border-radius: var(--radius);
+      background: #060a0c;
+    }
+    #scope-label {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--cyan-dim);
+      pointer-events: none;
+    }
+
+    /* ── Layer mixer ─────────────────────────────────────────────────────── */
+    #mixer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .layer-ctrl {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .layer-ctrl .layer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .layer-name {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+    }
+    .layer-val {
+      font-size: 11px;
+      color: var(--amber);
+      font-variant-numeric: tabular-nums;
+      min-width: 28px;
+      text-align: right;
+    }
+    .layer-val.muted { color: var(--text-dim); }
+    .layer-desc {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    /* Mute button */
+    .mute-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-dim);
+      font-size: 9px;
+      padding: 1px 5px;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.06em;
+      transition: all 0.15s;
+    }
+    .mute-btn:hover { border-color: var(--red); color: var(--red); }
+    .mute-btn.muted { border-color: var(--red); color: var(--red); background: rgba(255,23,68,0.08); }
+
+    /* ── Footer note ─────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      padding-top: 8px;
+    }
+    footer a { color: var(--cyan-dim); text-decoration: none; }
+    footer a:hover { color: var(--cyan); }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      #transport { grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; }
+      #transport #bpm-ctrl  { grid-column: 2; }
+      #transport #vol-ctrl  { grid-column: 1 / -1; }
+      #transport #rev-ctrl  { grid-column: 1 / -1; }
+      #transport #info-row  { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header>
+    <h1>Procedural Music Studio <span>/ G natural minor</span></h1>
+    <div id="status-pill">stopped</div>
+  </header>
+
+  <!-- ── Transport ───────────────────────────────────────────────────────── -->
+  <div class="panel">
+    <div id="transport">
+      <button id="btn-play" title="Play / Stop">▶</button>
+
+      <div class="ctrl" id="bpm-ctrl">
+        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">120</span></div>
+        <input type="range" id="bpm-slider" min="60" max="200" value="120" step="1">
+      </div>
+
+      <div class="ctrl" id="vol-ctrl">
+        <div class="ctrl-label"><span>Volume</span><span id="vol-display">60%</span></div>
+        <input type="range" id="vol-slider" min="0" max="100" value="60" step="1">
+      </div>
+
+      <div class="ctrl" id="rev-ctrl">
+        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">16%</span></div>
+        <input type="range" id="rev-slider" min="0" max="60" value="16" step="1">
+      </div>
+
+      <div id="info-row">
+        <div class="info-chip">
+          <span class="info-key">Phase</span>
+          <span class="info-val" id="phase-val">—</span>
+        </div>
+        <div class="info-chip">
+          <span class="info-key">Chord</span>
+          <span class="info-val" id="chord-val">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Phase Timeline ──────────────────────────────────────────────────── -->
+  <div class="panel">
+    <div class="panel-title">Song Phases</div>
+    <div id="phase-row">
+      <button class="phase-btn" data-phase="intro">Intro</button>
+      <button class="phase-btn" data-phase="build1">Build 1</button>
+      <button class="phase-btn" data-phase="verse1">Verse</button>
+      <button class="phase-btn" data-phase="chorus1">Chorus 1</button>
+      <button class="phase-btn" data-phase="break">Break</button>
+      <button class="phase-btn" data-phase="chorus2">Chorus 2</button>
+      <button class="phase-btn" data-phase="outro">Outro</button>
+    </div>
+  </div>
+
+  <!-- ── Oscilloscope ────────────────────────────────────────────────────── -->
+  <div class="panel" id="scope-wrap">
+    <canvas id="scope"></canvas>
+    <div id="scope-label">Waveform</div>
+  </div>
+
+  <!-- ── Layer Mixer ─────────────────────────────────────────────────────── -->
+  <div class="panel">
+    <div class="panel-title">Layer Mixer — multipliers applied on top of phase values</div>
+    <div id="mixer-grid"></div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/BurnBridgers/ProceduralMusicStudio" target="_blank">GitHub</a>
+    &nbsp;·&nbsp; G natural minor · 120 BPM · Web Audio API
+  </footer>
+
+</div>
+
+<script src="music_engine_web.js"></script>
+<script>
+// ── Layer definitions ────────────────────────────────────────────────────
+const LAYERS = [
+  { id:'arp',       label:'Arpeggio',     desc:'Triangle-wave melodic pattern' },
+  { id:'echo',      label:'Echo / Arp 2', desc:'Delayed arp copy with feedback' },
+  { id:'thump',     label:'Kick / Thump', desc:'Pitch-swept sine kick drum' },
+  { id:'piano',     label:'Piano',        desc:'Multi-partial chord stabs' },
+  { id:'sub',       label:'Sub Bass',     desc:'Low-frequency sine foundation' },
+  { id:'pad',       label:'String Pad',   desc:'Detuned sine pad with vibrato' },
+  { id:'bass',      label:'Bass',         desc:'Root-note bass line' },
+  { id:'shim',      label:'Shimmer',      desc:'High-freq sparkle (chorus only)' },
+  { id:'drone',     label:'Drone',        desc:'Held root + pulse (chorus only)' },
+  { id:'beatpulse', label:'Beat Pulse',   desc:'Rhythmic sidechain-style pulse' },
+];
+
+// ── Engine boot ──────────────────────────────────────────────────────────
+let engine = null;
+let scopeRaf = null;
+const muted = {};   // track per-layer mute state
+
+function bootEngine() {
+  if (engine) return;
+  engine = ProceduralMusic.create();
+
+  // Wire events
+  engine.on('phase', ({ id, label }) => {
+    document.getElementById('phase-val').textContent = label;
+    document.querySelectorAll('.phase-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.phase === id);
+    });
+  });
+  engine.on('chord', name => {
+    document.getElementById('chord-val').textContent = name || '—';
+  });
+
+  // Restore slider values
+  engine.setVolume(parseFloat(document.getElementById('vol-slider').value) / 100);
+  engine.setReverb(parseFloat(document.getElementById('rev-slider').value) / 100);
+  engine.setBPM(parseInt(document.getElementById('bpm-slider').value));
+
+  // Start oscilloscope
+  startScope();
+}
+
+// ── Play / Stop ───────────────────────────────────────────────────────────
+const btnPlay = document.getElementById('btn-play');
+const statusPill = document.getElementById('status-pill');
+
+btnPlay.addEventListener('click', () => {
+  bootEngine();
+  const state = engine.getState();
+  if (state.playing) {
+    engine.stop();
+    btnPlay.classList.remove('playing');
+    btnPlay.innerHTML = '▶';
+    statusPill.textContent = 'stopped';
+    statusPill.classList.remove('playing');
+  } else {
+    engine.play();
+    btnPlay.classList.add('playing');
+    btnPlay.innerHTML = '■';
+    statusPill.textContent = 'playing';
+    statusPill.classList.add('playing');
+  }
+});
+
+// ── Transport sliders ─────────────────────────────────────────────────────
+document.getElementById('bpm-slider').addEventListener('input', e => {
+  const v = parseInt(e.target.value);
+  document.getElementById('bpm-display').textContent = v;
+  if (engine) engine.setBPM(v);
+});
+
+document.getElementById('vol-slider').addEventListener('input', e => {
+  const v = parseInt(e.target.value);
+  document.getElementById('vol-display').textContent = v + '%';
+  if (engine) engine.setVolume(v / 100);
+});
+
+document.getElementById('rev-slider').addEventListener('input', e => {
+  const v = parseInt(e.target.value);
+  document.getElementById('rev-display').textContent = v + '%';
+  if (engine) engine.setReverb(v / 100);
+});
+
+// ── Phase buttons ─────────────────────────────────────────────────────────
+document.querySelectorAll('.phase-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    bootEngine();
+    if (!engine.getState().playing) {
+      engine.play();
+      btnPlay.classList.add('playing');
+      btnPlay.innerHTML = '■';
+      statusPill.textContent = 'playing';
+      statusPill.classList.add('playing');
+    }
+    engine.seekToPhase(btn.dataset.phase);
+  });
+});
+
+// ── Layer mixer build ─────────────────────────────────────────────────────
+const mixerGrid = document.getElementById('mixer-grid');
+
+LAYERS.forEach(layer => {
+  const card = document.createElement('div');
+  card.className = 'layer-ctrl';
+  card.innerHTML = `
+    <div class="layer-header">
+      <span class="layer-name">${layer.label}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="layer-val" id="lv-${layer.id}">1.00</span>
+        <button class="mute-btn" id="mute-${layer.id}" data-layer="${layer.id}">M</button>
+      </div>
+    </div>
+    <input type="range" class="layer-slider" id="sl-${layer.id}"
+           min="0" max="100" value="100" step="1" data-layer="${layer.id}">
+    <div class="layer-desc">${layer.desc}</div>
+  `;
+  mixerGrid.appendChild(card);
+
+  const slider = card.querySelector(`#sl-${layer.id}`);
+  const valEl  = card.querySelector(`#lv-${layer.id}`);
+  const muteBtn = card.querySelector(`#mute-${layer.id}`);
+
+  slider.addEventListener('input', e => {
+    const v = parseInt(e.target.value) / 100;
+    valEl.textContent = v.toFixed(2);
+    if (!muted[layer.id]) {
+      if (engine) engine.setLayer(layer.id, v);
+    }
+    valEl.classList.toggle('muted', v === 0);
+    slider.classList.toggle('muted', v === 0);
+  });
+
+  muteBtn.addEventListener('click', () => {
+    muted[layer.id] = !muted[layer.id];
+    muteBtn.classList.toggle('muted', muted[layer.id]);
+    const sliderVal = parseInt(slider.value) / 100;
+    if (engine) engine.setLayer(layer.id, muted[layer.id] ? 0 : sliderVal);
+  });
+});
+
+// ── Oscilloscope ──────────────────────────────────────────────────────────
+const canvas = document.getElementById('scope');
+const ctx2d  = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  ctx2d.scale(dpr, dpr);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function drawScope() {
+  scopeRaf = requestAnimationFrame(drawScope);
+
+  const W = canvas.getBoundingClientRect().width;
+  const H = canvas.getBoundingClientRect().height;
+
+  ctx2d.clearRect(0, 0, W, H);
+  ctx2d.fillStyle = '#060a0c';
+  ctx2d.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx2d.strokeStyle = '#0d1a1f';
+  ctx2d.lineWidth = 1;
+  const gridLines = 4;
+  for (let i = 1; i < gridLines; i++) {
+    const y = (H / gridLines) * i;
+    ctx2d.beginPath(); ctx2d.moveTo(0, y); ctx2d.lineTo(W, y); ctx2d.stroke();
+  }
+  // Center line
+  ctx2d.strokeStyle = '#0d2a30';
+  ctx2d.beginPath(); ctx2d.moveTo(0, H/2); ctx2d.lineTo(W, H/2); ctx2d.stroke();
+
+  if (!engine) {
+    // idle — flat line with pulse
+    ctx2d.strokeStyle = 'rgba(0,212,255,0.2)';
+    ctx2d.lineWidth = 1.5;
+    ctx2d.beginPath();
+    ctx2d.moveTo(0, H/2);
+    ctx2d.lineTo(W, H/2);
+    ctx2d.stroke();
+    return;
+  }
+
+  const analyser = engine.getAnalyser();
+  if (!analyser) return;
+
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+
+  // Find zero crossing for stable display
+  let start = 0;
+  for (let i = 1; i < buf.length - 1; i++) {
+    if (buf[i-1] < 0 && buf[i] >= 0) { start = i; break; }
+  }
+
+  const sliceW = W / Math.min(1024, buf.length);
+  const state = engine.getState();
+  const playing = state.playing;
+
+  ctx2d.lineWidth = 1.8;
+  ctx2d.strokeStyle = playing ? '#00d4ff' : 'rgba(0,212,255,0.3)';
+  ctx2d.shadowBlur = playing ? 8 : 0;
+  ctx2d.shadowColor = '#00d4ff';
+  ctx2d.beginPath();
+
+  let drawn = 0;
+  for (let i = start; i < buf.length && drawn < 1024; i++, drawn++) {
+    const x = drawn * sliceW;
+    const y = (1 - (buf[i] * 0.8 + 1) * 0.5) * H;   // scale + center
+    if (drawn === 0) ctx2d.moveTo(x, y);
+    else ctx2d.lineTo(x, y);
+  }
+  ctx2d.stroke();
+  ctx2d.shadowBlur = 0;
+}
+
+function startScope() {
+  if (!scopeRaf) drawScope();
+}
+
+// Start idle scope immediately
+drawScope();
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    btnPlay.click();
+  }
+  // Number keys 1-7 → phases
+  const phaseKeys = ['intro','build1','verse1','chorus1','break','chorus2','outro'];
+  const idx = parseInt(e.key) - 1;
+  if (idx >= 0 && idx < phaseKeys.length) {
+    bootEngine();
+    engine.seekToPhase(phaseKeys[idx]);
+  }
+});
+</script>
+</body>
+</html>
