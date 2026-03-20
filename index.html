@@ -129,6 +129,7 @@
       color: var(--text-mid);
     }
     .ctrl-label span:last-child { color: var(--cyan); font-variant-numeric: tabular-nums; }
+    #vol-display.boost { color: var(--amber); }
 
     input[type=range] {
       -webkit-appearance: none;
@@ -151,14 +152,46 @@
       transition: transform 0.1s;
     }
     input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-    input[type=range].layer-slider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 0 6px rgba(255,171,0,0.4); }
+    input[type=range].layer-slider::-webkit-slider-thumb { background: var(--layer-color); box-shadow: 0 0 6px rgba(255,171,0,0.4); }
     input[type=range].layer-slider.muted::-webkit-slider-thumb { background: var(--text-dim); box-shadow: none; }
+
+    /* ── Key selector ────────────────────────────────────────────────────── */
+    #key-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .key-btn {
+      padding: 5px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-mid);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .key-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .key-btn.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(255,171,0,0.1);
+      box-shadow: 0 0 10px rgba(255,171,0,0.15);
+    }
 
     /* ── Phase timeline ──────────────────────────────────────────────────── */
     #phase-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+    .phase-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 96px;
     }
     .phase-btn {
       padding: 6px 14px;
@@ -178,6 +211,28 @@
       background: rgba(0,212,255,0.1);
       color: var(--cyan);
       box-shadow: 0 0 10px rgba(0,212,255,0.15);
+    }
+    .phase-progress {
+      height: 3px;
+      border-radius: 999px;
+      background: var(--border);
+      overflow: hidden;
+    }
+    .phase-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--cyan);
+      transition: width 0.12s linear;
+    }
+    .phase-loop-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     /* ── Phase/Chord display ─────────────────────────────────────────────── */
@@ -205,7 +260,7 @@
     }
     #scope {
       width: 100%;
-      height: 130px;
+      height: 190px;
       display: block;
       border-radius: var(--radius);
       background: #060a0c;
@@ -228,6 +283,7 @@
       gap: 10px;
     }
     .layer-ctrl {
+      --layer-color: var(--amber);
       background: var(--bg3);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -235,6 +291,13 @@
       display: flex;
       flex-direction: column;
       gap: 7px;
+    }
+    .layer-ctrl.inactive-phase {
+      opacity: 0.68;
+    }
+    .layer-ctrl.inactive-toggle {
+      border-color: #3a2f2f;
+      box-shadow: none;
     }
     .layer-ctrl .layer-header {
       display: flex;
@@ -246,11 +309,11 @@
       font-weight: 600;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--text-mid);
+      color: var(--layer-color);
     }
     .layer-val {
       font-size: 11px;
-      color: var(--amber);
+      color: var(--layer-color);
       font-variant-numeric: tabular-nums;
       min-width: 28px;
       text-align: right;
@@ -259,6 +322,11 @@
     .layer-desc {
       font-size: 10px;
       color: var(--text-dim);
+    }
+    .layer-config {
+      font-size: 9px;
+      color: #7f8d95;
+      line-height: 1.4;
     }
     /* Mute button */
     .mute-btn {
@@ -275,6 +343,21 @@
     }
     .mute-btn:hover { border-color: var(--red); color: var(--red); }
     .mute-btn.muted { border-color: var(--red); color: var(--red); background: rgba(255,23,68,0.08); }
+    .active-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .active-wrap input {
+      accent-color: var(--amber);
+      width: 11px;
+      height: 11px;
+      cursor: pointer;
+    }
 
     /* ── Footer note ─────────────────────────────────────────────────────── */
     footer {
@@ -301,7 +384,7 @@
 
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header>
-    <h1>Procedural Music Studio <span>/ G natural minor</span></h1>
+    <h1>Procedural Music Studio <span id="key-title">/ Gm</span></h1>
     <div id="status-pill">stopped</div>
   </header>
 
@@ -311,18 +394,18 @@
       <button id="btn-play" title="Play / Stop">▶</button>
 
       <div class="ctrl" id="bpm-ctrl">
-        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">120</span></div>
-        <input type="range" id="bpm-slider" min="60" max="200" value="120" step="1">
+        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">100</span></div>
+        <input type="range" id="bpm-slider" min="60" max="200" value="100" step="1">
       </div>
 
       <div class="ctrl" id="vol-ctrl">
-        <div class="ctrl-label"><span>Volume</span><span id="vol-display">60%</span></div>
-        <input type="range" id="vol-slider" min="0" max="100" value="60" step="1">
+        <div class="ctrl-label"><span>Volume</span><span id="vol-display">100%</span></div>
+        <input type="range" id="vol-slider" min="0" max="200" value="100" step="1">
       </div>
 
       <div class="ctrl" id="rev-ctrl">
-        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">16%</span></div>
-        <input type="range" id="rev-slider" min="0" max="60" value="16" step="1">
+        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">30%</span></div>
+        <input type="range" id="rev-slider" min="0" max="60" value="30" step="1">
       </div>
 
       <div id="info-row">
@@ -338,18 +421,52 @@
     </div>
   </div>
 
+  <div class="panel">
+    <div class="panel-title">Key</div>
+    <div id="key-row"></div>
+  </div>
+
   <!-- ── Phase Timeline ──────────────────────────────────────────────────── -->
   <div class="panel">
     <div class="panel-title">Song Phases</div>
     <div id="phase-row">
-      <button class="phase-btn" data-phase="intro">Intro</button>
-      <button class="phase-btn" data-phase="build1">Build 1</button>
-      <button class="phase-btn" data-phase="verse1">Verse</button>
-      <button class="phase-btn" data-phase="chorus1">Chorus 1</button>
-      <button class="phase-btn" data-phase="break">Break</button>
-      <button class="phase-btn" data-phase="chorus2">Chorus 2</button>
-      <button class="phase-btn" data-phase="outro">Outro</button>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="intro">Intro</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="intro"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="build1">Build 1</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="build1"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="verse1">Verse</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="verse1"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="chorus1">Chorus 1</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="chorus1"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="break">Break</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="break"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="chorus2">Chorus 2</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="chorus2"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="outro">Outro</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="outro"></div></div>
+      </div>
+      <div class="phase-item">
+        <button class="phase-btn" data-phase="novel">Novel Phase</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="novel"></div></div>
+      </div>
     </div>
+    <label class="phase-loop-wrap" title="Loop currently selected phase">
+      <input type="checkbox" id="phase-loop">
+      <span>Loop Selected Phase</span>
+    </label>
   </div>
 
   <!-- ── Oscilloscope ────────────────────────────────────────────────────── -->
@@ -366,7 +483,7 @@
 
   <footer>
     <a href="https://github.com/BurnBridgers/ProceduralMusicStudio" target="_blank">GitHub</a>
-    &nbsp;·&nbsp; G natural minor · 120 BPM · Web Audio API
+    &nbsp;·&nbsp; G natural minor · 100 BPM · Web Audio API
   </footer>
 
 </div>
@@ -375,42 +492,114 @@
 <script>
 // ── Layer definitions ────────────────────────────────────────────────────
 const LAYERS = [
-  { id:'arp',       label:'Arpeggio',     desc:'Triangle-wave melodic pattern' },
-  { id:'echo',      label:'Echo / Arp 2', desc:'Delayed arp copy with feedback' },
-  { id:'thump',     label:'Kick / Thump', desc:'Pitch-swept sine kick drum' },
-  { id:'piano',     label:'Piano',        desc:'Multi-partial chord stabs' },
-  { id:'sub',       label:'Sub Bass',     desc:'Low-frequency sine foundation' },
-  { id:'pad',       label:'String Pad',   desc:'Detuned sine pad with vibrato' },
-  { id:'bass',      label:'Bass',         desc:'Root-note bass line' },
-  { id:'shim',      label:'Shimmer',      desc:'High-freq sparkle (chorus only)' },
-  { id:'drone',     label:'Drone',        desc:'Held root + pulse (chorus only)' },
-  { id:'beatpulse', label:'Beat Pulse',   desc:'Rhythmic sidechain-style pulse' },
+  { id:'arp',       label:'Arpeggio',       desc:'Triangle-wave melodic pattern', default:50 },
+  { id:'echo',      label:'Echo / Arp 2',   desc:'Delayed arp copy with feedback', default:50 },
+  { id:'thump',     label:'Kick / Thump',   desc:'Pitch-swept sine kick drum', default:50 },
+  { id:'piano',     label:'Piano',          desc:'Multi-partial chord stabs', default:50 },
+  { id:'sub',       label:'Sub Bass',       desc:'Low-frequency sine foundation', default:50 },
+  { id:'pad',       label:'String Pad',     desc:'Detuned sine pad with vibrato', default:50 },
+  { id:'bass',      label:'Bass',           desc:'Root-note bass line', default:50 },
+  { id:'shim',      label:'Shimmer',        desc:'High-freq sparkle (chorus only)', default:50 },
+  { id:'drone',     label:'Drone',          desc:'Held root + pulse (chorus only)', default:50 },
+  { id:'beatpulse', label:'Beat Pulse',     desc:'Rhythmic sidechain-style pulse', default:50 },
+  { id:'voices',    label:'Ethereal Voices',desc:'Airy choir swells on phrase turns', default:50 },
+  { id:'pluck',     label:'Glass Plucks',   desc:'Optional pluck accents (default off)', default:0 },
+  { id:'noisebed',  label:'Noise Bed',      desc:'Optional filtered texture layer (default off)', default:0 },
 ];
+const KEYS = ['Gm', 'Am', 'Bbm', 'Cm', 'Dm', 'Em', 'Fm'];
+const LAYER_COLORS = {
+  arp:'#00d4ff', echo:'#4fc3f7', thump:'#ff7043', piano:'#ffd54f', sub:'#9575cd',
+  pad:'#80cbc4', bass:'#26a69a', shim:'#f06292', drone:'#ba68c8', beatpulse:'#ff8a65',
+  voices:'#b39ddb', pluck:'#ffcc80', noisebed:'#90a4ae',
+};
+const progressEls = Object.fromEntries(
+  Array.from(document.querySelectorAll('.phase-progress-fill')).map(el => [el.dataset.progress, el])
+);
 
 // ── Engine boot ──────────────────────────────────────────────────────────
 let engine = null;
 let scopeRaf = null;
 const muted = {};   // track per-layer mute state
+const layerActive = {};  // active/inactive state per layer
+let selectedKey = 'Gm';
+let novelMode = false;
+let phaseLoopEnabled = false;
+let selectedPhaseId = 'intro';
+
+function formatLayerConfigLine(layer, cfg) {
+  const keys = Object.keys(cfg || {}).filter(k => k !== 'gainScale');
+  const picked = keys.slice(0, 3).map(k => `${k}:${Array.isArray(cfg[k]) ? cfg[k].join('/') : cfg[k]}`);
+  return `Default:${layer.default}% | gain:${(cfg?.gainScale ?? 0).toFixed(2)}${picked.length ? ` | ${picked.join(' | ')}` : ''}`;
+}
+function refreshLayerConfigHints() {
+  const cfg = engine?.getLayerConfigs ? engine.getLayerConfigs() : null;
+  LAYERS.forEach(layer => {
+    const el = document.getElementById(`lc-${layer.id}`);
+    if (!el) return;
+    el.textContent = formatLayerConfigLine(layer, cfg?.[layer.id] || {});
+  });
+}
+
+function syncHeaderKey() {
+  document.getElementById('key-title').textContent = `/ ${selectedKey}`;
+}
+
+function renderKeyButtons() {
+  const keyRow = document.getElementById('key-row');
+  keyRow.innerHTML = '';
+  KEYS.forEach(keyId => {
+    const b = document.createElement('button');
+    b.className = 'key-btn';
+    b.dataset.key = keyId;
+    b.textContent = keyId;
+    b.classList.toggle('active', keyId === selectedKey);
+    b.addEventListener('click', () => {
+      selectedKey = keyId;
+      syncHeaderKey();
+      document.querySelectorAll('.key-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.key === keyId));
+      if (engine) engine.setKey(keyId);
+    });
+    keyRow.appendChild(b);
+  });
+}
+syncHeaderKey();
+renderKeyButtons();
 
 function bootEngine() {
   if (engine) return;
   engine = ProceduralMusic.create();
+  engine.setKey(selectedKey);
+  engine.setNovelMode(novelMode);
+  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
+  refreshLayerConfigHints();
 
   // Wire events
   engine.on('phase', ({ id, label }) => {
     document.getElementById('phase-val').textContent = label;
     document.querySelectorAll('.phase-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.phase === id);
+      const isNovelButton = b.dataset.phase === 'novel';
+      const isNovelPhase = id === 'novel' || String(id).startsWith('novel-');
+      b.classList.toggle('active', isNovelButton ? isNovelPhase : b.dataset.phase === id);
     });
+    updateLayerDisplayFromState(engine.getState());
   });
   engine.on('chord', name => {
     document.getElementById('chord-val').textContent = name || '—';
+  });
+  engine.on('beat', ({ phase, phaseProgress }) => {
+    const progressKey = String(phase).startsWith('novel-') ? 'novel' : phase;
+    Object.keys(progressEls).forEach(key => {
+      const fill = progressEls[key];
+      fill.style.width = key === progressKey ? `${Math.round((phaseProgress || 0) * 100)}%` : '0%';
+    });
   });
 
   // Restore slider values
   engine.setVolume(parseFloat(document.getElementById('vol-slider').value) / 100);
   engine.setReverb(parseFloat(document.getElementById('rev-slider').value) / 100);
   engine.setBPM(parseInt(document.getElementById('bpm-slider').value));
+  syncAllLayersToEngine();
+  updateLayerDisplayFromState(engine.getState());
 
   // Start oscilloscope
   startScope();
@@ -447,7 +636,9 @@ document.getElementById('bpm-slider').addEventListener('input', e => {
 
 document.getElementById('vol-slider').addEventListener('input', e => {
   const v = parseInt(e.target.value);
-  document.getElementById('vol-display').textContent = v + '%';
+  const volDisplay = document.getElementById('vol-display');
+  volDisplay.textContent = v > 100 ? `${v}% Boost` : `${v}%`;
+  volDisplay.classList.toggle('boost', v > 100);
   if (engine) engine.setVolume(v / 100);
 });
 
@@ -461,6 +652,11 @@ document.getElementById('rev-slider').addEventListener('input', e => {
 document.querySelectorAll('.phase-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     bootEngine();
+    const selectedPhase = btn.dataset.phase;
+    selectedPhaseId = selectedPhase;
+    novelMode = selectedPhase === 'novel';
+    engine.setNovelMode(novelMode);
+    engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
     if (!engine.getState().playing) {
       engine.play();
       btnPlay.classList.add('playing');
@@ -468,40 +664,98 @@ document.querySelectorAll('.phase-btn').forEach(btn => {
       statusPill.textContent = 'playing';
       statusPill.classList.add('playing');
     }
-    engine.seekToPhase(btn.dataset.phase);
+    engine.seekToPhase(novelMode ? 'novel' : selectedPhase);
   });
+});
+
+const phaseLoopEl = document.getElementById('phase-loop');
+phaseLoopEl.addEventListener('change', () => {
+  phaseLoopEnabled = phaseLoopEl.checked;
+  if (!engine) return;
+  const state = engine.getState();
+  if (phaseLoopEnabled && state?.phase) {
+    selectedPhaseId = String(state.phase).startsWith('novel-') ? 'novel' : state.phase;
+  }
+  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
 });
 
 // ── Layer mixer build ─────────────────────────────────────────────────────
 const mixerGrid = document.getElementById('mixer-grid');
+function getEffectiveLayerValue(layerId, sliderVal) {
+  if (!layerActive[layerId]) return 0;
+  if (muted[layerId]) return 0;
+  return sliderVal;
+}
+function syncLayerToEngine(layerId) {
+  if (!engine) return;
+  const slider = document.getElementById(`sl-${layerId}`);
+  if (!slider) return;
+  const desiredVal = parseInt(slider.value) / 100;
+  const state = engine.getState();
+  const baseVal = state?.phaseLevels?.[layerId] ?? 0;
+  const effectiveVal = getEffectiveLayerValue(layerId, desiredVal);
+  const mult = baseVal > 0 ? Math.min(1, effectiveVal / baseVal) : 0;
+  engine.setLayer(layerId, mult);
+}
+function syncAllLayersToEngine() {
+  if (!engine) return;
+  LAYERS.forEach(layer => syncLayerToEngine(layer.id));
+}
+function updateLayerDisplayFromState(state) {
+  if (!state) return;
+  const phaseLevels = state.phaseLevels || {};
+  LAYERS.forEach(layer => {
+    const card = document.getElementById(`sl-${layer.id}`)?.closest('.layer-ctrl');
+    const slider = document.getElementById(`sl-${layer.id}`);
+    const valEl = document.getElementById(`lv-${layer.id}`);
+    if (!slider || !valEl || !card) return;
+    const base = phaseLevels[layer.id] ?? 0;
+    const effectiveVal = getEffectiveLayerValue(layer.id, base);
+    // Keep slider at the phase/base value so Active checkbox is a true gate, not a value reset.
+    slider.value = Math.round(base * 100);
+    valEl.textContent = base.toFixed(2);
+    valEl.classList.toggle('muted', effectiveVal === 0);
+    slider.classList.toggle('muted', effectiveVal === 0);
+    card.classList.toggle('inactive-phase', !layerActive[layer.id]);
+  });
+}
 
 LAYERS.forEach(layer => {
   const card = document.createElement('div');
   card.className = 'layer-ctrl';
+  card.style.setProperty('--layer-color', LAYER_COLORS[layer.id] || '#ffab00');
+  const defaultVal = layer.default ?? 50;
   card.innerHTML = `
     <div class="layer-header">
       <span class="layer-name">${layer.label}</span>
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="layer-val" id="lv-${layer.id}">1.00</span>
-        <button class="mute-btn" id="mute-${layer.id}" data-layer="${layer.id}">M</button>
+        <span class="layer-val ${defaultVal === 0 ? 'muted' : ''}" id="lv-${layer.id}">${(defaultVal / 100).toFixed(2)}</span>
+        <label class="active-wrap" title="Enable/disable this layer">
+          <input type="checkbox" id="active-${layer.id}" data-layer="${layer.id}" checked>
+          <span>Active</span>
+        </label>
+        <button class="mute-btn" id="mute-${layer.id}" data-layer="${layer.id}" title="Mute layer">Mute</button>
       </div>
     </div>
     <input type="range" class="layer-slider" id="sl-${layer.id}"
-           min="0" max="100" value="100" step="1" data-layer="${layer.id}">
+           min="0" max="100" value="${defaultVal}" step="1" data-layer="${layer.id}">
     <div class="layer-desc">${layer.desc}</div>
+    <div class="layer-config" id="lc-${layer.id}">Default:${defaultVal}%</div>
   `;
   mixerGrid.appendChild(card);
 
   const slider = card.querySelector(`#sl-${layer.id}`);
   const valEl  = card.querySelector(`#lv-${layer.id}`);
   const muteBtn = card.querySelector(`#mute-${layer.id}`);
+  const activeChk = card.querySelector(`#active-${layer.id}`);
+  muted[layer.id] = false;
+  layerActive[layer.id] = true;
+  slider.classList.toggle('muted', parseInt(slider.value) === 0);
 
   slider.addEventListener('input', e => {
     const v = parseInt(e.target.value) / 100;
     valEl.textContent = v.toFixed(2);
-    if (!muted[layer.id]) {
-      if (engine) engine.setLayer(layer.id, v);
-    }
+    syncLayerToEngine(layer.id);
     valEl.classList.toggle('muted', v === 0);
     slider.classList.toggle('muted', v === 0);
   });
@@ -509,14 +763,23 @@ LAYERS.forEach(layer => {
   muteBtn.addEventListener('click', () => {
     muted[layer.id] = !muted[layer.id];
     muteBtn.classList.toggle('muted', muted[layer.id]);
-    const sliderVal = parseInt(slider.value) / 100;
-    if (engine) engine.setLayer(layer.id, muted[layer.id] ? 0 : sliderVal);
+    syncLayerToEngine(layer.id);
+    updateLayerDisplayFromState(engine?.getState());
+  });
+
+  activeChk.addEventListener('change', () => {
+    layerActive[layer.id] = activeChk.checked;
+    card.classList.toggle('inactive-toggle', !activeChk.checked);
+    syncLayerToEngine(layer.id);
+    updateLayerDisplayFromState(engine?.getState());
   });
 });
+refreshLayerConfigHints();
 
 // ── Oscilloscope ──────────────────────────────────────────────────────────
 const canvas = document.getElementById('scope');
 const ctx2d  = canvas.getContext('2d');
+const layerVizAlpha = {};
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
@@ -538,59 +801,60 @@ function drawScope() {
   ctx2d.fillStyle = '#060a0c';
   ctx2d.fillRect(0, 0, W, H);
 
-  // Grid lines
-  ctx2d.strokeStyle = '#0d1a1f';
+  const cy = H * 0.5;
+  const amp = H * 0.48 * 5;
+  const layerAnalysers = engine?.getLayerAnalysers ? engine.getLayerAnalysers() : {};
+  const playing = !!engine?.getState?.().playing;
+
+  // Shared grid/center line for overlaid waveforms.
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx2d.lineWidth = 1;
-  const gridLines = 4;
-  for (let i = 1; i < gridLines; i++) {
-    const y = (H / gridLines) * i;
+  for (let i = 1; i < 4; i++) {
+    const y = (H / 4) * i;
     ctx2d.beginPath(); ctx2d.moveTo(0, y); ctx2d.lineTo(W, y); ctx2d.stroke();
   }
-  // Center line
-  ctx2d.strokeStyle = '#0d2a30';
-  ctx2d.beginPath(); ctx2d.moveTo(0, H/2); ctx2d.lineTo(W, H/2); ctx2d.stroke();
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.16)';
+  ctx2d.beginPath(); ctx2d.moveTo(0, cy); ctx2d.lineTo(W, cy); ctx2d.stroke();
 
-  if (!engine) {
-    // idle — flat line with pulse
-    ctx2d.strokeStyle = 'rgba(0,212,255,0.2)';
-    ctx2d.lineWidth = 1.5;
+  if (!playing) return;
+
+  LAYERS.forEach((layer) => {
+    const color = LAYER_COLORS[layer.id] || '#78909c';
+    const analyser = layerAnalysers[layer.id];
+    if (!analyser) return;
+
+    const buf = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(buf);
+    const rms = Math.sqrt(buf.reduce((acc, s) => acc + s * s, 0) / buf.length);
+    const targetAlpha = (layerActive[layer.id] && rms > 0.0025) ? 0.95 : 0;
+    const prevAlpha = layerVizAlpha[layer.id] ?? 0;
+    const alpha = prevAlpha + (targetAlpha - prevAlpha) * 0.16;
+    layerVizAlpha[layer.id] = alpha;
+    if (alpha < 0.02) return;
+
+    let start = 0;
+    for (let i = 1; i < buf.length - 1; i++) {
+      if (buf[i-1] < 0 && buf[i] >= 0) { start = i; break; }
+    }
+
+    const maxPts = Math.min(512, buf.length - start);
+    const stepX = W / Math.max(1, maxPts - 1);
+    ctx2d.strokeStyle = color;
+    ctx2d.lineWidth = 1.25;
+    ctx2d.globalAlpha = alpha;
+    ctx2d.shadowBlur = 4;
+    ctx2d.shadowColor = color;
     ctx2d.beginPath();
-    ctx2d.moveTo(0, H/2);
-    ctx2d.lineTo(W, H/2);
+    for (let i = 0; i < maxPts; i++) {
+      const x = i * stepX;
+      const sample = buf[start + i] || 0;
+      const y = cy - sample * amp;
+      if (i === 0) ctx2d.moveTo(x, y);
+      else ctx2d.lineTo(x, y);
+    }
     ctx2d.stroke();
-    return;
-  }
-
-  const analyser = engine.getAnalyser();
-  if (!analyser) return;
-
-  const buf = new Float32Array(analyser.fftSize);
-  analyser.getFloatTimeDomainData(buf);
-
-  // Find zero crossing for stable display
-  let start = 0;
-  for (let i = 1; i < buf.length - 1; i++) {
-    if (buf[i-1] < 0 && buf[i] >= 0) { start = i; break; }
-  }
-
-  const sliceW = W / Math.min(1024, buf.length);
-  const state = engine.getState();
-  const playing = state.playing;
-
-  ctx2d.lineWidth = 1.8;
-  ctx2d.strokeStyle = playing ? '#00d4ff' : 'rgba(0,212,255,0.3)';
-  ctx2d.shadowBlur = playing ? 8 : 0;
-  ctx2d.shadowColor = '#00d4ff';
-  ctx2d.beginPath();
-
-  let drawn = 0;
-  for (let i = start; i < buf.length && drawn < 1024; i++, drawn++) {
-    const x = drawn * sliceW;
-    const y = (1 - (buf[i] * 0.8 + 1) * 0.5) * H;   // scale + center
-    if (drawn === 0) ctx2d.moveTo(x, y);
-    else ctx2d.lineTo(x, y);
-  }
-  ctx2d.stroke();
+  });
+  ctx2d.globalAlpha = 1;
   ctx2d.shadowBlur = 0;
 }
 

@@ -1,8 +1,8 @@
 # Procedural Music Studio
 
-Standalone procedural music system for focus/coding sessions. Generates a looping G natural minor soundtrack entirely in the browser with no samples — pure Web Audio API synthesis. Also ships as a Godot 4 addon.
+Standalone procedural music system for focus/coding sessions. Generates a looping G natural minor soundtrack entirely in the browser with no samples — pure Web Audio API synthesis.
 
-Live site: **[https://burnbridgers.github.io/ProceduralMusicStudio](https://burnbridgers.github.io/ProceduralMusicStudio)**
+Live site: **[https://tomgarske.github.io/ProceduralMusicStudio/](https://tomgarske.github.io/ProceduralMusicStudio/)**
 
 ---
 
@@ -65,42 +65,6 @@ analyser.getFloatTimeDomainData(buf);
 // Full state snapshot
 const state = engine.getState();
 // { playing, phase, phaseLabel, bpm, volume, reverb, layers, phaseLevels }
-```
-
----
-
-## Godot 4 addon
-
-### Installation
-
-1. Copy `godot_addon/` into your project as `addons/procedural_music/`.
-2. **Project → Project Settings → Autoload** → select `music_manager.gd`, name it `MusicManager`, enable.
-3. Done — `MusicManager` is available globally.
-
-### GDScript API
-
-```gdscript
-MusicManager.play()
-MusicManager.stop()
-MusicManager.seek_to_phase("chorus1")
-MusicManager.set_volume(0.8)
-MusicManager.set_profile(intensity, speed, tone)
-# intensity: 0.2–2.0  (gain scaling)
-# speed:     0.2–3.0  (arp rate; groove stays locked to BPM)
-# tone:      reserved (always 1.0)
-
-# Signals
-MusicManager.phase_changed.connect(func(id, label): pass)
-MusicManager.chord_changed.connect(func(chord_name): pass)
-```
-
-### Settings panel
-
-Instantiate `addons/procedural_music/music_settings.tscn` in any scene (e.g. as a CanvasLayer child). It auto-connects to `MusicManager`.
-
-```gdscript
-var panel = preload("res://addons/procedural_music/music_settings.tscn").instantiate()
-add_child(panel)
 ```
 
 ---
