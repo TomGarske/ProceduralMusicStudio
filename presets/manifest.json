@@ -2,6 +2,11 @@
   "schemaVersion": 1,
   "presets": [
     {
+      "id": "drunken-sailor",
+      "file": "drunken-sailor.json",
+      "name": "D Dorian Shanty (Drunken Sailor)"
+    },
+    {
       "id": "studio-default",
       "file": "default.json",
       "name": "G Natural Minor (Studio)"

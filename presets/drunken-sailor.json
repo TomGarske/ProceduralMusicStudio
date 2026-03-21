@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "id": "drunken-sailor",
+  "name": "D Dorian Shanty (Drunken Sailor)",
+  "description": "Traditional sea shanty in D Dorian: driving 2/4 stomp, raw modal melody, call-and-response build. Dm→C gives the Dorian colour. Public domain folk song (pre-1800s).",
+  "defaults": {
+    "bpm": 108,
+    "key": "Dm",
+    "reverb": 0.08
+  },
+  "keyOffsets": {
+    "Dm": -5,
+    "Em": -3,
+    "Fm": -2,
+    "Gm": 0,
+    "Am": 2,
+    "Bbm": 3,
+    "Cm": 5
+  },
+  "baseNotesHz": {
+    "G1": 49.0,
+    "D2": 73.42,
+    "G2": 98.0,
+    "Bb2": 116.54,
+    "C3": 130.81,
+    "D3": 146.83,
+    "F3": 174.61,
+    "G3": 196.0,
+    "A3": 220.0,
+    "Bb3": 233.08,
+    "C4": 261.63,
+    "D4": 293.66,
+    "Eb4": 311.13,
+    "F4": 349.23,
+    "G4": 392.0,
+    "Bb4": 466.16
+  },
+  "chordVoicings": {
+    "Dm": { "label": "Dm",  "notes": ["G2", "D3", "G3", "Bb3", "D4"] },
+    "C":  { "label": "C",   "notes": ["F3", "A3", "C4", "F4"] },
+    "Am": { "label": "Am",  "notes": ["D3", "F3", "A3", "D4"] },
+    "F":  { "label": "F",   "notes": ["Bb3", "D4", "F4"] }
+  },
+  "droneVoicings": [
+    { "root": "G1", "fifth": "D2" },
+    { "root": "F3", "fifth": "C3" }
+  ],
+  "velocities": [
+    0.95, 0.40, 0.58, 0.35, 0.90, 0.38, 0.55, 0.33,
+    0.92, 0.42, 0.60, 0.34, 0.88, 0.36, 0.52, 0.32
+  ],
+  "layerIds": [
+    "arp", "echo", "thump", "piano", "sub", "pad", "bass", "shim", "drone", "beatpulse", "voices"
+  ],
+  "layerMix": {
+    "arp": 0.40,
+    "echo": 0.12,
+    "thump": 0.95,
+    "piano": 0.85,
+    "sub": 0.18,
+    "pad": 0.12,
+    "bass": 0.32,
+    "shim": 0.20,
+    "drone": 0.26,
+    "beatpulse": 0.75,
+    "voices": 0.38
+  },
+  "layerConfigs": {
+    "arp": { "stepsPerBar": 16, "lfoHz": 6.0, "attackSec": 0.004, "decayTauMul": 0.45, "gainScale": 0.40 },
+    "echo": { "leftDelaySteps": 2, "rightDelaySteps": 3, "gainScale": 0.12 },
+    "thump": { "durationSec": 0.35, "startHz": 190, "endHz": 78, "pitchDecay": 11, "ampDecay": 8.0, "gainScale": 0.95 },
+    "piano": { "harmonics": [1, 2, 3, 4], "durationSec": 1.4, "voiceDelaySec": 0.002, "gainScale": 0.85 },
+    "sub": { "rootNote": "G1", "overtoneNote": "G2", "overtoneMix": 0.30, "gainScale": 0.18 },
+    "pad": { "vibratoHz": 5.2, "vibratoDepth": 0.40, "lpfHz": 580, "voiceGain": 0.10, "gainScale": 0.12 },
+    "bass": { "lpfHz": 450, "hpfHz": 55, "detuneCents": -3, "gainScale": 0.32 },
+    "shim": { "triggerSteps": [0, 4, 8, 12], "durationSec": 0.06, "octaveMul": 2, "gainScale": 0.20 },
+    "drone": { "holdBeats": 12, "pulseBeats": 8, "lpfHz": 340, "gainScale": 0.26 },
+    "beatpulse": { "durationSec": 0.30, "pitchGlide": 5, "ampDecay": 8.5, "gainScale": 0.75 },
+    "voices": { "releaseSec": 1.0, "vibratoHz": 6.0, "formantHz": 1380, "triggerSteps": [0, 8], "gainScale": 0.38 }
+  },
+  "arpPattern": [
+    "G3", "G3", "A3", "Bb3", "C4", "D4", "C4", "Bb3",
+    "D4", "D4", "C4", "Bb3", "A3", "G3", "A3", "G3"
+  ],
+  "phaseFilterHz": {
+    "call": 680,
+    "response": 920,
+    "verse": 850,
+    "hauling": 1300,
+    "breather": 580,
+    "allhands": 1500,
+    "outro": 520
+  },
+  "novelLabels": [
+    "Starboard Gale",
+    "Anchor Watch",
+    "Crow's Nest",
+    "Topsail Squall",
+    "Leeward Drift",
+    "Harbour Lights"
+  ],
+  "phases": [
+    {
+      "id": "call",
+      "label": "The Call",
+      "durationBeats": 16,
+      "chordSeq": ["Dm", "Dm"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.82,
+        "echo": 0.0,
+        "thump": 0.62,
+        "piano": 0.0,
+        "sub": 0.20,
+        "pad": 0.0,
+        "bass": 0.28,
+        "shim": 0.0,
+        "drone": 0.0,
+        "beatpulse": 0.48,
+        "voices": 0.0
+      }
+    },
+    {
+      "id": "response",
+      "label": "Response",
+      "durationBeats": 16,
+      "chordSeq": ["Dm", "C"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.80,
+        "echo": 0.22,
+        "thump": 0.74,
+        "piano": 0.50,
+        "sub": 0.30,
+        "pad": 0.0,
+        "bass": 0.42,
+        "shim": 0.12,
+        "drone": 0.0,
+        "beatpulse": 0.58,
+        "voices": 0.25
+      }
+    },
+    {
+      "id": "verse",
+      "label": "Verse",
+      "durationBeats": 20,
+      "chordSeq": ["Dm", "C"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.76,
+        "echo": 0.28,
+        "thump": 0.78,
+        "piano": 0.58,
+        "sub": 0.36,
+        "pad": 0.18,
+        "bass": 0.50,
+        "shim": 0.16,
+        "drone": 0.0,
+        "beatpulse": 0.64,
+        "voices": 0.30
+      }
+    },
+    {
+      "id": "hauling",
+      "label": "Hauling",
+      "durationBeats": 24,
+      "chordSeq": ["Dm", "C", "Dm", "C"],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.72,
+        "echo": 0.36,
+        "thump": 0.88,
+        "piano": 0.64,
+        "sub": 0.44,
+        "pad": 0.40,
+        "bass": 0.56,
+        "shim": 0.32,
+        "drone": 0.68,
+        "beatpulse": 0.78,
+        "voices": 0.50
+      }
+    },
+    {
+      "id": "breather",
+      "label": "Breather",
+      "durationBeats": 12,
+      "chordSeq": ["Dm", "Am"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.84,
+        "echo": 0.10,
+        "thump": 0.58,
+        "piano": 0.36,
+        "sub": 0.26,
+        "pad": 0.08,
+        "bass": 0.30,
+        "shim": 0.0,
+        "drone": 0.0,
+        "beatpulse": 0.42,
+        "voices": 0.0
+      }
+    },
+    {
+      "id": "allhands",
+      "label": "All Hands",
+      "durationBeats": 24,
+      "chordSeq": ["Dm", "C", "F", "C"],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.76,
+        "echo": 0.40,
+        "thump": 0.92,
+        "piano": 0.68,
+        "sub": 0.50,
+        "pad": 0.46,
+        "bass": 0.60,
+        "shim": 0.38,
+        "drone": 0.76,
+        "beatpulse": 0.85,
+        "voices": 0.58
+      }
+    },
+    {
+      "id": "outro",
+      "label": "Shore Leave",
+      "durationBeats": 16,
+      "chordSeq": ["Dm", "C"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.68,
+        "echo": 0.10,
+        "thump": 0.48,
+        "piano": 0.32,
+        "sub": 0.18,
+        "pad": 0.08,
+        "bass": 0.20,
+        "shim": 0.06,
+        "drone": 0.0,
+        "beatpulse": 0.32,
+        "voices": 0.08
+      }
+    }
+  ]
+}

@@ -293,30 +293,6 @@
     }
     .info-chip .info-key { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
     .info-chip .info-val { color: var(--cyan); font-size: 14px; font-weight: 600; min-width: 60px; }
-    .synthesize-btn {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 6px 14px;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      color: var(--text-mid);
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, background 0.2s;
-      white-space: nowrap;
-    }
-    .synthesize-btn:hover {
-      border-color: var(--amber);
-      color: var(--amber);
-    }
-    .synthesize-btn.active {
-      border-color: var(--amber);
-      color: var(--amber);
-      background: rgba(255,171,0,0.1);
-      box-shadow: 0 0 10px rgba(255,171,0,0.15);
-    }
     .phase-btn-placeholder {
       opacity: 0.55;
       cursor: not-allowed;
@@ -385,25 +361,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 10px;
-    }
-    .mixer-add-tile {
-      min-height: 140px;
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      background: rgba(0, 0, 0, 0.2);
-      color: var(--text-dim);
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
-    }
-    .mixer-add-tile:hover {
-      border-color: var(--cyan-dim);
-      color: var(--cyan);
-      background: rgba(0, 212, 255, 0.06);
     }
     .layer-ctrl {
       --layer-color: var(--amber);
@@ -621,8 +578,8 @@
       <button id="btn-play" title="Play / Stop">▶</button>
 
       <div class="ctrl" id="bpm-ctrl">
-        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">83</span></div>
-        <input type="range" id="bpm-slider" min="50" max="120" value="83" step="1">
+        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">108</span></div>
+        <input type="range" id="bpm-slider" min="40" max="160" value="108" step="1">
       </div>
 
       <div class="ctrl" id="vol-ctrl">
@@ -631,8 +588,8 @@
       </div>
 
       <div class="ctrl" id="rev-ctrl">
-        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">15%</span></div>
-        <input type="range" id="rev-slider" min="0" max="60" value="15" step="1">
+        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">8%</span></div>
+        <input type="range" id="rev-slider" min="0" max="80" value="8" step="1">
       </div>
 
       <div id="info-row">
@@ -640,7 +597,6 @@
           <span class="info-key">Phase</span>
           <span class="info-val" id="phase-val">—</span>
         </div>
-        <button type="button" id="btn-synthesize" class="synthesize-btn" title="Post-loop evolving music (formerly Novel phase)">Synthesize</button>
       </div>
 
       <div class="ctrl" id="preset-ctrl">
@@ -736,7 +692,7 @@ function refreshProgressEls() {
 function renderPhaseRow() {
   const row = document.getElementById('phase-row');
   if (!row) return;
-  const list = engine?.getPhases?.()?.filter(p => p.id !== 'novel') ?? ALL_SCRIPTED_PHASES;
+  const list = engine?.getPhases?.() ?? ALL_SCRIPTED_PHASES;
   const canRemove = list.length > 1;
   row.innerHTML = '';
   list.forEach(p => {
@@ -761,11 +717,7 @@ function renderPhaseRow() {
   });
   const placeholder = document.createElement('div');
   placeholder.className = 'phase-item';
-  placeholder.innerHTML = `
-    <button type="button" class="phase-btn phase-btn-placeholder" disabled data-phase="placeholder" title="Coming soon">New phase…</button>
-    <div class="phase-progress"><div class="phase-progress-fill" data-progress="novel"></div></div>
-  `;
-  row.appendChild(placeholder);
+  // Placeholder removed — no longer needed without novel mode
   refreshProgressEls();
 }
 /** Layer slider 0–200 → multiplier 0–2× phase level (must match engine `setLayer` max). */
@@ -784,7 +736,6 @@ function syncArrangementVizFocus() {
     ArrangementLive.setFocusLayer(arrangementFocusLayerId);
   }
 }
-let novelMode = false;
 let phaseLoopEnabled = false;
 let selectedPhaseId = 'intro';
 
@@ -813,7 +764,6 @@ async function bootEngine() {
   engine = ProceduralMusic.create(opts);
   window.__PROC_ENGINE = engine;
   engine.setKey(activePresetJson?.defaults?.key ?? 'Gm');
-  engine.setNovelMode(novelMode);
   engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
 
   // Wire events
@@ -824,12 +774,8 @@ async function bootEngine() {
   });
   engine.on('phase', ({ id, label }) => {
     document.getElementById('phase-val').textContent = label;
-    const isNovelPhase = id === 'novel' || String(id).startsWith('novel-');
-    const btnSyn = document.getElementById('btn-synthesize');
-    if (btnSyn) btnSyn.classList.toggle('active', isNovelPhase);
     document.querySelectorAll('.phase-btn').forEach(b => {
-      if (b.dataset.phase === 'placeholder') return;
-      b.classList.toggle('active', !isNovelPhase && b.dataset.phase === id);
+      b.classList.toggle('active', b.dataset.phase === id);
     });
     updateLayerDisplayFromState(engine.getState());
     // Re-apply layer multipliers after phase levels change (otherwise layers at 0 in the
@@ -838,17 +784,22 @@ async function bootEngine() {
     updateChordLayerLabels();
   });
   engine.on('beat', ({ phase, phaseProgress }) => {
-    const progressKey = String(phase).startsWith('novel-') ? 'novel' : phase;
     Object.keys(progressEls).forEach(key => {
       const fill = progressEls[key];
-      fill.style.width = key === progressKey ? `${Math.round((phaseProgress || 0) * 100)}%` : '0%';
+      fill.style.width = key === phase ? `${Math.round((phaseProgress || 0) * 100)}%` : '0%';
     });
   });
 
-  // Restore slider values
+  // Sync sliders to the loaded preset's defaults, then push to engine
+  const presetBpm = activePresetJson?.defaults?.bpm ?? 108;
+  const presetRev = Math.round((activePresetJson?.defaults?.reverb ?? 0.08) * 100);
+  document.getElementById('bpm-slider').value = presetBpm;
+  document.getElementById('bpm-display').textContent = Math.round(presetBpm);
+  document.getElementById('rev-slider').value = presetRev;
+  document.getElementById('rev-display').textContent = presetRev + '%';
   engine.setVolume(parseFloat(document.getElementById('vol-slider').value) / 100);
-  engine.setReverb(parseFloat(document.getElementById('rev-slider').value) / 100);
-  engine.setBPM(parseInt(document.getElementById('bpm-slider').value));
+  engine.setReverb(presetRev / 100);
+  engine.setBPM(presetBpm);
   updateLayerDisplayFromState(engine.getState());
   syncAllLayersToEngine();
   updateChordLayerLabels();
@@ -911,7 +862,7 @@ document.getElementById('phase-row').addEventListener('click', async e => {
     const id = rm.dataset.phase;
     await bootEngine();
     if (engine.removePhase(id)) {
-      const active = engine.getPhases().filter(p => p.id !== 'novel');
+      const active = engine.getPhases();
       if (selectedPhaseId === id) {
         selectedPhaseId = active[0]?.id ?? 'intro';
       }
@@ -926,13 +877,10 @@ document.getElementById('phase-row').addEventListener('click', async e => {
     return;
   }
   const btn = e.target.closest('.phase-btn');
-  if (!btn || btn.disabled || btn.dataset.phase === 'placeholder') return;
+  if (!btn || btn.disabled) return;
   await bootEngine();
   const selectedPhase = btn.dataset.phase;
   selectedPhaseId = selectedPhase;
-  novelMode = false;
-  engine.setNovelMode(false);
-  document.getElementById('btn-synthesize')?.classList.remove('active');
   engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
   if (!engine.getState().transportActive) {
     engine.play();
@@ -944,30 +892,13 @@ document.getElementById('phase-row').addEventListener('click', async e => {
   engine.seekToPhase(selectedPhase);
 });
 
-// ── Synthesize (post-loop / novel mode) — was “Novel Phase” in the timeline ─
-document.getElementById('btn-synthesize').addEventListener('click', async () => {
-  await bootEngine();
-  selectedPhaseId = 'novel';
-  novelMode = true;
-  engine.setNovelMode(true);
-  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
-  if (!engine.getState().transportActive) {
-    engine.play();
-    btnPlay.classList.add('playing');
-    btnPlay.innerHTML = '■';
-    statusPill.textContent = 'playing';
-    statusPill.classList.add('playing');
-  }
-  engine.seekToPhase('novel');
-});
-
 const phaseLoopEl = document.getElementById('phase-loop');
 phaseLoopEl.addEventListener('change', () => {
   phaseLoopEnabled = phaseLoopEl.checked;
   if (!engine) return;
   const state = engine.getState();
   if (phaseLoopEnabled && state?.phase) {
-    selectedPhaseId = String(state.phase).startsWith('novel-') ? 'novel' : state.phase;
+    selectedPhaseId = state.phase;
   }
   engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
 });
@@ -1126,15 +1057,6 @@ function buildLayerCard(layer) {
 LAYERS.forEach(layer => {
   mixerLayersEl.appendChild(buildLayerCard(layer));
 });
-const mixerAddTile = document.createElement('button');
-mixerAddTile.type = 'button';
-mixerAddTile.className = 'mixer-add-tile';
-mixerAddTile.textContent = '+ Add new layer';
-mixerAddTile.title = 'Add a new layer (coming soon)';
-mixerAddTile.addEventListener('click', () => {
-  /* Placeholder — future: add user-defined layer slot */
-});
-mixerLayersEl.appendChild(mixerAddTile);
 updateSoloStyles();
 updateEditStyles();
 updateChordLayerLabels();
@@ -1246,7 +1168,7 @@ document.addEventListener('keydown', async e => {
   const idx = parseInt(e.key, 10) - 1;
   if (idx >= 0 && idx < 9) {
     await bootEngine();
-    const phases = engine.getPhases().filter(p => p.id !== 'novel');
+    const phases = engine.getPhases();
     if (idx < phases.length) engine.seekToPhase(phases[idx].id);
   }
 });
