@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "presets": [
+    {
+      "id": "studio-default",
+      "file": "default.json",
+      "name": "G Natural Minor (Studio)"
+    },
+    {
+      "id": "lessons-sohn",
+      "file": "lessons-sohn.json",
+      "name": "Eb Minor Atmospheric (Lessons)"
+    }
+  ]
+}

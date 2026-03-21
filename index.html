@@ -9,7 +9,7 @@
 
     :root {
       --waveform-h:   143px;  /* ~25% shorter than prior 190px shared strip */
-      --arrangement-h: 238px; /* ~25% taller than prior 190px */
+      --arrangement-h: 179px; /* 75% of prior 238px strip */
       --bg:        #0d0d0d;
       --bg2:       #121212;
       --bg3:       #1a1a1a;
@@ -93,9 +93,22 @@
     /* ── Transport ───────────────────────────────────────────────────────── */
     #transport {
       display: grid;
-      grid-template-columns: auto 1fr 1fr 1fr auto;
-      align-items: center;
-      gap: 16px;
+      grid-template-columns: auto 1fr 1fr 1fr minmax(180px, 1.1fr);
+      grid-template-rows: auto auto;
+      grid-template-areas:
+        "play bpm vol rev info"
+        "preset preset preset preset preset";
+      align-items: end;
+      gap: 14px 16px;
+    }
+    #transport #btn-play { grid-area: play; align-self: center; }
+    #transport #bpm-ctrl { grid-area: bpm; }
+    #transport #vol-ctrl { grid-area: vol; }
+    #transport #rev-ctrl { grid-area: rev; }
+    #transport #info-row { grid-area: info; justify-self: end; min-width: 0; }
+    #transport #preset-ctrl {
+      grid-area: preset;
+      align-self: stretch;
     }
 
     #btn-play {
@@ -529,13 +542,67 @@
     footer a { color: var(--cyan-dim); text-decoration: none; }
     footer a:hover { color: var(--cyan); }
 
-    /* ── Responsive ──────────────────────────────────────────────────────── */
+    /* ── Preset row (full width under sliders) ───────────────────────────── */
+    #preset-ctrl {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+      padding-top: 2px;
+      border-top: 1px solid var(--border);
+    }
+    #preset-ctrl .ctrl-label span {
+      color: var(--text-mid);
+      font-variant-numeric: normal;
+    }
+    #preset-select {
+      width: 100%;
+      max-width: none;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1.3;
+    }
+    #preset-select:hover { border-color: var(--cyan-dim); }
+    #preset-select:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.2);
+    }
+    #preset-description {
+      margin: 0;
+      font-size: 10px;
+      line-height: 1.4;
+      color: var(--text-dim);
+      letter-spacing: 0.02em;
+      max-height: 2.8em;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    #preset-description:empty { display: none; }
+
     @media (max-width: 640px) {
-      #transport { grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; }
-      #transport #bpm-ctrl  { grid-column: 2; }
-      #transport #vol-ctrl  { grid-column: 1 / -1; }
-      #transport #rev-ctrl  { grid-column: 1 / -1; }
-      #transport #info-row  { grid-column: 1 / -1; }
+      #transport {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+          "play bpm"
+          "vol vol"
+          "rev rev"
+          "info info"
+          "preset preset";
+        gap: 12px;
+      }
+      #transport #info-row { justify-self: stretch; }
+      #transport #btn-play { justify-self: start; }
     }
   </style>
 </head>
@@ -575,6 +642,12 @@
         </div>
         <button type="button" id="btn-synthesize" class="synthesize-btn" title="Post-loop evolving music (formerly Novel phase)">Synthesize</button>
       </div>
+
+      <div class="ctrl" id="preset-ctrl">
+        <div class="ctrl-label"><span>Preset</span></div>
+        <select id="preset-select" aria-label="Music preset"></select>
+        <p id="preset-description" class="preset-desc"></p>
+      </div>
     </div>
   </div>
 
@@ -599,7 +672,7 @@
     <div id="arrangement-wrap">
       <div class="arrangement-live-wrap">
         <div class="arrangement-live-canvas-wrap">
-          <canvas id="arrangement-canvas" width="400" height="72"></canvas>
+          <canvas id="arrangement-canvas" width="300" height="54"></canvas>
         </div>
       </div>
       <div id="arrangement-label" class="viz-label viz-label-row">
@@ -642,7 +715,7 @@ const LAYERS = [
 /** Layers that follow the phase chord progression (shown in the mixer). */
 const CHORD_LAYER_IDS = ['piano', 'bass', 'voices'];
 
-/** Default scripted phases (same order as engine) — used before engine boots. */
+/** Fallback phase labels if engine is not ready yet */
 const ALL_SCRIPTED_PHASES = [
   { id: 'intro', label: 'Intro' },
   { id: 'build1', label: 'Build 1' },
@@ -652,6 +725,8 @@ const ALL_SCRIPTED_PHASES = [
   { id: 'chorus2', label: 'Chorus 2' },
   { id: 'outro', label: 'Outro' },
 ];
+let presetManifestList = [];
+let activePresetJson = null;
 let progressEls = {};
 function refreshProgressEls() {
   progressEls = Object.fromEntries(
@@ -724,11 +799,20 @@ function updateChordLayerLabels() {
   });
 }
 
-function bootEngine() {
+async function bootEngine() {
   if (engine) return;
-  engine = ProceduralMusic.create();
+  if (!activePresetJson && presetManifestList.length) {
+    try {
+      const r = await fetch('presets/' + presetManifestList[0].file);
+      activePresetJson = await r.json();
+    } catch (e) {
+      console.warn('Could not load preset file; using engine default.', e);
+    }
+  }
+  const opts = activePresetJson ? { preset: activePresetJson } : {};
+  engine = ProceduralMusic.create(opts);
   window.__PROC_ENGINE = engine;
-  engine.setKey('Gm');
+  engine.setKey(activePresetJson?.defaults?.key ?? 'Gm');
   engine.setNovelMode(novelMode);
   engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
 
@@ -779,8 +863,8 @@ function bootEngine() {
 const btnPlay = document.getElementById('btn-play');
 const statusPill = document.getElementById('status-pill');
 
-btnPlay.addEventListener('click', () => {
-  bootEngine();
+btnPlay.addEventListener('click', async () => {
+  await bootEngine();
   const state = engine.getState();
   if (state.transportActive) {
     engine.stop();
@@ -819,13 +903,13 @@ document.getElementById('rev-slider').addEventListener('input', e => {
 });
 
 // ── Phase row: select phase, remove (×), restore strip ───────────────────
-document.getElementById('phase-row').addEventListener('click', e => {
+document.getElementById('phase-row').addEventListener('click', async e => {
   const rm = e.target.closest('.phase-remove');
   if (rm) {
     e.preventDefault();
     e.stopPropagation();
     const id = rm.dataset.phase;
-    bootEngine();
+    await bootEngine();
     if (engine.removePhase(id)) {
       const active = engine.getPhases().filter(p => p.id !== 'novel');
       if (selectedPhaseId === id) {
@@ -843,7 +927,7 @@ document.getElementById('phase-row').addEventListener('click', e => {
   }
   const btn = e.target.closest('.phase-btn');
   if (!btn || btn.disabled || btn.dataset.phase === 'placeholder') return;
-  bootEngine();
+  await bootEngine();
   const selectedPhase = btn.dataset.phase;
   selectedPhaseId = selectedPhase;
   novelMode = false;
@@ -861,8 +945,8 @@ document.getElementById('phase-row').addEventListener('click', e => {
 });
 
 // ── Synthesize (post-loop / novel mode) — was “Novel Phase” in the timeline ─
-document.getElementById('btn-synthesize').addEventListener('click', () => {
-  bootEngine();
+document.getElementById('btn-synthesize').addEventListener('click', async () => {
+  await bootEngine();
   selectedPhaseId = 'novel';
   novelMode = true;
   engine.setNovelMode(true);
@@ -1062,10 +1146,15 @@ if (window.ArrangementLive) {
 // ── Oscilloscope ──────────────────────────────────────────────────────────
 const canvas = document.getElementById('scope');
 const ctx2d  = canvas.getContext('2d');
+let scopeCssW = 0;
+let scopeCssH = 0;
+let scopeTimeBuf = null;
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
+  scopeCssW = rect.width;
+  scopeCssH = rect.height;
   canvas.width  = rect.width  * dpr;
   canvas.height = rect.height * dpr;
   ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1076,8 +1165,8 @@ window.addEventListener('resize', resizeCanvas);
 function drawScope() {
   scopeRaf = requestAnimationFrame(drawScope);
 
-  const W = canvas.getBoundingClientRect().width;
-  const H = canvas.getBoundingClientRect().height;
+  const W = scopeCssW;
+  const H = scopeCssH;
 
   ctx2d.clearRect(0, 0, W, H);
   ctx2d.fillStyle = '#060a0c';
@@ -1108,8 +1197,11 @@ function drawScope() {
   const analyser = engine.getAnalyser();
   if (!analyser) return;
 
-  const buf = new Float32Array(analyser.fftSize);
-  analyser.getFloatTimeDomainData(buf);
+  if (!scopeTimeBuf || scopeTimeBuf.length !== analyser.fftSize) {
+    scopeTimeBuf = new Float32Array(analyser.fftSize);
+  }
+  analyser.getFloatTimeDomainData(scopeTimeBuf);
+  const buf = scopeTimeBuf;
 
   let start = 0;
   for (let i = 1; i < buf.length - 1; i++) {
@@ -1117,8 +1209,7 @@ function drawScope() {
   }
 
   const sliceW = W / Math.min(1024, buf.length);
-  const state = engine.getState();
-  const playing = state.playing;
+  const playing = btnPlay.classList.contains('playing');
 
   ctx2d.lineWidth = 1.8;
   ctx2d.strokeStyle = playing ? '#00d4ff' : 'rgba(0,212,255,0.3)';
@@ -1145,7 +1236,7 @@ function startScope() {
 drawScope();
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', async e => {
   if (e.target.tagName === 'INPUT') return;
   if (e.code === 'Space') {
     e.preventDefault();
@@ -1154,13 +1245,78 @@ document.addEventListener('keydown', e => {
   // Number keys 1–9 → Nth active scripted phase
   const idx = parseInt(e.key, 10) - 1;
   if (idx >= 0 && idx < 9) {
-    bootEngine();
+    await bootEngine();
     const phases = engine.getPhases().filter(p => p.id !== 'novel');
     if (idx < phases.length) engine.seekToPhase(phases[idx].id);
   }
 });
 
-renderPhaseRow();
+async function initPresets() {
+  try {
+    const m = await fetch('presets/manifest.json').then(r => r.json());
+    presetManifestList = m.presets || [];
+    const sel = document.getElementById('preset-select');
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (const p of presetManifestList) {
+      const opt = document.createElement('option');
+      opt.value = p.file;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    }
+    const first = presetManifestList[0];
+    if (first) {
+      const r = await fetch('presets/' + first.file);
+      activePresetJson = await r.json();
+      sel.value = first.file;
+    }
+    updatePresetHint();
+  } catch (e) {
+    console.warn('Preset manifest/load failed; using bundled engine default.', e);
+    presetManifestList = [];
+  }
+}
+
+function updatePresetHint() {
+  const el = document.getElementById('preset-description');
+  if (!el || !activePresetJson) return;
+  const d = (activePresetJson.description || '').trim();
+  el.textContent = d;
+  el.title = d.length > 120 ? d : '';
+}
+
+document.getElementById('preset-select').addEventListener('change', async () => {
+  const sel = document.getElementById('preset-select');
+  const file = sel.value;
+  const entry = presetManifestList.find(p => p.file === file);
+  if (!entry) return;
+  try {
+    const r = await fetch('presets/' + file);
+    activePresetJson = await r.json();
+    updatePresetHint();
+    if (engine) {
+      const wasPlaying = engine.getState().playing;
+      if (wasPlaying) engine.stop();
+      engine.applyPreset(activePresetJson);
+      if (wasPlaying) engine.play();
+      const bpm = activePresetJson.defaults?.bpm ?? 83;
+      document.getElementById('bpm-slider').value = bpm;
+      document.getElementById('bpm-display').textContent = Math.round(bpm);
+      const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.15) * 100);
+      document.getElementById('rev-slider').value = rev;
+      document.getElementById('rev-display').textContent = rev + '%';
+      engine.setBPM(bpm);
+      engine.setReverb(rev / 100);
+      renderPhaseRow();
+      syncAllLayersToEngine();
+      updateChordLayerLabels();
+    }
+  } catch (err) {
+    console.error('Failed to load preset', err);
+  }
+});
+
+initPresets().then(() => renderPhaseRow());
 </script>
 </body>
 </html>

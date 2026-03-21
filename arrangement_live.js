@@ -72,7 +72,7 @@
   function getRowHeightsScaled(nRows) {
     if (nRows === 0) return [];
     const wrap = canvas && canvas.parentElement;
-    let maxH = 238;
+    let maxH = 179;
     if (wrap && wrap.clientHeight > 0) maxH = wrap.clientHeight;
     const maxContent = Math.max(1, maxH - PAD_TOP);
 

@@ -4,7 +4,7 @@
 // Drop into any HTML page.
 //
 // Public API:
-//   const engine = ProceduralMusic.create();
+//   const engine = ProceduralMusic.create({ preset }); // preset optional — defaults to bundled JSON
 //   engine.play()
 //   engine.stop()
 //   engine.seekToPhase(id)          // active scripted id or 'novel'
@@ -30,41 +30,55 @@
 //   engine.off(event, callback)
 
 const ProceduralMusic = (() => {
+  const DEFAULT_PRESET = JSON.parse("{\"schemaVersion\":1,\"id\":\"studio-default\",\"name\":\"G Natural Minor (Studio)\",\"description\":\"Original Procedural Music Studio loop: seven phases, layered Web Audio synthesis.\",\"defaults\":{\"bpm\":83,\"key\":\"Gm\",\"reverb\":0.15},\"keyOffsets\":{\"Gm\":0,\"Am\":2,\"Bbm\":3,\"Cm\":5,\"Dm\":7,\"Em\":9,\"Fm\":10},\"baseNotesHz\":{\"G1\":49,\"D2\":73.42,\"G2\":98,\"Bb2\":116.54,\"C3\":130.81,\"D3\":146.83,\"F3\":174.61,\"G3\":196,\"A3\":220,\"Bb3\":233.08,\"C4\":261.63,\"D4\":293.66,\"Eb4\":311.13,\"F4\":349.23,\"G4\":392,\"Bb4\":466.16},\"velocities\":[0.88,0.38,0.54,0.32,0.72,0.36,0.5,0.28,0.8,0.4,0.56,0.3,0.66,0.34,0.48,0.26],\"layerIds\":[\"arp\",\"echo\",\"thump\",\"piano\",\"sub\",\"pad\",\"bass\",\"shim\",\"drone\",\"beatpulse\",\"voices\"],\"layerMix\":{\"arp\":0.3,\"echo\":0.2,\"thump\":0.85,\"piano\":0.9,\"sub\":0.13,\"pad\":0.2,\"bass\":0.22,\"shim\":0.12,\"drone\":0.3,\"beatpulse\":0.55,\"voices\":0.26},\"layerConfigs\":{\"arp\":{\"stepsPerBar\":16,\"lfoHz\":5.1,\"attackSec\":0.007,\"decayTauMul\":0.65,\"gainScale\":0.3},\"echo\":{\"leftDelaySteps\":2,\"rightDelaySteps\":3,\"gainScale\":0.2},\"thump\":{\"durationSec\":0.55,\"startHz\":140,\"endHz\":60,\"pitchDecay\":8,\"ampDecay\":5.5,\"gainScale\":0.85},\"piano\":{\"harmonics\":[1,2,3,4],\"durationSec\":2.2,\"voiceDelaySec\":0.004,\"gainScale\":0.9},\"sub\":{\"rootNote\":\"G1\",\"overtoneNote\":\"G2\",\"overtoneMix\":0.24,\"gainScale\":0.13},\"pad\":{\"vibratoHz\":4.6,\"vibratoDepth\":0.82,\"lpfHz\":820,\"voiceGain\":0.17,\"gainScale\":0.2},\"bass\":{\"lpfHz\":380,\"hpfHz\":45,\"detuneCents\":-5,\"gainScale\":0.22},\"shim\":{\"triggerSteps\":[2,6,10,14],\"durationSec\":0.1,\"octaveMul\":2,\"gainScale\":0.12},\"drone\":{\"holdBeats\":16,\"pulseBeats\":16,\"lpfHz\":280,\"gainScale\":0.3},\"beatpulse\":{\"durationSec\":0.45,\"pitchGlide\":3,\"ampDecay\":6,\"gainScale\":0.55},\"voices\":{\"releaseSec\":1.6,\"vibratoHz\":5.3,\"formantHz\":1180,\"triggerSteps\":[4,12],\"gainScale\":0.26}},\"arpPattern\":[\"G3\",\"D4\",\"Bb3\",\"G4\",\"F4\",\"D4\",\"Bb3\",\"G3\",\"A3\",\"D4\",\"C4\",\"G4\",\"Eb4\",\"C4\",\"Bb3\",\"G3\"],\"phaseFilterHz\":{\"intro\":400,\"build1\":580,\"verse1\":780,\"chorus1\":1100,\"break\":520,\"chorus2\":1200,\"outro\":620},\"novelLabels\":[\"Nebula Drift\",\"Moonlit Pulse\",\"Stardust Bloom\",\"Aurora Steps\",\"Velvet Horizon\",\"Eclipse Motion\"],\"phases\":[{\"id\":\"intro\",\"label\":\"Intro\",\"durationBeats\":16,\"chordSeq\":null,\"droneMode\":false,\"lv\":{\"arp\":0.82,\"echo\":0,\"thump\":0.7,\"piano\":0,\"sub\":0.32,\"pad\":0,\"bass\":0.28,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"build1\",\"label\":\"Build 1\",\"durationBeats\":16,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.82,\"echo\":0.42,\"thump\":0.72,\"piano\":0.52,\"sub\":0.38,\"pad\":0,\"bass\":0.45,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"verse1\",\"label\":\"Verse\",\"durationBeats\":20,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.8,\"echo\":0.46,\"thump\":0.72,\"piano\":0.55,\"sub\":0.42,\"pad\":0.48,\"bass\":0.5,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"chorus1\",\"label\":\"Chorus 1\",\"durationBeats\":16,\"chordSeq\":[\"Gm\",\"Eb\",\"Cm\",\"Bb\"],\"droneMode\":true,\"lv\":{\"arp\":0.78,\"echo\":0.48,\"thump\":0.72,\"piano\":0.58,\"sub\":0.46,\"pad\":0.52,\"bass\":0.52,\"shim\":0.46,\"drone\":0.72,\"beatpulse\":0.6,\"voices\":0.34}},{\"id\":\"break\",\"label\":\"Break\",\"durationBeats\":12,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.84,\"echo\":0.08,\"thump\":0.76,\"piano\":0.5,\"sub\":0.35,\"pad\":0.08,\"bass\":0.3,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"chorus2\",\"label\":\"Chorus 2\",\"durationBeats\":24,\"chordSeq\":[\"Gm\",\"Eb\",\"Cm\",\"Bb\"],\"droneMode\":true,\"lv\":{\"arp\":0.8,\"echo\":0.5,\"thump\":0.72,\"piano\":0.6,\"sub\":0.48,\"pad\":0.55,\"bass\":0.54,\"shim\":0.52,\"drone\":0.78,\"beatpulse\":0.65,\"voices\":0.4}},{\"id\":\"outro\",\"label\":\"Outro\",\"durationBeats\":16,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.72,\"echo\":0.15,\"thump\":0.65,\"piano\":0.42,\"sub\":0.28,\"pad\":0.12,\"bass\":0.22,\"shim\":0.1,\"drone\":0,\"beatpulse\":0,\"voices\":0.12}}]}");
 
-  function create() {
-    let bpm = 83;
-    let bpmTarget = 83;
+  function deepMerge(a, b) {
+    if (!b) return a;
+    const out = { ...a };
+    for (const k of Object.keys(b)) {
+      if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
+        out[k] = deepMerge(a[k] || {}, b[k]);
+      } else {
+        out[k] = b[k];
+      }
+    }
+    return out;
+  }
+
+  function timelinePhasesFromPreset(phases) {
+    let start = 0;
+    return phases.map(p => {
+      const dur = p.durationBeats != null ? p.durationBeats : (p.end - p.start);
+      const end = start + dur;
+      const next = {
+        id: p.id,
+        label: p.label,
+        start,
+        end,
+        chordSeq: p.chordSeq === undefined ? null : p.chordSeq,
+        droneMode: !!p.droneMode,
+        lv: { ...p.lv },
+      };
+      start = end;
+      return next;
+    });
+  }
+
+  function create(options = {}) {
+    let bpm = DEFAULT_PRESET.defaults.bpm;
+    let bpmTarget = bpm;
     let s16 = () => 60 / bpm / 4;   // sixteenth note duration (live)
-    let keyId = 'Gm';
+    let keyId = DEFAULT_PRESET.defaults.key;
 
-    const TOTAL = 120; // original scripted loop length (sum of default phase durations)
-
-    const KEY_OFFSETS = { Gm:0, Am:2, Bbm:3, Cm:5, Dm:7, Em:9, Fm:10 };
-
-    const BASE_N = {
-      G1:49.00, D2:73.42, G2:98.00, Bb2:116.54, C3:130.81,
-      D3:146.83, F3:174.61, G3:196.00, A3:220.00, Bb3:233.08,
-      C4:261.63, D4:293.66, Eb4:311.13, F4:349.23, G4:392.00, Bb4:466.16,
-    };
-    const VEL = [0.88,0.38,0.54,0.32, 0.72,0.36,0.50,0.28,
-                 0.80,0.40,0.56,0.30, 0.66,0.34,0.48,0.26];
-    const LAYER_IDS = ['arp','echo','thump','piano','sub','pad','bass','shim','drone','beatpulse','voices'];
-    const NOVEL_LABELS = ['Nebula Drift','Moonlit Pulse','Stardust Bloom','Aurora Steps','Velvet Horizon','Eclipse Motion'];
-
-    // Per-layer synthesis parameters exposed for tuning and introspection.
-    const layerConfigs = {
-      arp:      { stepsPerBar:16, lfoHz:5.1, attackSec:0.007, decayTauMul:0.65, gainScale:0.30 },
-      echo:     { leftDelaySteps:2, rightDelaySteps:3, gainScale:0.20 },
-      thump:    { durationSec:0.55, startHz:140, endHz:60, pitchDecay:8, ampDecay:5.5, gainScale:0.85 },
-      piano:    { harmonics:[1,2,3,4], durationSec:2.2, voiceDelaySec:0.004, gainScale:0.90 },
-      sub:      { rootNote:'G1', overtoneNote:'G2', overtoneMix:0.24, gainScale:0.13 },
-      pad:      { vibratoHz:4.6, vibratoDepth:0.82, lpfHz:820, voiceGain:0.17, gainScale:0.20 },
-      bass:     { lpfHz:380, hpfHz:45, detuneCents:-5, gainScale:0.22 },
-      shim:     { triggerSteps:[2,6,10,14], durationSec:0.10, octaveMul:2, gainScale:0.12 },
-      drone:    { holdBeats:16, pulseBeats:16, lpfHz:280, gainScale:0.30 },
-      beatpulse:{ durationSec:0.45, pitchGlide:3, ampDecay:6.0, gainScale:0.55 },
-      voices:   { releaseSec:1.6, vibratoHz:5.3, formantHz:1180, triggerSteps:[4,12], gainScale:0.26 },
-    };
+    let KEY_OFFSETS = { ...DEFAULT_PRESET.keyOffsets };
+    let BASE_N = { ...DEFAULT_PRESET.baseNotesHz };
+    let VEL = DEFAULT_PRESET.velocities.slice();
+    let arpPattern = DEFAULT_PRESET.arpPattern.slice();
+    const LAYER_IDS = DEFAULT_PRESET.layerIds.slice();
+    let NOVEL_LABELS = DEFAULT_PRESET.novelLabels.slice();
+    let layerConfigs = deepMerge({}, DEFAULT_PRESET.layerConfigs);
+    let phaseFilterHzMap = { ...DEFAULT_PRESET.phaseFilterHz };
+    let lastPresetMeta = { id: DEFAULT_PRESET.id || '', name: DEFAULT_PRESET.name || '' };
 
     function keyRatio() {
       const semis = KEY_OFFSETS[keyId] ?? 0;
@@ -85,8 +99,11 @@ const ProceduralMusic = (() => {
     }
     function buildScaleData() {
       const N = Object.fromEntries(Object.keys(BASE_N).map(k => [k, tn(k)]));
-      const ARP = [N.G3,N.D4,N.Bb3,N.G4, N.F4,N.D4,N.Bb3,N.G3,
-                   N.A3,N.D4,N.C4,N.G4,  N.Eb4,N.C4,N.Bb3,N.G3];
+      const ARP = arpPattern.map(name => {
+        const hz = N[name];
+        if (hz == null) throw new Error(`arpPattern: unknown note key "${name}"`);
+        return hz;
+      });
       const CHORDS = {
         Gm: { name:`${keyId}`, notes:[N.G2, N.D3, N.G3, N.Bb3, N.D4] },
         Eb: { name:`${noteNameFor('Eb4').replace(/[0-9]/g, '')}`, notes:[N.G2, N.Eb4*0.5, N.G3, N.Bb3, N.Eb4] },
@@ -97,27 +114,37 @@ const ProceduralMusic = (() => {
       return { N, ARP, CHORDS, droneChords };
     }
 
-    const PHASES = [
-      { id:'intro',   label:'Intro',    start:0,   end:16,  chordSeq:null,                     droneMode:false,
-        lv:{arp:0.82,echo:0.00,thump:0.70,piano:0.00,sub:0.32,pad:0.00,bass:0.28,shim:0.00,drone:0.00,beatpulse:0.00,voices:0.00} },
-      { id:'build1',  label:'Build 1',  start:16,  end:32,  chordSeq:['Gm','Eb'],              droneMode:false,
-        lv:{arp:0.82,echo:0.42,thump:0.72,piano:0.52,sub:0.38,pad:0.00,bass:0.45,shim:0.00,drone:0.00,beatpulse:0.00,voices:0.00} },
-      { id:'verse1',  label:'Verse',    start:32,  end:52,  chordSeq:['Gm','Eb'],              droneMode:false,
-        lv:{arp:0.80,echo:0.46,thump:0.72,piano:0.55,sub:0.42,pad:0.48,bass:0.50,shim:0.00,drone:0.00,beatpulse:0.00,voices:0.00} },
-      { id:'chorus1', label:'Chorus 1', start:52,  end:68,  chordSeq:['Gm','Eb','Cm','Bb'],   droneMode:true,
-        lv:{arp:0.78,echo:0.48,thump:0.72,piano:0.58,sub:0.46,pad:0.52,bass:0.52,shim:0.46,drone:0.72,beatpulse:0.60,voices:0.34} },
-      { id:'break',   label:'Break',    start:68,  end:80,  chordSeq:['Gm','Eb'],              droneMode:false,
-        lv:{arp:0.84,echo:0.08,thump:0.76,piano:0.50,sub:0.35,pad:0.08,bass:0.30,shim:0.00,drone:0.00,beatpulse:0.00,voices:0.00} },
-      { id:'chorus2', label:'Chorus 2', start:80,  end:104, chordSeq:['Gm','Eb','Cm','Bb'],   droneMode:true,
-        lv:{arp:0.80,echo:0.50,thump:0.72,piano:0.60,sub:0.48,pad:0.55,bass:0.54,shim:0.52,drone:0.78,beatpulse:0.65,voices:0.40} },
-      { id:'outro',   label:'Outro',    start:104, end:120, chordSeq:['Gm','Eb'],              droneMode:false,
-        lv:{arp:0.72,echo:0.15,thump:0.65,piano:0.42,sub:0.28,pad:0.12,bass:0.22,shim:0.10,drone:0.00,beatpulse:0.00,voices:0.12} },
-    ];
+    let cachedScaleData = null;
+    function getScaleData() {
+      if (!cachedScaleData) cachedScaleData = buildScaleData();
+      return cachedScaleData;
+    }
+    function invalidateScaleCache() {
+      cachedScaleData = null;
+    }
+
+    const pianoPartialCache = new Map();
+    const dronePulseCache = new Map();
+    let thumpBufferBase = null;
+    let thumpBufferSr = 0;
+    let shimmerBuffer = null;
+    let shimmerCacheKey = '';
+
+    function invalidateAudioBuffers() {
+      pianoPartialCache.clear();
+      dronePulseCache.clear();
+      thumpBufferBase = null;
+      thumpBufferSr = 0;
+      shimmerBuffer = null;
+      shimmerCacheKey = '';
+    }
+
+    let PHASES = [];
 
     /** Phases removed in the UI — timeline is recompressed to [0, scriptedTotal). */
     const disabledPhaseIds = new Set();
     let activePhases = [];
-    let scriptedTotal = TOTAL;
+    let scriptedTotal = 0;
     let phaseLoopId = null;
 
     function rebuildPhaseSchedule() {
@@ -138,7 +165,6 @@ const ProceduralMusic = (() => {
         phaseLoopId = null;
       }
     }
-    rebuildPhaseSchedule();
 
     function clampPausedTime() {
       if (scriptedTotal <= 0) return;
@@ -154,7 +180,7 @@ const ProceduralMusic = (() => {
 
     // User overrides: 0-1 multipliers applied on top of phase lv values
     const layerMult = Object.fromEntries(LAYER_IDS.map(name => [name, 1]));
-    let reverbWet = 0.15;
+    let reverbWet = DEFAULT_PRESET.defaults.reverb;
     let arpFilterOverride = null; // null = auto per phase
     let novelMode = false;
     let novelLocked = false;
@@ -164,7 +190,19 @@ const ProceduralMusic = (() => {
 
     let actx=null, nd={}, startTime=0, pausedAt=0, playing=false;
     let step=0, pianoBarCount=0, currentPhase=null;
-    let droneState={ mode:'hold', beatsLeft:16, chordIdx:0, pulseFreq:BASE_N.G1 };
+    /** Pending seek target set before actx.resume() completes (play+seek race). */
+    let pendingSeekPhaseId = null;
+    /** Next 16th-note event time (AudioContext), used by lookahead scheduler. */
+    let nextTickAt = 0;
+    let schedulerIntervalId = null;
+    let droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn('G1') };
+    /** Reset step sequencer counters so the arp pattern, groove, and chord
+     *  progression start from the top. Call on manual seek and loop-back. */
+    function resetSequencerCounters() {
+      step = 0;
+      pianoBarCount = 0;
+      droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn('G1') };
+    }
     let analyser = null;
     let layerAnalysers = {};
 
@@ -227,6 +265,7 @@ const ProceduralMusic = (() => {
     }
 
     function getScriptedPhase(t) {
+      if (!Number.isFinite(t) || t < 0) t = 0;
       const tt = ((t % scriptedTotal) + scriptedTotal) % scriptedTotal;
       for (let i = activePhases.length - 1; i >= 0; i--) {
         if (tt >= activePhases[i].start) return activePhases[i];
@@ -264,6 +303,10 @@ const ProceduralMusic = (() => {
       };
     }
     function getNovelPhase(t) {
+      if (!Number.isFinite(t) || t < 0) t = 0;
+      while (novelPhases.length > 128 && novelPhases[0].end < t - 45) {
+        novelPhases.shift();
+      }
       while (true) {
         const last = novelPhases[novelPhases.length - 1];
         if (!last) {
@@ -307,7 +350,20 @@ const ProceduralMusic = (() => {
     }
     function elapsed() {
       if (!playing || !actx) return pausedAt;
-      return pausedAt + (actx.currentTime - startTime);
+      return Math.max(0, pausedAt + (actx.currentTime - startTime));
+    }
+
+    /** Transport position (seconds) at a scheduled audio time `when`. */
+    function transportAt(when) {
+      if (!playing || !actx) return pausedAt;
+      return Math.max(0, pausedAt + (when - startTime));
+    }
+
+    /** Heard transport at scheduled time (output delay compensated). */
+    function heardTransportAt(when) {
+      const el = transportAt(when);
+      const lag = nd.outputDelay ? nd.outputDelay.delayTime.value : 0;
+      return Math.max(0, el - lag);
     }
 
     /** Transport time minus output delay — aligns UI progress with what speakers play. */
@@ -334,7 +390,7 @@ const ProceduralMusic = (() => {
 
     function initAudio() {
       if (actx) return;
-      const scale = buildScaleData();
+      const scale = getScaleData();
       const N = scale.N;
       const ARP = scale.ARP;
       actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -445,13 +501,24 @@ const ProceduralMusic = (() => {
     }
 
     function phaseFilterFreq(id) {
-      return {intro:400,build1:580,verse1:780,chorus1:1100,'break':520,chorus2:1200,outro:620}[id]||700;
+      return phaseFilterHzMap[id] ?? 700;
     }
 
-    function ramp(param, val, tau=0.8) {
+    /**
+     * Smooth ramp to `val` via setTargetAtTime.
+     * @param {AudioParam} param
+     * @param {number} val   target value
+     * @param {number} tau   time constant (seconds)
+     * @param {number} [at]  scheduled audio time — defaults to actx.currentTime.
+     *   IMPORTANT: when called from the lookahead scheduler (tick / morphTo),
+     *   pass the tick's `when` so automation aligns with the audio clock instead
+     *   of starting early at actx.currentTime and clobbering previously-queued events.
+     */
+    function ramp(param, val, tau=0.8, at=undefined) {
       if (!param) return;
-      param.cancelScheduledValues(actx.currentTime);
-      param.setTargetAtTime(val, actx.currentTime, tau);
+      const t = at ?? actx.currentTime;
+      param.cancelScheduledValues(t);
+      param.setTargetAtTime(val, t, tau);
     }
     function volumeToGain(v) {
       if (v <= 1) return v * 0.42;
@@ -475,29 +542,35 @@ const ProceduralMusic = (() => {
       return 0.82;
     }
 
-    function morphTo(ph) {
+    /**
+     * Cross-fade all layer gains + filter to the target phase.
+     * @param {object} ph   phase object
+     * @param {number} [at] scheduled audio time (pass from tick's `when` in the
+     *   lookahead scheduler; omit for immediate morphs like seekToPhase / play).
+     */
+    function morphTo(ph, at) {
       const lv = ph.lv || {};
       const isNovel = String(ph.id).startsWith('novel-');
-      ramp(nd.arpFilt.frequency, arpFilterOverride ?? phaseFilterFreq(ph.id), isNovel ? 3.0 : 2.35);
+      ramp(nd.arpFilt.frequency, arpFilterOverride ?? phaseFilterFreq(ph.id), isNovel ? 3.0 : 2.35, at);
       for (const [name, {node, scale}] of Object.entries(LAYER_MAP)) {
         const phaseVal = lv[name] ?? 0;
         const mult = layerMult[name] ?? 1;
         const tau = morphLayerTau(name, isNovel);
-        ramp(nd[node]?.gain, phaseVal * mult * scale, tau);
+        ramp(nd[node]?.gain, phaseVal * mult * scale, tau, at);
       }
-      if (!ph.droneMode) ramp(nd.droneGain.gain, 0, 0.6);
+      if (!ph.droneMode) ramp(nd.droneGain.gain, 0, 0.6, at);
       if (ph.randomMod) {
         bpmTarget = ph.randomMod.bpm;
         reverbWet = ph.randomMod.reverb;
-        ramp(nd.revG?.gain, reverbWet, isNovel ? 2.0 : 0.7);
-        if (arpFilterOverride === null) ramp(nd.arpFilt.frequency, ph.randomMod.arpFilter, isNovel ? 2.2 : 1.2);
+        ramp(nd.revG?.gain, reverbWet, isNovel ? 2.0 : 0.7, at);
+        if (arpFilterOverride === null) ramp(nd.arpFilt.frequency, ph.randomMod.arpFilter, isNovel ? 2.2 : 1.2, at);
       }
     }
 
     function retuneContinuousVoices(when) {
       if (!actx) return;
       const t = when ?? actx.currentTime;
-      const { N } = buildScaleData();
+      const { N } = getScaleData();
       if (nd.subO1) nd.subO1.frequency.setTargetAtTime(N.G1, t, 0.18);
       if (nd.subO2) nd.subO2.frequency.setTargetAtTime(N.G2, t, 0.2);
       if (nd.padOscs) nd.padOscs.forEach(v => v.osc.frequency.setTargetAtTime(N[v.name], t, 0.2));
@@ -509,63 +582,112 @@ const ProceduralMusic = (() => {
       }
     }
 
-    function fireThump(when, vel=1.0) {
+    function getThumpBufferBase() {
+      const sr = actx.sampleRate;
+      if (thumpBufferBase && thumpBufferSr === sr) return thumpBufferBase;
+      const dur = layerConfigs.thump.durationSec;
+      const buf = actx.createBuffer(1, Math.floor(sr * dur), sr);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        const t = i / sr;
+        const f = layerConfigs.thump.startHz * Math.exp(-t * layerConfigs.thump.pitchDecay) + layerConfigs.thump.endHz;
+        const env = Math.exp(-t * layerConfigs.thump.ampDecay);
+        d[i] = Math.sin(2 * Math.PI * f * t) * env * 0.85;
+      }
+      thumpBufferBase = buf;
+      thumpBufferSr = sr;
+      return buf;
+    }
+
+    function fireThump(when, vel = 1.0, layerThumpTarget = null) {
       const gRead = nd.thumpGain.gain.value;
       const tv = gRead * (layerMult.thump ?? 1);
-      if (tv < 0.02) return;
-      const sr=actx.sampleRate, dur=layerConfigs.thump.durationSec;
-      const buf=actx.createBuffer(1,Math.floor(sr*dur),sr);
-      const d=buf.getChannelData(0);
-      for (let i=0;i<d.length;i++) {
-        const t=i/sr;
-        const f=layerConfigs.thump.startHz*Math.exp(-t*layerConfigs.thump.pitchDecay)+layerConfigs.thump.endHz;
-        const env=Math.exp(-t*layerConfigs.thump.ampDecay);
-        d[i]=Math.sin(2*Math.PI*f*t)*env*0.85*vel;
-      }
-      const src=actx.createBufferSource(); src.buffer=buf;
-      const tG=actx.createGain();
-      // Route through thumpGain (same as other layers) so per-layer analyser sees kicks; avoid double-applying gRead.
-      tG.gain.value = (tv * 0.52) / Math.max(0.001, gRead);
+      const gate = layerThumpTarget != null ? layerThumpTarget : tv;
+      if (gate < 0.02) return;
+      const buf = getThumpBufferBase();
+      const src = actx.createBufferSource();
+      src.buffer = buf;
+      const tG = actx.createGain();
+      tG.gain.value = ((tv * 0.52) / Math.max(0.001, gRead)) * vel;
       src.connect(tG);
       tG.connect(nd.thumpGain);
       src.start(when);
     }
 
-    function firePiano(when, chord) {
+    function getPianoPartialBuffer(f, ni, harm, amp, dec) {
+      const sr = actx.sampleRate;
+      const key = `${f.toFixed(3)}|${ni}|${harm}|${dec}|${sr}`;
+      let buf = pianoPartialCache.get(key);
+      if (buf) return buf;
+      const dur = 2.2;
+      buf = actx.createBuffer(1, Math.floor(sr * dur), sr);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        const t = i / sr;
+        const att = t < 0.004 ? t / 0.004 : 1;
+        const decay = Math.exp(-t * (3.5 + ni * 0.4) * dec);
+        d[i] = Math.sin(2 * Math.PI * f * t) * att * decay * amp * 0.52;
+      }
+      if (pianoPartialCache.size > 400) pianoPartialCache.clear();
+      pianoPartialCache.set(key, buf);
+      return buf;
+    }
+
+    function firePiano(when, chord, targetGain=null) {
       if (!chord) return;
       const pv = nd.pianoGain.gain.value * (layerMult.piano ?? 1);
-      if (pv < 0.02) return;
-      chord.notes.forEach((freq,ni) => {
-        [[1,1.0,0.90],[2,0.34,0.50],[3,0.16,0.28],[4,0.07,0.15]].forEach(([harm,amp,dec]) => {
-          const f=freq*harm; if (f>8000) return;
-          const sr=actx.sampleRate, dur=2.2;
-          const buf=actx.createBuffer(1,Math.floor(sr*dur),sr); const d=buf.getChannelData(0);
-          for (let i=0;i<d.length;i++) { const t=i/sr,att=t<0.004?t/0.004:1,decay=Math.exp(-t*(3.5+ni*0.4)*dec); d[i]=Math.sin(2*Math.PI*f*t)*att*decay*amp*0.52; }
-          const src=actx.createBufferSource(); src.buffer=buf;
-          const nG=actx.createGain(); nG.gain.value=pv*0.26; src.connect(nG); nG.connect(nd.pianoGain); src.start(when+ni*0.004);
+      const gate = targetGain != null ? targetGain : pv;
+      if (gate < 0.02) return;
+      chord.notes.forEach((freq, ni) => {
+        [[1, 1.0, 0.90], [2, 0.34, 0.50], [3, 0.16, 0.28], [4, 0.07, 0.15]].forEach(([harm, amp, dec]) => {
+          const f = freq * harm;
+          if (f > 8000) return;
+          const buf = getPianoPartialBuffer(f, ni, harm, amp, dec);
+          const src = actx.createBufferSource();
+          src.buffer = buf;
+          const nG = actx.createGain();
+          nG.gain.value = pv * 0.26;
+          src.connect(nG);
+          nG.connect(nd.pianoGain);
+          src.start(when + ni * 0.004);
         });
       });
       emit('chord', chord.name);
     }
 
-    function fireDronePulse(when, freq, vel=1.0) {
-      const pv = nd.pulseGain.gain.value;
-      if (pv < 0.02) return;
-      const sr=actx.sampleRate, dur=layerConfigs.beatpulse.durationSec;
-      const buf=actx.createBuffer(1,Math.floor(sr*dur),sr); const d=buf.getChannelData(0);
-      for (let i=0;i<d.length;i++) {
-        const t=i/sr;
-        const f=freq*1.5*Math.exp(-t*layerConfigs.beatpulse.pitchGlide)+freq;
-        const env=Math.exp(-t*layerConfigs.beatpulse.ampDecay);
-        d[i]=Math.sin(2*Math.PI*f*t)*env*0.75*vel;
+    function getDronePulseBuffer(freq, vel) {
+      const sr = actx.sampleRate;
+      const key = `${freq.toFixed(3)}|${vel.toFixed(2)}|${sr}`;
+      let buf = dronePulseCache.get(key);
+      if (buf) return buf;
+      const dur = layerConfigs.beatpulse.durationSec;
+      buf = actx.createBuffer(1, Math.floor(sr * dur), sr);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        const t = i / sr;
+        const f = freq * 1.5 * Math.exp(-t * layerConfigs.beatpulse.pitchGlide) + freq;
+        const env = Math.exp(-t * layerConfigs.beatpulse.ampDecay);
+        d[i] = Math.sin(2 * Math.PI * f * t) * env * 0.75 * vel;
       }
-      const src=actx.createBufferSource(); src.buffer=buf;
-      const pG2=actx.createGain(); pG2.gain.value=pv*0.48; src.connect(pG2); pG2.connect(nd.master); src.start(when);
+      if (dronePulseCache.size > 32) dronePulseCache.clear();
+      dronePulseCache.set(key, buf);
+      return buf;
     }
-    function fireVoices(when, chord) {
+
+    function fireDronePulse(when, freq, vel=1.0, targetGain=null) {
+      const pv = nd.pulseGain.gain.value;
+      const gate = targetGain != null ? targetGain : pv;
+      if (gate < 0.02) return;
+      const buf = getDronePulseBuffer(freq, vel);
+      const src = actx.createBufferSource(); src.buffer = buf;
+      const pG2 = actx.createGain(); pG2.gain.value = pv > 0.001 ? pv * 0.48 : gate * 0.48;
+      src.connect(pG2); pG2.connect(nd.master); src.start(when);
+    }
+    function fireVoices(when, chord, targetGain=null) {
       if (!chord || !nd.voiceGain) return;
       const vv = nd.voiceGain.gain.value * (layerMult.voices ?? 1);
-      if (vv < 0.02) return;
+      const gate = targetGain != null ? targetGain : vv;
+      if (gate < 0.02) return;
       const dur = layerConfigs.voices.releaseSec;
       chord.notes.slice(0, 3).forEach((freq, idx) => {
         const osc = actx.createOscillator();
@@ -598,23 +720,73 @@ const ProceduralMusic = (() => {
       nd.drO3.frequency.setTargetAtTime(f2,when,0.15); nd.drO4.frequency.setTargetAtTime(f2,when,0.18);
     }
 
-    function tick(when) {
+    const SCHEDULER_INTERVAL_MS = 25;
+    const SCHEDULER_LOOKAHEAD_SEC = 0.1;
+    const SCHEDULER_MAX_TICKS_PER_WAKE = 48;
+
+    function getShimmerBuffer() {
+      const sr = actx.sampleRate;
+      const key = `${keyId}|${sr}`;
+      if (shimmerBuffer && shimmerCacheKey === key) return shimmerBuffer;
+      const len = Math.floor(sr * 0.10);
+      const shBuf = actx.createBuffer(1, len, sr);
+      const sd = shBuf.getChannelData(0);
+      const g4 = tn('G4') * 2;
+      for (let i = 0; i < sd.length; i++) {
+        sd[i] = Math.sin(2 * Math.PI * g4 * i / sr) * Math.exp(-i / sr * 20) * 0.5;
+      }
+      shimmerBuffer = shBuf;
+      shimmerCacheKey = key;
+      return shBuf;
+    }
+
+    function schedulerLoop() {
+      if (!playing || !actx) return;
+      const now = actx.currentTime;
+      const until = now + SCHEDULER_LOOKAHEAD_SEC;
+      let n = 0;
+      while (nextTickAt < until && playing && n < SCHEDULER_MAX_TICKS_PER_WAKE) {
+        tick(nextTickAt);
+        nextTickAt += s16();
+        n++;
+      }
+    }
+
+    function tick(whenIn) {
       if (!actx || !playing) return;
+      const when = Math.max(whenIn, actx.currentTime);
       if (Math.abs(bpmTarget - bpm) > 0.01) {
         // Slew tempo to hide hard phase walls in novel mode.
         bpm += (bpmTarget - bpm) * 0.08;
       } else {
         bpm = bpmTarget;
       }
-      const el = elapsed();
+      const el = transportAt(when);
       maybeEmitPhaseMarker(el);
       const ph = getPhase(el);
       const lv = ph.lv || {};
-      const { ARP, CHORDS, droneChords } = buildScaleData();
+      const { ARP, CHORDS, droneChords } = getScaleData();
       const idx = step % 16;
       const arpRotate = ph.randomMod?.arpRotate ?? 0;
 
-      const elHeard = heardElapsedSec();
+      // ── Phase transition — MUST fire before any per-step scheduling so that
+      //    morphTo's cancelScheduledValues(when) doesn't clobber events from
+      //    earlier ticks that the lookahead already queued.
+      if (ph !== currentPhase) {
+        // Detect loop-back: scripted timeline wrapped (e.g. outro → intro).
+        // Reset sequencer so arp pattern, chords, and drone start cleanly.
+        // Only applies to scripted (non-novel) phases with a real previous phase.
+        const isWrapBack = currentPhase
+          && !String(ph.id).startsWith('novel-')
+          && !String(currentPhase.id).startsWith('novel-')
+          && ph.start < currentPhase.start;
+        if (isWrapBack) resetSequencerCounters();
+        currentPhase = ph;
+        morphTo(ph, when);
+        emit('phase', { id: ph.id, label: ph.label });
+      }
+
+      const elHeard = heardTransportAt(when);
       const phHeard = getPhase(elHeard);
       emit('beat', {
         step: idx,
@@ -625,7 +797,8 @@ const ProceduralMusic = (() => {
         phaseEnd: phHeard.end,
       });
 
-      // Arp retrigger
+      // Arp retrigger — runs AFTER morphTo so its cancelScheduledValues(when)
+      // naturally supersedes morphTo's arpGain ramp for this same instant.
       const freq=ARP[(idx + arpRotate) % ARP.length], vel=VEL[idx], av=(lv.arp||0)*(layerMult.arp??1);
       nd.arpO.frequency.setValueAtTime(freq,when);
       nd.arpO2.frequency.setValueAtTime(freq,when);
@@ -635,81 +808,103 @@ const ProceduralMusic = (() => {
       nd.arpGain.gain.setTargetAtTime(av*vel*0.08, when+0.007, s16()*0.65);
 
       if (idx===0 || idx===8) {
-        fireThump(when, idx===0 ? 1.0 : 0.88);
+        const targetThump = (lv.thump ?? 0) * (layerMult.thump ?? 1) * LAYER_MAP.thump.scale;
+        fireThump(when, idx===0 ? 1.0 : 0.88, targetThump);
 
         if (idx===0) {
           const seq = ph.chordSeq;
-          if (seq && (lv.piano||0)*(layerMult.piano??1) > 0.02) {
+          const targetPiano = (lv.piano||0)*(layerMult.piano??1)*LAYER_MAP.piano.scale;
+          if (seq && targetPiano > 0.02) {
             const chord = CHORDS[seq[pianoBarCount % seq.length]];
-            firePiano(when, chord);
+            firePiano(when, chord, targetPiano);
             nd.bassO.frequency.setTargetAtTime(chord.notes[0],when,0.10);
             nd.bassO2.frequency.setTargetAtTime(chord.notes[0],when,0.12);
           }
-          if (seq && (lv.voices||0)*(layerMult.voices??1) > 0.02) {
+          const targetVoices = (lv.voices||0)*(layerMult.voices??1)*LAYER_MAP.voices.scale;
+          if (seq && targetVoices > 0.02) {
             const chord = CHORDS[seq[pianoBarCount % seq.length]];
-            fireVoices(when, chord);
+            fireVoices(when, chord, targetVoices);
           }
           pianoBarCount++;
         }
 
         // Drone/pulse state machine
         const ds = droneState;
-        if (ph.droneMode && (lv.drone||0)*(layerMult.drone??1) > 0.02) {
+        const targetDrone = (lv.drone||0)*(layerMult.drone??1);
+        const targetPulse = targetDrone * LAYER_MAP.beatpulse.scale;
+        if (ph.droneMode && targetDrone > 0.02) {
           if (ds.mode==='hold') {
             if (ds.beatsLeft===16) {
               const ch=droneChords[ds.chordIdx % droneChords.length];
               setDroneFreq(ch.r, ch.f, when);
-              ramp(nd.droneGain.gain, (lv.drone||0)*(layerMult.drone??1)*0.30, 0.6);
+              ramp(nd.droneGain.gain, targetDrone*0.30, 0.6, when);
             }
             ds.beatsLeft--;
-            if (ds.beatsLeft<=0) { ramp(nd.droneGain.gain, 0.02, 0.3); ds.mode='pulse'; ds.beatsLeft=16; ds.pulseFreq=droneChords[ds.chordIdx % droneChords.length].r; }
+            if (ds.beatsLeft<=0) { ramp(nd.droneGain.gain, 0.02, 0.3, when); ds.mode='pulse'; ds.beatsLeft=16; ds.pulseFreq=droneChords[ds.chordIdx % droneChords.length].r; }
           } else {
-            fireDronePulse(when, ds.pulseFreq, 0.85);
+            fireDronePulse(when, ds.pulseFreq, 0.85, targetPulse);
             ds.beatsLeft--;
             if (ds.beatsLeft<=0) { ds.chordIdx++; ds.mode='hold'; ds.beatsLeft=16; }
           }
         } else if (!ph.droneMode) {
           ds.mode='hold'; ds.beatsLeft=16; ds.chordIdx=0;
-          ramp(nd.droneGain.gain, 0, 0.5);
+          ramp(nd.droneGain.gain, 0, 0.5, when);
         }
       }
 
       // Shimmer on upbeats
       if (layerConfigs.shim.triggerSteps.includes(idx) && (lv.shim||0)*(layerMult.shim??1) > 0.02) {
         const sv = (lv.shim||0)*(layerMult.shim??1);
-        const shBuf=actx.createBuffer(1,Math.floor(actx.sampleRate*0.10),actx.sampleRate);
-        const sd=shBuf.getChannelData(0);
-        for (let i=0;i<sd.length;i++) sd[i]=Math.sin(2*Math.PI*(tn('G4')*2)*i/actx.sampleRate)*Math.exp(-i/actx.sampleRate*20)*0.5;
-        const shSrc=actx.createBufferSource(); shSrc.buffer=shBuf;
-        const shG2=actx.createGain(); shG2.gain.value=sv*0.14; shSrc.connect(shG2); shG2.connect(nd.shimGain); shSrc.start(when);
+        const shBuf = getShimmerBuffer();
+        const shSrc = actx.createBufferSource();
+        shSrc.buffer = shBuf;
+        const shG2 = actx.createGain();
+        shG2.gain.value = sv * 0.14;
+        shSrc.connect(shG2);
+        shG2.connect(nd.shimGain);
+        shSrc.start(when);
       }
       step++;
-
-      // Phase transition check
-      const ph2 = getPhase(elapsed());
-      if (ph2 !== currentPhase) {
-        currentPhase = ph2;
-        morphTo(ph2);
-        emit('phase', { id: ph2.id, label: ph2.label });
-      }
 
       // Update echo delay times to current BPM
       nd.dL.delayTime.setTargetAtTime(s16()*layerConfigs.echo.leftDelaySteps, when, 0.1);
       nd.dR.delayTime.setTargetAtTime(s16()*layerConfigs.echo.rightDelaySteps, when, 0.1);
-
-      const nextWhen = when + s16();
-      nd._tickTO = setTimeout(() => tick(actx.currentTime + 0.002), (nextWhen - actx.currentTime - 0.005) * 1000);
     }
 
     function beginPlayback() {
       if (!actx) return;
       if (playing) return;
+      if (schedulerIntervalId) {
+        clearInterval(schedulerIntervalId);
+        schedulerIntervalId = null;
+      }
+
+      // If seekToPhase was called while the actx.resume() promise was pending,
+      // honour that seek now that the context is actually running.
+      if (pendingSeekPhaseId !== null) {
+        const seekId = pendingSeekPhaseId;
+        pendingSeekPhaseId = null;
+        // pausedAt was already set by seekToPhase; counters already reset.
+        playing = true;
+        startTime = actx.currentTime;
+        nextTickAt = startTime + 0.01;
+        currentPhase = null;
+        resetPhaseMarkerState();
+        morphTo(getPhase(pausedAt));
+        schedulerLoop();
+        schedulerIntervalId = setInterval(schedulerLoop, SCHEDULER_INTERVAL_MS);
+        return;
+      }
+
       playing = true;
       startTime = actx.currentTime;
+      resetSequencerCounters();
+      nextTickAt = startTime + 0.01;
       currentPhase = null;
       resetPhaseMarkerState();
       morphTo(getPhase(pausedAt));
-      tick(actx.currentTime + 0.01);
+      schedulerLoop();
+      schedulerIntervalId = setInterval(schedulerLoop, SCHEDULER_INTERVAL_MS);
     }
 
     function applyArrangementStripTiming(sec) {
@@ -729,6 +924,40 @@ const ProceduralMusic = (() => {
       p.setValueAtTime(q, t1);
     }
 
+    function applyPresetInternal(preset) {
+      if (!preset || preset.schemaVersion !== 1) return false;
+      KEY_OFFSETS = { ...DEFAULT_PRESET.keyOffsets, ...preset.keyOffsets };
+      BASE_N = { ...DEFAULT_PRESET.baseNotesHz, ...preset.baseNotesHz };
+      VEL = preset.velocities.slice();
+      arpPattern = preset.arpPattern.slice();
+      NOVEL_LABELS = preset.novelLabels.slice();
+      phaseFilterHzMap = { ...DEFAULT_PRESET.phaseFilterHz, ...(preset.phaseFilterHz || {}) };
+      layerConfigs = deepMerge(deepMerge({}, DEFAULT_PRESET.layerConfigs), preset.layerConfigs);
+      if (preset.layerMix) {
+        for (const [k, v] of Object.entries(preset.layerMix)) {
+          if (LAYER_MAP[k]) LAYER_MAP[k].scale = v;
+        }
+      }
+      LAYER_MAP.voices.scale = layerConfigs.voices.gainScale;
+      PHASES = timelinePhasesFromPreset(preset.phases);
+      const d = preset.defaults || {};
+      bpmTarget = d.bpm ?? DEFAULT_PRESET.defaults.bpm;
+      if (!playing) bpm = bpmTarget;
+      keyId = d.key ?? DEFAULT_PRESET.defaults.key;
+      if (d.reverb != null) reverbWet = d.reverb;
+      lastPresetMeta = { id: preset.id || '', name: preset.name || '' };
+      disabledPhaseIds.clear();
+      rebuildPhaseSchedule();
+      invalidateScaleCache();
+      invalidateAudioBuffers();
+      resetSequencerCounters();
+      clampPausedTime();
+      if (nd.revG && actx) ramp(nd.revG.gain, reverbWet, 0.5);
+      return true;
+    }
+
+    applyPresetInternal(options?.preset ?? DEFAULT_PRESET);
+
     // ── Public API ──────────────────────────────────────────────────────────
 
     return {
@@ -744,17 +973,50 @@ const ProceduralMusic = (() => {
         pausedAt = elapsed();
         playing = false;
         resetPhaseMarkerState();
-        clearTimeout(nd._tickTO);
+        if (schedulerIntervalId) {
+          clearInterval(schedulerIntervalId);
+          schedulerIntervalId = null;
+        }
         if (actx) actx.suspend();
+      },
+
+      /** Replace song data from a preset object (schema v1). Stops playback if active. */
+      applyPreset(preset) {
+        if (playing) {
+          pausedAt = elapsed();
+          playing = false;
+          resetPhaseMarkerState();
+          if (schedulerIntervalId) {
+            clearInterval(schedulerIntervalId);
+            schedulerIntervalId = null;
+          }
+          if (actx) actx.suspend();
+        }
+        if (!applyPresetInternal(preset)) return false;
+        if (actx && nd.master) morphTo(getPhase(elapsed()));
+        return true;
+      },
+
+      /** Metadata for the last-applied preset (id + name). */
+      getPreset() {
+        return { ...lastPresetMeta };
       },
 
       seekToPhase(id) {
         resetPhaseMarkerState();
+        resetSequencerCounters();
         if (id === 'novel') {
           novelMode = true;
           pausedAt = scriptedTotal;
           currentPhase = null;
-          if (playing && actx) { startTime = actx.currentTime; morphTo(getPhase(pausedAt)); }
+          if (playing && actx) {
+            startTime = actx.currentTime;
+            nextTickAt = actx.currentTime + 0.01;
+            morphTo(getPhase(pausedAt));
+          } else {
+            // Engine not yet playing (play() promise pending) — stash for beginPlayback.
+            pendingSeekPhaseId = id;
+          }
           emit('phase', { id: 'novel', label: 'Novel Mode' });
           return;
         }
@@ -762,7 +1024,13 @@ const ProceduralMusic = (() => {
           if (activePhases[i].id === id) {
             pausedAt = activePhases[i].start;
             currentPhase = null;
-            if (playing && actx) { startTime = actx.currentTime; morphTo(activePhases[i]); }
+            if (playing && actx) {
+              startTime = actx.currentTime;
+              nextTickAt = actx.currentTime + 0.01;
+              morphTo(activePhases[i]);
+            } else {
+              pendingSeekPhaseId = id;
+            }
             emit('phase', { id: activePhases[i].id, label: activePhases[i].label });
             return;
           }
@@ -824,6 +1092,8 @@ const ProceduralMusic = (() => {
       setKey(nextKeyId) {
         if (!(nextKeyId in KEY_OFFSETS)) return;
         keyId = nextKeyId;
+        invalidateScaleCache();
+        invalidateAudioBuffers();
         if (actx) retuneContinuousVoices(actx.currentTime);
       },
 

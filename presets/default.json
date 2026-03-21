@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "id": "studio-default",
+  "name": "G Natural Minor (Studio)",
+  "description": "Original Procedural Music Studio loop: seven phases, layered Web Audio synthesis.",
+  "defaults": {
+    "bpm": 83,
+    "key": "Gm",
+    "reverb": 0.15
+  },
+  "keyOffsets": {
+    "Gm": 0,
+    "Am": 2,
+    "Bbm": 3,
+    "Cm": 5,
+    "Dm": 7,
+    "Em": 9,
+    "Fm": 10
+  },
+  "baseNotesHz": {
+    "G1": 49.0,
+    "D2": 73.42,
+    "G2": 98.0,
+    "Bb2": 116.54,
+    "C3": 130.81,
+    "D3": 146.83,
+    "F3": 174.61,
+    "G3": 196.0,
+    "A3": 220.0,
+    "Bb3": 233.08,
+    "C4": 261.63,
+    "D4": 293.66,
+    "Eb4": 311.13,
+    "F4": 349.23,
+    "G4": 392.0,
+    "Bb4": 466.16
+  },
+  "velocities": [
+    0.88, 0.38, 0.54, 0.32, 0.72, 0.36, 0.5, 0.28,
+    0.8, 0.4, 0.56, 0.3, 0.66, 0.34, 0.48, 0.26
+  ],
+  "layerIds": [
+    "arp", "echo", "thump", "piano", "sub", "pad", "bass", "shim", "drone", "beatpulse", "voices"
+  ],
+  "layerMix": {
+    "arp": 0.3,
+    "echo": 0.2,
+    "thump": 0.85,
+    "piano": 0.9,
+    "sub": 0.13,
+    "pad": 0.2,
+    "bass": 0.22,
+    "shim": 0.12,
+    "drone": 0.3,
+    "beatpulse": 0.55,
+    "voices": 0.26
+  },
+  "layerConfigs": {
+    "arp": { "stepsPerBar": 16, "lfoHz": 5.1, "attackSec": 0.007, "decayTauMul": 0.65, "gainScale": 0.3 },
+    "echo": { "leftDelaySteps": 2, "rightDelaySteps": 3, "gainScale": 0.2 },
+    "thump": { "durationSec": 0.55, "startHz": 140, "endHz": 60, "pitchDecay": 8, "ampDecay": 5.5, "gainScale": 0.85 },
+    "piano": { "harmonics": [1, 2, 3, 4], "durationSec": 2.2, "voiceDelaySec": 0.004, "gainScale": 0.9 },
+    "sub": { "rootNote": "G1", "overtoneNote": "G2", "overtoneMix": 0.24, "gainScale": 0.13 },
+    "pad": { "vibratoHz": 4.6, "vibratoDepth": 0.82, "lpfHz": 820, "voiceGain": 0.17, "gainScale": 0.2 },
+    "bass": { "lpfHz": 380, "hpfHz": 45, "detuneCents": -5, "gainScale": 0.22 },
+    "shim": { "triggerSteps": [2, 6, 10, 14], "durationSec": 0.1, "octaveMul": 2, "gainScale": 0.12 },
+    "drone": { "holdBeats": 16, "pulseBeats": 16, "lpfHz": 280, "gainScale": 0.3 },
+    "beatpulse": { "durationSec": 0.45, "pitchGlide": 3, "ampDecay": 6.0, "gainScale": 0.55 },
+    "voices": { "releaseSec": 1.6, "vibratoHz": 5.3, "formantHz": 1180, "triggerSteps": [4, 12], "gainScale": 0.26 }
+  },
+  "arpPattern": [
+    "G3", "D4", "Bb3", "G4", "F4", "D4", "Bb3", "G3",
+    "A3", "D4", "C4", "G4", "Eb4", "C4", "Bb3", "G3"
+  ],
+  "phaseFilterHz": {
+    "intro": 400,
+    "build1": 580,
+    "verse1": 780,
+    "chorus1": 1100,
+    "break": 520,
+    "chorus2": 1200,
+    "outro": 620
+  },
+  "novelLabels": [
+    "Nebula Drift",
+    "Moonlit Pulse",
+    "Stardust Bloom",
+    "Aurora Steps",
+    "Velvet Horizon",
+    "Eclipse Motion"
+  ],
+  "phases": [
+    {
+      "id": "intro",
+      "label": "Intro",
+      "durationBeats": 16,
+      "chordSeq": null,
+      "droneMode": false,
+      "lv": {
+        "arp": 0.82,
+        "echo": 0.0,
+        "thump": 0.7,
+        "piano": 0.0,
+        "sub": 0.32,
+        "pad": 0.0,
+        "bass": 0.28,
+        "shim": 0.0,
+        "drone": 0.0,
+        "beatpulse": 0.0,
+        "voices": 0.0
+      }
+    },
+    {
+      "id": "build1",
+      "label": "Build 1",
+      "durationBeats": 16,
+      "chordSeq": ["Gm", "Eb"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.82,
+        "echo": 0.42,
+        "thump": 0.72,
+        "piano": 0.52,
+        "sub": 0.38,
+        "pad": 0.0,
+        "bass": 0.45,
+        "shim": 0.0,
+        "drone": 0.0,
+        "beatpulse": 0.0,
+        "voices": 0.0
+      }
+    },
+    {
+      "id": "verse1",
+      "label": "Verse",
+      "durationBeats": 20,
+      "chordSeq": ["Gm", "Eb"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.8,
+        "echo": 0.46,
+        "thump": 0.72,
+        "piano": 0.55,
+        "sub": 0.42,
+        "pad": 0.48,
+        "bass": 0.5,
+        "shim": 0.0,
+        "drone": 0.0,
+        "beatpulse": 0.0,
+        "voices": 0.0
+      }
+    },
+    {
+      "id": "chorus1",
+      "label": "Chorus 1",
+      "durationBeats": 16,
+      "chordSeq": ["Gm", "Eb", "Cm", "Bb"],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.78,
+        "echo": 0.48,
+        "thump": 0.72,
+        "piano": 0.58,
+        "sub": 0.46,
+        "pad": 0.52,
+        "bass": 0.52,
+        "shim": 0.46,
+        "drone": 0.72,
+        "beatpulse": 0.6,
+        "voices": 0.34
+      }
+    },
+    {
+      "id": "break",
+      "label": "Break",
+      "durationBeats": 12,
+      "chordSeq": ["Gm", "Eb"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.84,
+        "echo": 0.08,
+        "thump": 0.76,
+        "piano": 0.5,
+        "sub": 0.35,
+        "pad": 0.08,
+        "bass": 0.3,
+        "shim": 0.0,
+        "drone": 0.0,
+        "beatpulse": 0.0,
+        "voices": 0.0
+      }
+    },
+    {
+      "id": "chorus2",
+      "label": "Chorus 2",
+      "durationBeats": 24,
+      "chordSeq": ["Gm", "Eb", "Cm", "Bb"],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.8,
+        "echo": 0.5,
+        "thump": 0.72,
+        "piano": 0.6,
+        "sub": 0.48,
+        "pad": 0.55,
+        "bass": 0.54,
+        "shim": 0.52,
+        "drone": 0.78,
+        "beatpulse": 0.65,
+        "voices": 0.4
+      }
+    },
+    {
+      "id": "outro",
+      "label": "Outro",
+      "durationBeats": 16,
+      "chordSeq": ["Gm", "Eb"],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.72,
+        "echo": 0.15,
+        "thump": 0.65,
+        "piano": 0.42,
+        "sub": 0.28,
+        "pad": 0.12,
+        "bass": 0.22,
+        "shim": 0.1,
+        "drone": 0.0,
+        "beatpulse": 0.0,
+        "voices": 0.12
+      }
+    }
+  ]
+}

@@ -73,6 +73,8 @@ const state = engine.getState();
 
 ## Development
 
+This repository ships the **static web app** only (`index.html`, `music_engine_web.js`, and related assets). There is no Godot add-on or other game-engine integration.
+
 ```bash
 # Clone
 git clone https://github.com/TomGarske/ProceduralMusicStudio.git
