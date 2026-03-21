@@ -1,0 +1,478 @@
+{
+  "schemaVersion": 1,
+  "id": "spanish-ladies",
+  "name": "Spanish Ladies",
+  "description": "Fo'c'sle song in D minor with jaunty, celebratory character",
+  "defaults": {
+    "bpm": 74,
+    "key": "Dm",
+    "reverb": 0.26
+  },
+  "keyOffsets": {
+    "Dm": 0,
+    "Em": 2,
+    "Fm": 3,
+    "Gm": 5,
+    "Am": 7,
+    "Bb": 8,
+    "C": 10
+  },
+  "baseNotesHz": {
+    "D2": 73.42,
+    "Eb2": 77.78,
+    "E2": 82.41,
+    "F2": 87.31,
+    "G2": 98,
+    "Ab2": 103.83,
+    "A2": 110,
+    "Bb2": 116.54,
+    "B2": 123.47,
+    "C3": 130.81,
+    "D3": 146.83,
+    "Eb3": 155.56,
+    "E3": 164.81,
+    "F3": 174.61,
+    "G3": 196,
+    "Ab3": 207.65,
+    "A3": 220,
+    "Bb3": 233.08,
+    "B3": 246.94,
+    "C4": 261.63,
+    "D4": 293.66,
+    "E4": 329.63,
+    "F4": 349.23,
+    "G4": 392
+  },
+  "chordVoicings": {
+    "Dm": {
+      "label": "D minor",
+      "notes": [
+        "D2",
+        "A2",
+        "F3",
+        "D4"
+      ]
+    },
+    "C": {
+      "label": "C major",
+      "notes": [
+        "C3",
+        "G3",
+        "E3",
+        "C4"
+      ]
+    },
+    "Bb": {
+      "label": "Bb major",
+      "notes": [
+        "Bb2",
+        "F3",
+        "D4",
+        "Bb3"
+      ]
+    },
+    "Am": {
+      "label": "A minor",
+      "notes": [
+        "A2",
+        "E3",
+        "C4",
+        "A3"
+      ]
+    }
+  },
+  "droneVoicings": [
+    {
+      "root": "D2",
+      "fifth": "A2"
+    },
+    {
+      "root": "C3",
+      "fifth": "G3"
+    },
+    {
+      "root": "Bb2",
+      "fifth": "F3"
+    }
+  ],
+  "velocities": [
+    0.9,
+    0.68,
+    0.84,
+    0.88,
+    0.72,
+    0.92,
+    0.7,
+    0.86,
+    0.94,
+    0.75,
+    0.82,
+    0.9,
+    0.78,
+    0.87,
+    0.93,
+    0.8
+  ],
+  "layerIds": [
+    "arp",
+    "echo",
+    "thump",
+    "piano",
+    "sub",
+    "pad",
+    "bass",
+    "shim",
+    "drone",
+    "beatpulse",
+    "voices"
+  ],
+  "layerMix": {
+    "arp": 0.74,
+    "echo": 0.14,
+    "thump": 0.76,
+    "piano": 0.52,
+    "sub": 0.36,
+    "pad": 0.38,
+    "bass": 0.68,
+    "shim": 0.24,
+    "drone": 0.54,
+    "beatpulse": 0.56,
+    "voices": 0.65
+  },
+  "layerConfigs": {
+    "arp": {
+      "attack": 0.009,
+      "decay": 0.36,
+      "sustain": 0.22,
+      "release": 0.12,
+      "filterCutoff": 2900,
+      "filterQ": 1.2
+    },
+    "echo": {
+      "attack": 0.022,
+      "decay": 0.48,
+      "sustain": 0.1,
+      "release": 0.2,
+      "filterCutoff": 3100,
+      "filterQ": 0.85
+    },
+    "thump": {
+      "attack": 0.003,
+      "decay": 0.25,
+      "sustain": 0,
+      "release": 0.09,
+      "filterCutoff": 1150,
+      "filterQ": 1.55
+    },
+    "piano": {
+      "attack": 0.016,
+      "decay": 0.46,
+      "sustain": 0.16,
+      "release": 0.18,
+      "filterCutoff": 3000,
+      "filterQ": 1.2
+    },
+    "sub": {
+      "attack": 0.05,
+      "decay": 0.58,
+      "sustain": 0.3,
+      "release": 0.24,
+      "filterCutoff": 210,
+      "filterQ": 0.75,
+      "rootNote": "D2",
+      "overtoneNote": "D3"
+    },
+    "pad": {
+      "attack": 0.09,
+      "decay": 0.7,
+      "sustain": 0.42,
+      "release": 0.32,
+      "filterCutoff": 2300,
+      "filterQ": 0.98
+    },
+    "bass": {
+      "attack": 0.013,
+      "decay": 0.4,
+      "sustain": 0.2,
+      "release": 0.15,
+      "filterCutoff": 480,
+      "filterQ": 1.32
+    },
+    "shim": {
+      "attack": 0.046,
+      "decay": 0.8,
+      "sustain": 0.26,
+      "release": 0.4,
+      "filterCutoff": 4000,
+      "filterQ": 0.68
+    },
+    "drone": {
+      "attack": 0.1,
+      "decay": 0.85,
+      "sustain": 0.48,
+      "release": 0.35,
+      "filterCutoff": 290,
+      "filterQ": 0.82
+    },
+    "beatpulse": {
+      "attack": 0.003,
+      "decay": 0.21,
+      "sustain": 0,
+      "release": 0.08,
+      "filterCutoff": 950,
+      "filterQ": 1.7
+    },
+    "voices": {
+      "attack": 0.028,
+      "decay": 0.52,
+      "sustain": 0.34,
+      "release": 0.2,
+      "filterCutoff": 3200,
+      "filterQ": 1.12
+    }
+  },
+  "arpPattern": [
+    "D3",
+    "F3",
+    "G3",
+    "A3",
+    "G3",
+    "F3",
+    "D3",
+    "A2",
+    "F3",
+    "D3",
+    "A3",
+    "G3",
+    "E3",
+    "C3",
+    "F3",
+    "D3"
+  ],
+  "phaseFilterHz": {
+    "phase1": 2850,
+    "phase2": 2950,
+    "phase3": 3050,
+    "phase4": 3200,
+    "phase5": 2750,
+    "phase6": 3300,
+    "phase7": 2900
+  },
+  "phases": [
+    {
+      "id": "phase1",
+      "label": "First Verse",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "Dm",
+        "C",
+        "Bb",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.72,
+        "echo": 0.13,
+        "thump": 0.74,
+        "piano": 0.5,
+        "sub": 0.34,
+        "pad": 0.36,
+        "bass": 0.66,
+        "shim": 0.22,
+        "drone": 0.52,
+        "beatpulse": 0.54,
+        "voices": 0.63
+      }
+    },
+    {
+      "id": "phase2",
+      "label": "Ladies Reply",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Dm",
+        "Bb",
+        "C",
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.74,
+        "echo": 0.14,
+        "thump": 0.76,
+        "piano": 0.52,
+        "sub": 0.36,
+        "pad": 0.38,
+        "bass": 0.68,
+        "shim": 0.24,
+        "drone": 0.54,
+        "beatpulse": 0.56,
+        "voices": 0.65
+      }
+    },
+    {
+      "id": "phase3",
+      "label": "Full Company",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "Dm",
+        "C",
+        "Bb",
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.78,
+        "echo": 0.16,
+        "thump": 0.8,
+        "piano": 0.54,
+        "sub": 0.38,
+        "pad": 0.4,
+        "bass": 0.7,
+        "shim": 0.26,
+        "drone": 0.56,
+        "beatpulse": 0.58,
+        "voices": 0.68
+      }
+    },
+    {
+      "id": "phase4",
+      "label": "Dancing Below",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Dm",
+        "Bb",
+        "C",
+        "Am",
+        "Dm",
+        "Bb",
+        "C",
+        "Dm",
+        "Am",
+        "Bb",
+        "C",
+        "Dm"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.82,
+        "echo": 0.18,
+        "thump": 0.84,
+        "piano": 0.56,
+        "sub": 0.4,
+        "pad": 0.42,
+        "bass": 0.72,
+        "shim": 0.28,
+        "drone": 0.58,
+        "beatpulse": 0.6,
+        "voices": 0.7
+      }
+    },
+    {
+      "id": "phase5",
+      "label": "Moonlit Deck",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "C",
+        "Bb",
+        "Am",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.71,
+        "echo": 0.13,
+        "thump": 0.75,
+        "piano": 0.51,
+        "sub": 0.35,
+        "pad": 0.37,
+        "bass": 0.67,
+        "shim": 0.23,
+        "drone": 0.53,
+        "beatpulse": 0.55,
+        "voices": 0.64
+      }
+    },
+    {
+      "id": "phase6",
+      "label": "Roaring Chorus",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "Dm",
+        "C",
+        "Bb",
+        "Dm",
+        "C",
+        "Bb",
+        "Am",
+        "Dm"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.84,
+        "echo": 0.2,
+        "thump": 0.86,
+        "piano": 0.58,
+        "sub": 0.42,
+        "pad": 0.44,
+        "bass": 0.74,
+        "shim": 0.3,
+        "drone": 0.6,
+        "beatpulse": 0.62,
+        "voices": 0.72
+      }
+    },
+    {
+      "id": "phase7",
+      "label": "Into Plymouth",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Dm",
+        "Bb",
+        "C",
+        "Am",
+        "Dm",
+        "C",
+        "Bb",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.74,
+        "echo": 0.14,
+        "thump": 0.76,
+        "piano": 0.52,
+        "sub": 0.36,
+        "pad": 0.38,
+        "bass": 0.68,
+        "shim": 0.24,
+        "drone": 0.54,
+        "beatpulse": 0.56,
+        "voices": 0.65
+      }
+    }
+  ]
+}

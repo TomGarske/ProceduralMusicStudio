@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "id": "leave-her-johnny",
+  "name": "Leave Her Johnny",
+  "description": "Pumping shanty in A minor with slow, melancholic emotion and deep sorrow",
+  "defaults": {
+    "bpm": 62,
+    "key": "Am",
+    "reverb": 0.35
+  },
+  "keyOffsets": {
+    "Am": 0,
+    "Bbm": 1,
+    "Bm": 2,
+    "Cm": 3,
+    "Dm": 5,
+    "Em": 7,
+    "Fm": 8
+  },
+  "baseNotesHz": {
+    "A1": 55,
+    "Bb1": 58.27,
+    "B1": 61.74,
+    "C2": 65.41,
+    "D2": 73.42,
+    "Eb2": 77.78,
+    "E2": 82.41,
+    "F2": 87.31,
+    "G2": 98,
+    "Ab2": 103.83,
+    "A2": 110,
+    "Bb2": 116.54,
+    "B2": 123.47,
+    "C3": 130.81,
+    "D3": 146.83,
+    "Eb3": 155.56,
+    "E3": 164.81,
+    "F3": 174.61,
+    "G3": 196,
+    "Ab3": 207.65,
+    "A3": 220,
+    "Bb3": 233.08,
+    "B3": 246.94,
+    "C4": 261.63,
+    "D4": 293.66,
+    "E4": 329.63
+  },
+  "chordVoicings": {
+    "Am": {
+      "label": "A minor",
+      "notes": [
+        "A2",
+        "E3",
+        "C4",
+        "A3"
+      ]
+    },
+    "Em": {
+      "label": "E minor",
+      "notes": [
+        "E2",
+        "B2",
+        "G3",
+        "E4"
+      ]
+    },
+    "Dm": {
+      "label": "D minor",
+      "notes": [
+        "D2",
+        "A2",
+        "F3",
+        "D4"
+      ]
+    }
+  },
+  "droneVoicings": [
+    {
+      "root": "A1",
+      "fifth": "E2"
+    },
+    {
+      "root": "E2",
+      "fifth": "B2"
+    },
+    {
+      "root": "D2",
+      "fifth": "A2"
+    }
+  ],
+  "velocities": [
+    0.78,
+    0.55,
+    0.68,
+    0.82,
+    0.62,
+    0.85,
+    0.58,
+    0.75,
+    0.88,
+    0.6,
+    0.72,
+    0.86,
+    0.65,
+    0.8,
+    0.92,
+    0.7
+  ],
+  "layerIds": [
+    "arp",
+    "echo",
+    "thump",
+    "piano",
+    "sub",
+    "pad",
+    "bass",
+    "shim",
+    "drone",
+    "beatpulse",
+    "voices"
+  ],
+  "layerMix": {
+    "arp": 0.55,
+    "echo": 0.28,
+    "thump": 0.58,
+    "piano": 0.48,
+    "sub": 0.45,
+    "pad": 0.52,
+    "bass": 0.6,
+    "shim": 0.18,
+    "drone": 0.68,
+    "beatpulse": 0.38,
+    "voices": 0.7
+  },
+  "layerConfigs": {
+    "arp": {
+      "attack": 0.012,
+      "decay": 0.45,
+      "sustain": 0.28,
+      "release": 0.15,
+      "filterCutoff": 2400,
+      "filterQ": 1.1
+    },
+    "echo": {
+      "attack": 0.03,
+      "decay": 0.65,
+      "sustain": 0.15,
+      "release": 0.28,
+      "filterCutoff": 2800,
+      "filterQ": 0.9
+    },
+    "thump": {
+      "attack": 0.004,
+      "decay": 0.3,
+      "sustain": 0,
+      "release": 0.12,
+      "filterCutoff": 1000,
+      "filterQ": 1.4
+    },
+    "piano": {
+      "attack": 0.02,
+      "decay": 0.55,
+      "sustain": 0.2,
+      "release": 0.22,
+      "filterCutoff": 2600,
+      "filterQ": 1.2
+    },
+    "sub": {
+      "attack": 0.08,
+      "decay": 0.75,
+      "sustain": 0.4,
+      "release": 0.3,
+      "filterCutoff": 160,
+      "filterQ": 0.8,
+      "rootNote": "A1",
+      "overtoneNote": "A2"
+    },
+    "pad": {
+      "attack": 0.12,
+      "decay": 0.85,
+      "sustain": 0.5,
+      "release": 0.4,
+      "filterCutoff": 2000,
+      "filterQ": 1
+    },
+    "bass": {
+      "attack": 0.015,
+      "decay": 0.5,
+      "sustain": 0.25,
+      "release": 0.18,
+      "filterCutoff": 380,
+      "filterQ": 1.2
+    },
+    "shim": {
+      "attack": 0.05,
+      "decay": 0.9,
+      "sustain": 0.3,
+      "release": 0.45,
+      "filterCutoff": 3800,
+      "filterQ": 0.7
+    },
+    "drone": {
+      "attack": 0.15,
+      "decay": 1,
+      "sustain": 0.6,
+      "release": 0.4,
+      "filterCutoff": 240,
+      "filterQ": 0.9
+    },
+    "beatpulse": {
+      "attack": 0.003,
+      "decay": 0.25,
+      "sustain": 0,
+      "release": 0.1,
+      "filterCutoff": 700,
+      "filterQ": 1.5
+    },
+    "voices": {
+      "attack": 0.04,
+      "decay": 0.65,
+      "sustain": 0.4,
+      "release": 0.26,
+      "filterCutoff": 3000,
+      "filterQ": 1.1
+    }
+  },
+  "arpPattern": [
+    "A2",
+    "C3",
+    "E3",
+    "A3",
+    "E3",
+    "C3",
+    "A2",
+    "E2",
+    "C3",
+    "A2",
+    "E3",
+    "A3",
+    "G3",
+    "E3",
+    "C3",
+    "A2"
+  ],
+  "phaseFilterHz": {
+    "phase1": 2400,
+    "phase2": 2500,
+    "phase3": 2700,
+    "phase4": 2900,
+    "phase5": 2200,
+    "phase6": 3000,
+    "phase7": 2300
+  },
+  "phases": [
+    {
+      "id": "phase1",
+      "label": "Farewell Call",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "Am",
+        "Dm",
+        "Am",
+        "Em",
+        "Am",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.52,
+        "echo": 0.26,
+        "thump": 0.55,
+        "piano": 0.45,
+        "sub": 0.42,
+        "pad": 0.48,
+        "bass": 0.58,
+        "shim": 0.16,
+        "drone": 0.65,
+        "beatpulse": 0.36,
+        "voices": 0.68
+      }
+    },
+    {
+      "id": "phase2",
+      "label": "Crew's Lament",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Am",
+        "Dm",
+        "Em",
+        "Am",
+        "Dm",
+        "Am",
+        "Em",
+        "Am"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.55,
+        "echo": 0.28,
+        "thump": 0.58,
+        "piano": 0.48,
+        "sub": 0.45,
+        "pad": 0.52,
+        "bass": 0.6,
+        "shim": 0.18,
+        "drone": 0.68,
+        "beatpulse": 0.38,
+        "voices": 0.7
+      }
+    },
+    {
+      "id": "phase3",
+      "label": "Gathering Sorrow",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "Dm",
+        "Am",
+        "Em",
+        "Am",
+        "Dm",
+        "Em",
+        "Am",
+        "Dm",
+        "Em",
+        "Am"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.6,
+        "echo": 0.3,
+        "thump": 0.62,
+        "piano": 0.5,
+        "sub": 0.48,
+        "pad": 0.55,
+        "bass": 0.63,
+        "shim": 0.2,
+        "drone": 0.7,
+        "beatpulse": 0.4,
+        "voices": 0.72
+      }
+    },
+    {
+      "id": "phase4",
+      "label": "Heavy Hearts",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Am",
+        "Dm",
+        "Em",
+        "Am",
+        "Am",
+        "Dm",
+        "Em",
+        "Am",
+        "Em",
+        "Am",
+        "Dm",
+        "Em"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.65,
+        "echo": 0.32,
+        "thump": 0.68,
+        "piano": 0.52,
+        "sub": 0.5,
+        "pad": 0.58,
+        "bass": 0.68,
+        "shim": 0.22,
+        "drone": 0.75,
+        "beatpulse": 0.42,
+        "voices": 0.78
+      }
+    },
+    {
+      "id": "phase5",
+      "label": "Last Watch",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "Dm",
+        "Am",
+        "Em",
+        "Am",
+        "Dm",
+        "Am"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.53,
+        "echo": 0.27,
+        "thump": 0.56,
+        "piano": 0.46,
+        "sub": 0.43,
+        "pad": 0.5,
+        "bass": 0.59,
+        "shim": 0.17,
+        "drone": 0.66,
+        "beatpulse": 0.37,
+        "voices": 0.69
+      }
+    },
+    {
+      "id": "phase6",
+      "label": "Final Chorus",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Am",
+        "Dm",
+        "Em",
+        "Am",
+        "Dm",
+        "Am",
+        "Em",
+        "Dm",
+        "Am",
+        "Em",
+        "Dm",
+        "Am"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.68,
+        "echo": 0.34,
+        "thump": 0.72,
+        "piano": 0.54,
+        "sub": 0.52,
+        "pad": 0.6,
+        "bass": 0.7,
+        "shim": 0.24,
+        "drone": 0.78,
+        "beatpulse": 0.44,
+        "voices": 0.8
+      }
+    },
+    {
+      "id": "phase7",
+      "label": "Landfall",
+      "durationBeats": 24,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "Dm",
+        "Am"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.55,
+        "echo": 0.28,
+        "thump": 0.58,
+        "piano": 0.48,
+        "sub": 0.45,
+        "pad": 0.52,
+        "bass": 0.6,
+        "shim": 0.18,
+        "drone": 0.68,
+        "beatpulse": 0.38,
+        "voices": 0.7
+      }
+    }
+  ]
+}

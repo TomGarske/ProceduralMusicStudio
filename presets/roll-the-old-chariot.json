@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "id": "roll-the-old-chariot",
+  "name": "Roll the Old Chariot",
+  "description": "Pumping shanty in G minor with driving, rowdy energy",
+  "defaults": {
+    "bpm": 78,
+    "key": "Gm",
+    "reverb": 0.22
+  },
+  "keyOffsets": {
+    "Gm": 0,
+    "Am": 2,
+    "Bbm": 3,
+    "Bm": 4,
+    "Cm": 5,
+    "Dm": 7,
+    "Eb": 8
+  },
+  "baseNotesHz": {
+    "G2": 98,
+    "Ab2": 103.83,
+    "A2": 110,
+    "Bb2": 116.54,
+    "B2": 123.47,
+    "C3": 130.81,
+    "D3": 146.83,
+    "Eb3": 155.56,
+    "E3": 164.81,
+    "F3": 174.61,
+    "G3": 196,
+    "Ab3": 207.65,
+    "A3": 220,
+    "Bb3": 233.08,
+    "B3": 246.94,
+    "C4": 261.63,
+    "D4": 293.66,
+    "Eb4": 311.13,
+    "E4": 329.63,
+    "F4": 349.23,
+    "G4": 392
+  },
+  "chordVoicings": {
+    "Gm": {
+      "label": "G minor",
+      "notes": [
+        "G2",
+        "D3",
+        "Bb3",
+        "G4"
+      ]
+    },
+    "Cm": {
+      "label": "C minor",
+      "notes": [
+        "C3",
+        "G3",
+        "Eb4",
+        "C4"
+      ]
+    },
+    "Eb": {
+      "label": "Eb major",
+      "notes": [
+        "Eb3",
+        "Bb3",
+        "G4",
+        "Eb4"
+      ]
+    },
+    "Bb": {
+      "label": "Bb major",
+      "notes": [
+        "Bb2",
+        "F3",
+        "D4",
+        "Bb3"
+      ]
+    }
+  },
+  "droneVoicings": [
+    {
+      "root": "G2",
+      "fifth": "D3"
+    },
+    {
+      "root": "C3",
+      "fifth": "G3"
+    },
+    {
+      "root": "Bb2",
+      "fifth": "F3"
+    }
+  ],
+  "velocities": [
+    0.96,
+    0.75,
+    0.9,
+    0.94,
+    0.8,
+    0.98,
+    0.77,
+    0.92,
+    0.95,
+    0.82,
+    0.88,
+    0.97,
+    0.84,
+    0.93,
+    0.99,
+    0.86
+  ],
+  "layerIds": [
+    "arp",
+    "echo",
+    "thump",
+    "piano",
+    "sub",
+    "pad",
+    "bass",
+    "shim",
+    "drone",
+    "beatpulse",
+    "voices"
+  ],
+  "layerMix": {
+    "arp": 0.76,
+    "echo": 0.13,
+    "thump": 0.84,
+    "piano": 0.46,
+    "sub": 0.4,
+    "pad": 0.34,
+    "bass": 0.74,
+    "shim": 0.18,
+    "drone": 0.52,
+    "beatpulse": 0.6,
+    "voices": 0.62
+  },
+  "layerConfigs": {
+    "arp": {
+      "attack": 0.008,
+      "decay": 0.34,
+      "sustain": 0.2,
+      "release": 0.12,
+      "filterCutoff": 3000,
+      "filterQ": 1.35
+    },
+    "echo": {
+      "attack": 0.02,
+      "decay": 0.46,
+      "sustain": 0.09,
+      "release": 0.18,
+      "filterCutoff": 3200,
+      "filterQ": 0.82
+    },
+    "thump": {
+      "attack": 0.003,
+      "decay": 0.26,
+      "sustain": 0,
+      "release": 0.1,
+      "filterCutoff": 1250,
+      "filterQ": 1.7
+    },
+    "piano": {
+      "attack": 0.014,
+      "decay": 0.42,
+      "sustain": 0.14,
+      "release": 0.16,
+      "filterCutoff": 3050,
+      "filterQ": 1.2
+    },
+    "sub": {
+      "attack": 0.05,
+      "decay": 0.6,
+      "sustain": 0.32,
+      "release": 0.26,
+      "filterCutoff": 190,
+      "filterQ": 0.78,
+      "rootNote": "G2",
+      "overtoneNote": "G3"
+    },
+    "pad": {
+      "attack": 0.08,
+      "decay": 0.68,
+      "sustain": 0.38,
+      "release": 0.3,
+      "filterCutoff": 2350,
+      "filterQ": 0.93
+    },
+    "bass": {
+      "attack": 0.012,
+      "decay": 0.38,
+      "sustain": 0.18,
+      "release": 0.14,
+      "filterCutoff": 480,
+      "filterQ": 1.4
+    },
+    "shim": {
+      "attack": 0.038,
+      "decay": 0.78,
+      "sustain": 0.24,
+      "release": 0.38,
+      "filterCutoff": 4100,
+      "filterQ": 0.62
+    },
+    "drone": {
+      "attack": 0.09,
+      "decay": 0.82,
+      "sustain": 0.45,
+      "release": 0.32,
+      "filterCutoff": 280,
+      "filterQ": 0.86
+    },
+    "beatpulse": {
+      "attack": 0.002,
+      "decay": 0.2,
+      "sustain": 0,
+      "release": 0.08,
+      "filterCutoff": 1050,
+      "filterQ": 1.8
+    },
+    "voices": {
+      "attack": 0.026,
+      "decay": 0.5,
+      "sustain": 0.32,
+      "release": 0.2,
+      "filterCutoff": 3250,
+      "filterQ": 1.1
+    }
+  },
+  "arpPattern": [
+    "G3",
+    "Bb3",
+    "D4",
+    "G4",
+    "D4",
+    "Bb3",
+    "G3",
+    "D3",
+    "Bb3",
+    "G3",
+    "D4",
+    "G4",
+    "F3",
+    "D4",
+    "Bb3",
+    "G3"
+  ],
+  "phaseFilterHz": {
+    "phase1": 2950,
+    "phase2": 3050,
+    "phase3": 3150,
+    "phase4": 3300,
+    "phase5": 2850,
+    "phase6": 3400,
+    "phase7": 2950
+  },
+  "phases": [
+    {
+      "id": "phase1",
+      "label": "Roll Call",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Gm",
+        "Cm",
+        "Gm",
+        "Eb",
+        "Bb",
+        "Cm",
+        "Gm",
+        "Cm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.74,
+        "echo": 0.12,
+        "thump": 0.82,
+        "piano": 0.44,
+        "sub": 0.38,
+        "pad": 0.32,
+        "bass": 0.72,
+        "shim": 0.16,
+        "drone": 0.5,
+        "beatpulse": 0.58,
+        "voices": 0.6
+      }
+    },
+    {
+      "id": "phase2",
+      "label": "Crew Heave",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Gm",
+        "Eb",
+        "Cm",
+        "Gm",
+        "Cm",
+        "Gm",
+        "Eb",
+        "Gm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.76,
+        "echo": 0.13,
+        "thump": 0.84,
+        "piano": 0.46,
+        "sub": 0.4,
+        "pad": 0.34,
+        "bass": 0.74,
+        "shim": 0.18,
+        "drone": 0.52,
+        "beatpulse": 0.6,
+        "voices": 0.62
+      }
+    },
+    {
+      "id": "phase3",
+      "label": "Charging Along",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Gm",
+        "Cm",
+        "Eb",
+        "Bb",
+        "Gm",
+        "Cm",
+        "Gm",
+        "Bb",
+        "Cm",
+        "Gm",
+        "Eb",
+        "Cm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.79,
+        "echo": 0.15,
+        "thump": 0.87,
+        "piano": 0.48,
+        "sub": 0.42,
+        "pad": 0.36,
+        "bass": 0.76,
+        "shim": 0.2,
+        "drone": 0.54,
+        "beatpulse": 0.62,
+        "voices": 0.64
+      }
+    },
+    {
+      "id": "phase4",
+      "label": "One More Pull!",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Gm",
+        "Eb",
+        "Cm",
+        "Bb",
+        "Gm",
+        "Cm",
+        "Gm",
+        "Bb",
+        "Cm",
+        "Gm",
+        "Eb",
+        "Gm"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.84,
+        "echo": 0.17,
+        "thump": 0.9,
+        "piano": 0.5,
+        "sub": 0.44,
+        "pad": 0.38,
+        "bass": 0.78,
+        "shim": 0.22,
+        "drone": 0.56,
+        "beatpulse": 0.64,
+        "voices": 0.68
+      }
+    },
+    {
+      "id": "phase5",
+      "label": "Easy Does It",
+      "durationBeats": 24,
+      "chordSeq": [
+        "Gm",
+        "Cm",
+        "Eb",
+        "Gm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.72,
+        "echo": 0.11,
+        "thump": 0.8,
+        "piano": 0.42,
+        "sub": 0.36,
+        "pad": 0.3,
+        "bass": 0.7,
+        "shim": 0.14,
+        "drone": 0.48,
+        "beatpulse": 0.56,
+        "voices": 0.58
+      }
+    },
+    {
+      "id": "phase6",
+      "label": "Final Push!",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Gm",
+        "Cm",
+        "Bb",
+        "Gm",
+        "Cm",
+        "Gm",
+        "Eb",
+        "Bb",
+        "Gm",
+        "Cm",
+        "Gm",
+        "Bb"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.86,
+        "echo": 0.19,
+        "thump": 0.92,
+        "piano": 0.52,
+        "sub": 0.46,
+        "pad": 0.4,
+        "bass": 0.8,
+        "shim": 0.24,
+        "drone": 0.58,
+        "beatpulse": 0.66,
+        "voices": 0.7
+      }
+    },
+    {
+      "id": "phase7",
+      "label": "Wheels Locked",
+      "durationBeats": 24,
+      "chordSeq": [
+        "Gm",
+        "Eb",
+        "Cm",
+        "Gm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.76,
+        "echo": 0.13,
+        "thump": 0.84,
+        "piano": 0.46,
+        "sub": 0.4,
+        "pad": 0.34,
+        "bass": 0.74,
+        "shim": 0.18,
+        "drone": 0.52,
+        "beatpulse": 0.6,
+        "voices": 0.62
+      }
+    }
+  ]
+}

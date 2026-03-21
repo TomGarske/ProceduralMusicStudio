@@ -1,0 +1,480 @@
+{
+  "schemaVersion": 1,
+  "id": "shenandoah",
+  "name": "Shenandoah",
+  "description": "Capstan shanty in F minor with very slow, deeply emotional character",
+  "defaults": {
+    "bpm": 56,
+    "key": "Fm",
+    "reverb": 0.38
+  },
+  "keyOffsets": {
+    "Fm": 0,
+    "Gm": 2,
+    "Abm": 3,
+    "Am": 4,
+    "Bbm": 5,
+    "Cm": 7,
+    "Dm": 9
+  },
+  "baseNotesHz": {
+    "F2": 87.31,
+    "G2": 98,
+    "Ab2": 103.83,
+    "A2": 110,
+    "Bb2": 116.54,
+    "B2": 123.47,
+    "C3": 130.81,
+    "D3": 146.83,
+    "Eb3": 155.56,
+    "E3": 164.81,
+    "F3": 174.61,
+    "G3": 196,
+    "Ab3": 207.65,
+    "A3": 220,
+    "Bb3": 233.08,
+    "B3": 246.94,
+    "C4": 261.63,
+    "D4": 293.66,
+    "Eb4": 311.13,
+    "E4": 329.63,
+    "F4": 349.23,
+    "G4": 392,
+    "Db4": 277.18
+  },
+  "chordVoicings": {
+    "Fm": {
+      "label": "F minor",
+      "notes": [
+        "F2",
+        "C3",
+        "Ab3",
+        "F4"
+      ]
+    },
+    "Cm": {
+      "label": "C minor",
+      "notes": [
+        "C3",
+        "G3",
+        "Eb4",
+        "C4"
+      ]
+    },
+    "Bbm": {
+      "label": "Bb minor",
+      "notes": [
+        "Bb2",
+        "F3",
+        "Db4",
+        "Bb3"
+      ]
+    }
+  },
+  "droneVoicings": [
+    {
+      "root": "F2",
+      "fifth": "C3"
+    },
+    {
+      "root": "C3",
+      "fifth": "G3"
+    },
+    {
+      "root": "Bb2",
+      "fifth": "F3"
+    }
+  ],
+  "velocities": [
+    0.72,
+    0.5,
+    0.65,
+    0.78,
+    0.55,
+    0.8,
+    0.52,
+    0.7,
+    0.82,
+    0.58,
+    0.68,
+    0.8,
+    0.6,
+    0.75,
+    0.85,
+    0.62
+  ],
+  "layerIds": [
+    "arp",
+    "echo",
+    "thump",
+    "piano",
+    "sub",
+    "pad",
+    "bass",
+    "shim",
+    "drone",
+    "beatpulse",
+    "voices"
+  ],
+  "layerMix": {
+    "arp": 0.52,
+    "echo": 0.32,
+    "thump": 0.48,
+    "piano": 0.55,
+    "sub": 0.52,
+    "pad": 0.6,
+    "bass": 0.56,
+    "shim": 0.14,
+    "drone": 0.75,
+    "beatpulse": 0.32,
+    "voices": 0.78
+  },
+  "layerConfigs": {
+    "arp": {
+      "attack": 0.015,
+      "decay": 0.55,
+      "sustain": 0.35,
+      "release": 0.18,
+      "filterCutoff": 2200,
+      "filterQ": 1
+    },
+    "echo": {
+      "attack": 0.035,
+      "decay": 0.75,
+      "sustain": 0.2,
+      "release": 0.35,
+      "filterCutoff": 2600,
+      "filterQ": 0.95
+    },
+    "thump": {
+      "attack": 0.005,
+      "decay": 0.35,
+      "sustain": 0,
+      "release": 0.14,
+      "filterCutoff": 950,
+      "filterQ": 1.35
+    },
+    "piano": {
+      "attack": 0.025,
+      "decay": 0.65,
+      "sustain": 0.28,
+      "release": 0.26,
+      "filterCutoff": 2400,
+      "filterQ": 1.15
+    },
+    "sub": {
+      "attack": 0.1,
+      "decay": 0.85,
+      "sustain": 0.5,
+      "release": 0.35,
+      "filterCutoff": 140,
+      "filterQ": 0.85,
+      "rootNote": "F2",
+      "overtoneNote": "F3"
+    },
+    "pad": {
+      "attack": 0.15,
+      "decay": 0.95,
+      "sustain": 0.6,
+      "release": 0.45,
+      "filterCutoff": 1900,
+      "filterQ": 1.05
+    },
+    "bass": {
+      "attack": 0.018,
+      "decay": 0.55,
+      "sustain": 0.3,
+      "release": 0.2,
+      "filterCutoff": 400,
+      "filterQ": 1.25
+    },
+    "shim": {
+      "attack": 0.05,
+      "decay": 0.95,
+      "sustain": 0.35,
+      "release": 0.5,
+      "filterCutoff": 3600,
+      "filterQ": 0.72
+    },
+    "drone": {
+      "attack": 0.18,
+      "decay": 1.1,
+      "sustain": 0.7,
+      "release": 0.45,
+      "filterCutoff": 200,
+      "filterQ": 0.95
+    },
+    "beatpulse": {
+      "attack": 0.004,
+      "decay": 0.3,
+      "sustain": 0,
+      "release": 0.12,
+      "filterCutoff": 750,
+      "filterQ": 1.6
+    },
+    "voices": {
+      "attack": 0.045,
+      "decay": 0.75,
+      "sustain": 0.5,
+      "release": 0.3,
+      "filterCutoff": 2800,
+      "filterQ": 1.2
+    }
+  },
+  "arpPattern": [
+    "F3",
+    "Ab3",
+    "C4",
+    "F4",
+    "C4",
+    "Ab3",
+    "F3",
+    "C3",
+    "Ab3",
+    "F3",
+    "C4",
+    "F4",
+    "Eb3",
+    "C4",
+    "Ab3",
+    "F3"
+  ],
+  "phaseFilterHz": {
+    "phase1": 2200,
+    "phase2": 2300,
+    "phase3": 2500,
+    "phase4": 2700,
+    "phase5": 2100,
+    "phase6": 2800,
+    "phase7": 2200
+  },
+  "phases": [
+    {
+      "id": "phase1",
+      "label": "Longing Call",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Cm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.5,
+        "echo": 0.3,
+        "thump": 0.46,
+        "piano": 0.52,
+        "sub": 0.5,
+        "pad": 0.58,
+        "bass": 0.54,
+        "shim": 0.12,
+        "drone": 0.72,
+        "beatpulse": 0.3,
+        "voices": 0.76
+      }
+    },
+    {
+      "id": "phase2",
+      "label": "River's Answer",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Fm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.52,
+        "echo": 0.32,
+        "thump": 0.48,
+        "piano": 0.54,
+        "sub": 0.52,
+        "pad": 0.6,
+        "bass": 0.56,
+        "shim": 0.14,
+        "drone": 0.74,
+        "beatpulse": 0.32,
+        "voices": 0.78
+      }
+    },
+    {
+      "id": "phase3",
+      "label": "Westward Bound",
+      "durationBeats": 64,
+      "chordSeq": [
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Fm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.56,
+        "echo": 0.34,
+        "thump": 0.52,
+        "piano": 0.56,
+        "sub": 0.54,
+        "pad": 0.62,
+        "bass": 0.58,
+        "shim": 0.16,
+        "drone": 0.76,
+        "beatpulse": 0.34,
+        "voices": 0.8
+      }
+    },
+    {
+      "id": "phase4",
+      "label": "Wide Missouri",
+      "durationBeats": 64,
+      "chordSeq": [
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.6,
+        "echo": 0.36,
+        "thump": 0.56,
+        "piano": 0.58,
+        "sub": 0.56,
+        "pad": 0.64,
+        "bass": 0.6,
+        "shim": 0.18,
+        "drone": 0.78,
+        "beatpulse": 0.36,
+        "voices": 0.82
+      }
+    },
+    {
+      "id": "phase5",
+      "label": "Quiet Waters",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Bbm",
+        "Cm",
+        "Fm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.51,
+        "echo": 0.31,
+        "thump": 0.47,
+        "piano": 0.53,
+        "sub": 0.51,
+        "pad": 0.59,
+        "bass": 0.55,
+        "shim": 0.13,
+        "drone": 0.73,
+        "beatpulse": 0.31,
+        "voices": 0.77
+      }
+    },
+    {
+      "id": "phase6",
+      "label": "Rolling Thunder",
+      "durationBeats": 64,
+      "chordSeq": [
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Bbm"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.62,
+        "echo": 0.38,
+        "thump": 0.58,
+        "piano": 0.6,
+        "sub": 0.58,
+        "pad": 0.66,
+        "bass": 0.62,
+        "shim": 0.2,
+        "drone": 0.8,
+        "beatpulse": 0.38,
+        "voices": 0.84
+      }
+    },
+    {
+      "id": "phase7",
+      "label": "Distant Shore",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Fm",
+        "Cm",
+        "Fm",
+        "Bbm",
+        "Fm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.52,
+        "echo": 0.32,
+        "thump": 0.48,
+        "piano": 0.54,
+        "sub": 0.52,
+        "pad": 0.6,
+        "bass": 0.56,
+        "shim": 0.14,
+        "drone": 0.74,
+        "beatpulse": 0.32,
+        "voices": 0.78
+      }
+    }
+  ]
+}

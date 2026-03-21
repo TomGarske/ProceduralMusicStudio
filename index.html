@@ -1217,21 +1217,26 @@ document.getElementById('preset-select').addEventListener('change', async () => 
     activePresetJson = await r.json();
     updatePresetHint();
     if (engine) {
-      const wasPlaying = engine.getState().playing;
-      if (wasPlaying) engine.stop();
+      // Full stop + hard reset — destroys AudioContext, flushes all scheduled nodes
       engine.applyPreset(activePresetJson);
-      if (wasPlaying) engine.play();
+
+      // Update UI to stopped state
+      const btnPlay = document.getElementById('btn-play');
+      const statusPill = document.getElementById('status-pill');
+      btnPlay.classList.remove('playing');
+      btnPlay.innerHTML = '▶';
+      statusPill.textContent = 'stopped';
+      statusPill.classList.remove('playing');
+
+      // Sync sliders to the new preset's defaults
       const bpm = activePresetJson.defaults?.bpm ?? 76;
       document.getElementById('bpm-slider').value = bpm;
       document.getElementById('bpm-display').textContent = Math.round(bpm);
       const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.22) * 100);
       document.getElementById('rev-slider').value = rev;
       document.getElementById('rev-display').textContent = rev + '%';
-      engine.setBPM(bpm);
-      engine.setReverb(rev / 100);
+
       renderPhaseRow();
-      syncAllLayersToEngine();
-      updateChordLayerLabels();
     }
   } catch (err) {
     console.error('Failed to load preset', err);

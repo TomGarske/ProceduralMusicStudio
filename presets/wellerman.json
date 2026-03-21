@@ -1,0 +1,478 @@
+{
+  "schemaVersion": 1,
+  "id": "wellerman",
+  "name": "Wellerman",
+  "description": "Station shanty in A minor with catchy, modern popular character",
+  "defaults": {
+    "bpm": 76,
+    "key": "Am",
+    "reverb": 0.25
+  },
+  "keyOffsets": {
+    "Am": 0,
+    "Bbm": 1,
+    "Bm": 2,
+    "Cm": 3,
+    "Dm": 5,
+    "Em": 7,
+    "Fm": 8
+  },
+  "baseNotesHz": {
+    "A1": 55,
+    "Bb1": 58.27,
+    "B1": 61.74,
+    "C2": 65.41,
+    "D2": 73.42,
+    "Eb2": 77.78,
+    "E2": 82.41,
+    "F2": 87.31,
+    "G2": 98,
+    "Ab2": 103.83,
+    "A2": 110,
+    "Bb2": 116.54,
+    "B2": 123.47,
+    "C3": 130.81,
+    "D3": 146.83,
+    "Eb3": 155.56,
+    "E3": 164.81,
+    "F3": 174.61,
+    "G3": 196,
+    "Ab3": 207.65,
+    "A3": 220,
+    "Bb3": 233.08,
+    "B3": 246.94,
+    "C4": 261.63,
+    "D4": 293.66,
+    "E4": 329.63,
+    "F4": 349.23,
+    "A4": 440
+  },
+  "chordVoicings": {
+    "Am": {
+      "label": "A minor",
+      "notes": [
+        "A2",
+        "E3",
+        "C4",
+        "A3"
+      ]
+    },
+    "Em": {
+      "label": "E minor",
+      "notes": [
+        "E2",
+        "B2",
+        "G3",
+        "E4"
+      ]
+    },
+    "C": {
+      "label": "C major",
+      "notes": [
+        "C3",
+        "G3",
+        "E3",
+        "C4"
+      ]
+    },
+    "Dm": {
+      "label": "D minor",
+      "notes": [
+        "D2",
+        "A2",
+        "F3",
+        "D4"
+      ]
+    }
+  },
+  "droneVoicings": [
+    {
+      "root": "A1",
+      "fifth": "E2"
+    },
+    {
+      "root": "E2",
+      "fifth": "B2"
+    },
+    {
+      "root": "D2",
+      "fifth": "A2"
+    }
+  ],
+  "velocities": [
+    0.88,
+    0.66,
+    0.8,
+    0.86,
+    0.7,
+    0.9,
+    0.68,
+    0.82,
+    0.92,
+    0.72,
+    0.78,
+    0.88,
+    0.74,
+    0.84,
+    0.94,
+    0.76
+  ],
+  "layerIds": [
+    "arp",
+    "echo",
+    "thump",
+    "piano",
+    "sub",
+    "pad",
+    "bass",
+    "shim",
+    "drone",
+    "beatpulse",
+    "voices"
+  ],
+  "layerMix": {
+    "arp": 0.72,
+    "echo": 0.13,
+    "thump": 0.7,
+    "piano": 0.52,
+    "sub": 0.38,
+    "pad": 0.42,
+    "bass": 0.64,
+    "shim": 0.26,
+    "drone": 0.5,
+    "beatpulse": 0.58,
+    "voices": 0.68
+  },
+  "layerConfigs": {
+    "arp": {
+      "attack": 0.008,
+      "decay": 0.4,
+      "sustain": 0.26,
+      "release": 0.14,
+      "filterCutoff": 2800,
+      "filterQ": 1.1
+    },
+    "echo": {
+      "attack": 0.02,
+      "decay": 0.52,
+      "sustain": 0.12,
+      "release": 0.2,
+      "filterCutoff": 3000,
+      "filterQ": 0.88
+    },
+    "thump": {
+      "attack": 0.003,
+      "decay": 0.28,
+      "sustain": 0,
+      "release": 0.1,
+      "filterCutoff": 1100,
+      "filterQ": 1.5
+    },
+    "piano": {
+      "attack": 0.015,
+      "decay": 0.48,
+      "sustain": 0.18,
+      "release": 0.18,
+      "filterCutoff": 2900,
+      "filterQ": 1.15
+    },
+    "sub": {
+      "attack": 0.06,
+      "decay": 0.62,
+      "sustain": 0.34,
+      "release": 0.26,
+      "filterCutoff": 180,
+      "filterQ": 0.82,
+      "rootNote": "A1",
+      "overtoneNote": "A2"
+    },
+    "pad": {
+      "attack": 0.1,
+      "decay": 0.75,
+      "sustain": 0.44,
+      "release": 0.32,
+      "filterCutoff": 2200,
+      "filterQ": 1
+    },
+    "bass": {
+      "attack": 0.012,
+      "decay": 0.42,
+      "sustain": 0.22,
+      "release": 0.16,
+      "filterCutoff": 430,
+      "filterQ": 1.3
+    },
+    "shim": {
+      "attack": 0.045,
+      "decay": 0.82,
+      "sustain": 0.28,
+      "release": 0.42,
+      "filterCutoff": 4100,
+      "filterQ": 0.64
+    },
+    "drone": {
+      "attack": 0.09,
+      "decay": 0.8,
+      "sustain": 0.48,
+      "release": 0.33,
+      "filterCutoff": 260,
+      "filterQ": 0.87
+    },
+    "beatpulse": {
+      "attack": 0.003,
+      "decay": 0.23,
+      "sustain": 0,
+      "release": 0.09,
+      "filterCutoff": 900,
+      "filterQ": 1.65
+    },
+    "voices": {
+      "attack": 0.027,
+      "decay": 0.56,
+      "sustain": 0.36,
+      "release": 0.22,
+      "filterCutoff": 3100,
+      "filterQ": 1.12
+    }
+  },
+  "arpPattern": [
+    "A3",
+    "C4",
+    "E4",
+    "A4",
+    "E4",
+    "C4",
+    "A3",
+    "E3",
+    "C4",
+    "A3",
+    "E4",
+    "A4",
+    "G3",
+    "E4",
+    "C4",
+    "A3"
+  ],
+  "phaseFilterHz": {
+    "phase1": 2750,
+    "phase2": 2850,
+    "phase3": 2950,
+    "phase4": 3100,
+    "phase5": 2650,
+    "phase6": 3200,
+    "phase7": 2800
+  },
+  "phases": [
+    {
+      "id": "phase1",
+      "label": "Captain's Log",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "C",
+        "Dm",
+        "Am",
+        "Em",
+        "C",
+        "Am"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.7,
+        "echo": 0.12,
+        "thump": 0.68,
+        "piano": 0.5,
+        "sub": 0.36,
+        "pad": 0.4,
+        "bass": 0.62,
+        "shim": 0.24,
+        "drone": 0.48,
+        "beatpulse": 0.56,
+        "voices": 0.66
+      }
+    },
+    {
+      "id": "phase2",
+      "label": "Wellerman Comes",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Am",
+        "C",
+        "Dm",
+        "Em",
+        "Am",
+        "C",
+        "Dm",
+        "Am"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.72,
+        "echo": 0.13,
+        "thump": 0.7,
+        "piano": 0.52,
+        "sub": 0.38,
+        "pad": 0.42,
+        "bass": 0.64,
+        "shim": 0.26,
+        "drone": 0.5,
+        "beatpulse": 0.58,
+        "voices": 0.68
+      }
+    },
+    {
+      "id": "phase3",
+      "label": "Sugar and Tea",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "C",
+        "Dm",
+        "Am",
+        "Em",
+        "Dm",
+        "C",
+        "Am",
+        "Em",
+        "C",
+        "Dm"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.76,
+        "echo": 0.15,
+        "thump": 0.74,
+        "piano": 0.54,
+        "sub": 0.4,
+        "pad": 0.44,
+        "bass": 0.66,
+        "shim": 0.28,
+        "drone": 0.52,
+        "beatpulse": 0.6,
+        "voices": 0.7
+      }
+    },
+    {
+      "id": "phase4",
+      "label": "Tonguing and Rum!",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Am",
+        "Dm",
+        "C",
+        "Em",
+        "Am",
+        "C",
+        "Dm",
+        "Em",
+        "Am",
+        "Dm",
+        "C",
+        "Em"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.82,
+        "echo": 0.18,
+        "thump": 0.8,
+        "piano": 0.58,
+        "sub": 0.44,
+        "pad": 0.48,
+        "bass": 0.72,
+        "shim": 0.3,
+        "drone": 0.56,
+        "beatpulse": 0.64,
+        "voices": 0.76
+      }
+    },
+    {
+      "id": "phase5",
+      "label": "Calm Before",
+      "durationBeats": 24,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "Dm",
+        "C"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.68,
+        "echo": 0.12,
+        "thump": 0.68,
+        "piano": 0.5,
+        "sub": 0.36,
+        "pad": 0.4,
+        "bass": 0.62,
+        "shim": 0.24,
+        "drone": 0.48,
+        "beatpulse": 0.56,
+        "voices": 0.66
+      }
+    },
+    {
+      "id": "phase6",
+      "label": "One Day More!",
+      "durationBeats": 48,
+      "chordSeq": [
+        "Am",
+        "Em",
+        "C",
+        "Dm",
+        "Am",
+        "C",
+        "Dm",
+        "Em",
+        "Am",
+        "Em",
+        "C",
+        "Dm"
+      ],
+      "droneMode": true,
+      "lv": {
+        "arp": 0.84,
+        "echo": 0.2,
+        "thump": 0.82,
+        "piano": 0.6,
+        "sub": 0.46,
+        "pad": 0.5,
+        "bass": 0.74,
+        "shim": 0.32,
+        "drone": 0.58,
+        "beatpulse": 0.66,
+        "voices": 0.78
+      }
+    },
+    {
+      "id": "phase7",
+      "label": "Ship Comes In",
+      "durationBeats": 32,
+      "chordSeq": [
+        "Am",
+        "Dm",
+        "C",
+        "Em",
+        "Am",
+        "C",
+        "Dm",
+        "Em"
+      ],
+      "droneMode": false,
+      "lv": {
+        "arp": 0.72,
+        "echo": 0.13,
+        "thump": 0.7,
+        "piano": 0.52,
+        "sub": 0.38,
+        "pad": 0.42,
+        "bass": 0.64,
+        "shim": 0.26,
+        "drone": 0.5,
+        "beatpulse": 0.58,
+        "voices": 0.68
+      }
+    }
+  ]
+}
