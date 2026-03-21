@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Procedural Music Studio</title>
+  <title>Sea Shanty Studio</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -568,7 +568,7 @@
 
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header>
-    <h1>Procedural Music Studio</h1>
+    <h1>Sea Shanty Studio</h1>
     <div id="status-pill">stopped</div>
   </header>
 
@@ -578,8 +578,8 @@
       <button id="btn-play" title="Play / Stop">▶</button>
 
       <div class="ctrl" id="bpm-ctrl">
-        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">108</span></div>
-        <input type="range" id="bpm-slider" min="40" max="160" value="108" step="1">
+        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">76</span></div>
+        <input type="range" id="bpm-slider" min="40" max="160" value="76" step="1">
       </div>
 
       <div class="ctrl" id="vol-ctrl">
@@ -588,8 +588,8 @@
       </div>
 
       <div class="ctrl" id="rev-ctrl">
-        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">8%</span></div>
-        <input type="range" id="rev-slider" min="0" max="80" value="8" step="1">
+        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">22%</span></div>
+        <input type="range" id="rev-slider" min="0" max="80" value="22" step="1">
       </div>
 
       <div id="info-row">
@@ -609,7 +609,7 @@
 
   <!-- ── Phase Timeline ──────────────────────────────────────────────────── -->
   <div class="panel">
-    <div class="panel-title">Song Phases</div>
+    <div class="panel-title">Shanty Phases</div>
     <div id="phase-row"></div>
     <label class="phase-loop-wrap" title="Loop currently selected phase">
       <input type="checkbox" id="phase-loop">
@@ -640,13 +640,13 @@
 
   <!-- ── Layer Mixer ─────────────────────────────────────────────────────── -->
   <div class="panel">
-    <div class="panel-title">Layer Mixer — multipliers applied on top of phase values</div>
+    <div class="panel-title">Crew & Instruments — mix levels per song phase</div>
     <div id="mixer-layers"></div>
   </div>
 
   <footer>
     <a href="https://github.com/TomGarske/ProceduralMusicStudio" target="_blank">GitHub</a>
-    &nbsp;·&nbsp; 83 BPM · Web Audio API
+    &nbsp;·&nbsp; 76 BPM · Sea Shanty · Web Audio API
   </footer>
 
 </div>
@@ -656,30 +656,30 @@
 <script>
 // ── Layer definitions (order = rhythm → low end → harmony → melody → texture) ─
 const LAYERS = [
-  { id:'thump',     label:'Kick / Thump',   desc:'Pitch-swept sine kick drum', default:50 },
-  { id:'beatpulse', label:'Beat Pulse',     desc:'Rhythmic sidechain-style pulse', default:50 },
-  { id:'sub',       label:'Sub Bass',       desc:'Low-frequency sine foundation', default:50 },
-  { id:'bass',      label:'Bass',           desc:'Root-note bass line', default:50 },
-  { id:'piano',     label:'Piano',          desc:'Multi-partial chord stabs', default:50 },
-  { id:'pad',       label:'String Pad',     desc:'Detuned sine pad with vibrato', default:50 },
-  { id:'drone',     label:'Drone',          desc:'Held root + pulse (chorus only)', default:50 },
-  { id:'arp',       label:'Arpeggio',       desc:'Triangle-wave melodic pattern', default:50 },
-  { id:'echo',      label:'Echo / Arp 2',   desc:'Delayed arp copy with feedback', default:50 },
-  { id:'shim',      label:'Shimmer',        desc:'High-freq sparkle (chorus only)', default:50 },
-  { id:'voices',    label:'Ethereal Voices',desc:'Airy choir swells on phrase turns', default:50 },
+  { id:'thump',     label:'Bodhran',        desc:'Frame drum stomp on beats 1 & 3', default:50 },
+  { id:'beatpulse', label:'Stomp Pulse',    desc:'Deck-thump rhythmic pulse', default:50 },
+  { id:'sub',       label:'Hull Rumble',    desc:'Low drone foundation', default:50 },
+  { id:'bass',      label:'Bass Line',      desc:'Root-following bass', default:50 },
+  { id:'piano',     label:'Concertina Chords', desc:'Chord stabs on the downbeat', default:50 },
+  { id:'pad',       label:'Squeezebox Drone', desc:'Sustained bellows drone with vibrato', default:50 },
+  { id:'drone',     label:'Hurdy Drone',    desc:'Held root & fifth (hauling phases)', default:50 },
+  { id:'arp',       label:'Fiddle Melody',  desc:'Reedy melodic pattern', default:50 },
+  { id:'echo',      label:'Fiddle Echo',    desc:'Delayed fiddle copy for width', default:50 },
+  { id:'shim',      label:'Ship\'s Bell',   desc:'Bell ring accent on downbeats', default:50 },
+  { id:'voices',    label:'Crew Chorus',    desc:'Chanting crew with vowel formants', default:50 },
 ];
 /** Layers that follow the phase chord progression (shown in the mixer). */
 const CHORD_LAYER_IDS = ['piano', 'bass', 'voices'];
 
 /** Fallback phase labels if engine is not ready yet */
 const ALL_SCRIPTED_PHASES = [
-  { id: 'intro', label: 'Intro' },
-  { id: 'build1', label: 'Build 1' },
-  { id: 'verse1', label: 'Verse' },
-  { id: 'chorus1', label: 'Chorus 1' },
-  { id: 'break', label: 'Break' },
-  { id: 'chorus2', label: 'Chorus 2' },
-  { id: 'outro', label: 'Outro' },
+  { id: 'shanty_call', label: 'Shanty Call' },
+  { id: 'shanty_response', label: 'Crew Response' },
+  { id: 'full_crew', label: 'Full Crew' },
+  { id: 'heave_ho', label: 'Heave Ho!' },
+  { id: 'calm_sea', label: 'Calm Sea' },
+  { id: 'all_hands', label: 'All Hands!' },
+  { id: 'port', label: 'Into Port' },
 ];
 let presetManifestList = [];
 let activePresetJson = null;
@@ -791,8 +791,8 @@ async function bootEngine() {
   });
 
   // Sync sliders to the loaded preset's defaults, then push to engine
-  const presetBpm = activePresetJson?.defaults?.bpm ?? 108;
-  const presetRev = Math.round((activePresetJson?.defaults?.reverb ?? 0.08) * 100);
+  const presetBpm = activePresetJson?.defaults?.bpm ?? 76;
+  const presetRev = Math.round((activePresetJson?.defaults?.reverb ?? 0.22) * 100);
   document.getElementById('bpm-slider').value = presetBpm;
   document.getElementById('bpm-display').textContent = Math.round(presetBpm);
   document.getElementById('rev-slider').value = presetRev;
@@ -1221,10 +1221,10 @@ document.getElementById('preset-select').addEventListener('change', async () => 
       if (wasPlaying) engine.stop();
       engine.applyPreset(activePresetJson);
       if (wasPlaying) engine.play();
-      const bpm = activePresetJson.defaults?.bpm ?? 83;
+      const bpm = activePresetJson.defaults?.bpm ?? 76;
       document.getElementById('bpm-slider').value = bpm;
       document.getElementById('bpm-display').textContent = Math.round(bpm);
-      const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.15) * 100);
+      const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.22) * 100);
       document.getElementById('rev-slider').value = rev;
       document.getElementById('rev-display').textContent = rev + '%';
       engine.setBPM(bpm);

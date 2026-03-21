@@ -1,6 +1,6 @@
 // music_engine_web.js
-// Procedural Music Studio — standalone Web Audio engine
-// Browser-only procedural music engine for standalone web apps.
+// Procedural Music Studio — Sea Shanty Web Audio engine
+// Browser-only procedural music engine for sea shanty synthesis.
 // Drop into any HTML page.
 //
 // Public API:
@@ -14,7 +14,7 @@
 //   engine.getNextPhaseLevels()     // next phase lv map
 //   engine.setVolume(0-2)            // 1.0 = unity, >1 = boost
 //   engine.setLayer(name, 0-1)      // layer name from LAYER_IDS
-//   engine.setBPM(bpm)              // 40-160, default per preset (108 shanty, 83 studio, 72 atmospheric)
+//   engine.setBPM(bpm)              // 40-160, default 76 (sea shanty pace)
 //   engine.setReverb(0-0.80)        // wet amount, default per preset
 //   engine.setKey(id)               // e.g. 'Gm', 'Am', 'Dm'
 //   engine.setPhaseLoop(id|null)    // lock playback to a phase id
@@ -28,7 +28,7 @@
 //   engine.off(event, callback)
 
 const ProceduralMusic = (() => {
-  const DEFAULT_PRESET = JSON.parse("{\"schemaVersion\":1,\"id\":\"studio-default\",\"name\":\"G Natural Minor (Studio)\",\"description\":\"Original Procedural Music Studio loop: seven phases, layered Web Audio synthesis.\",\"defaults\":{\"bpm\":83,\"key\":\"Gm\",\"reverb\":0.15},\"keyOffsets\":{\"Gm\":0,\"Am\":2,\"Bbm\":3,\"Cm\":5,\"Dm\":7,\"Em\":9,\"Fm\":10},\"baseNotesHz\":{\"G1\":49,\"D2\":73.42,\"G2\":98,\"Bb2\":116.54,\"C3\":130.81,\"D3\":146.83,\"F3\":174.61,\"G3\":196,\"A3\":220,\"Bb3\":233.08,\"C4\":261.63,\"D4\":293.66,\"Eb4\":311.13,\"F4\":349.23,\"G4\":392,\"Bb4\":466.16},\"velocities\":[0.88,0.38,0.54,0.32,0.72,0.36,0.5,0.28,0.8,0.4,0.56,0.3,0.66,0.34,0.48,0.26],\"layerIds\":[\"arp\",\"echo\",\"thump\",\"piano\",\"sub\",\"pad\",\"bass\",\"shim\",\"drone\",\"beatpulse\",\"voices\"],\"layerMix\":{\"arp\":0.3,\"echo\":0.2,\"thump\":0.85,\"piano\":0.9,\"sub\":0.13,\"pad\":0.2,\"bass\":0.22,\"shim\":0.12,\"drone\":0.3,\"beatpulse\":0.55,\"voices\":0.26},\"layerConfigs\":{\"arp\":{\"stepsPerBar\":16,\"lfoHz\":5.1,\"attackSec\":0.007,\"decayTauMul\":0.65,\"gainScale\":0.3},\"echo\":{\"leftDelaySteps\":2,\"rightDelaySteps\":3,\"gainScale\":0.2},\"thump\":{\"durationSec\":0.55,\"startHz\":140,\"endHz\":60,\"pitchDecay\":8,\"ampDecay\":5.5,\"gainScale\":0.85},\"piano\":{\"harmonics\":[1,2,3,4],\"durationSec\":2.2,\"voiceDelaySec\":0.004,\"gainScale\":0.9},\"sub\":{\"rootNote\":\"G1\",\"overtoneNote\":\"G2\",\"overtoneMix\":0.24,\"gainScale\":0.13},\"pad\":{\"vibratoHz\":4.6,\"vibratoDepth\":0.82,\"lpfHz\":820,\"voiceGain\":0.17,\"gainScale\":0.2},\"bass\":{\"lpfHz\":380,\"hpfHz\":45,\"detuneCents\":-5,\"gainScale\":0.22},\"shim\":{\"triggerSteps\":[2,6,10,14],\"durationSec\":0.1,\"octaveMul\":2,\"gainScale\":0.12},\"drone\":{\"holdBeats\":16,\"pulseBeats\":16,\"lpfHz\":280,\"gainScale\":0.3},\"beatpulse\":{\"durationSec\":0.45,\"pitchGlide\":3,\"ampDecay\":6,\"gainScale\":0.55},\"voices\":{\"releaseSec\":1.6,\"vibratoHz\":5.3,\"formantHz\":1180,\"triggerSteps\":[4,12],\"gainScale\":0.26}},\"arpPattern\":[\"G3\",\"D4\",\"Bb3\",\"G4\",\"F4\",\"D4\",\"Bb3\",\"G3\",\"A3\",\"D4\",\"C4\",\"G4\",\"Eb4\",\"C4\",\"Bb3\",\"G3\"],\"phaseFilterHz\":{\"intro\":400,\"build1\":580,\"verse1\":780,\"chorus1\":1100,\"break\":520,\"chorus2\":1200,\"outro\":620},\"novelLabels\":[\"Nebula Drift\",\"Moonlit Pulse\",\"Stardust Bloom\",\"Aurora Steps\",\"Velvet Horizon\",\"Eclipse Motion\"],\"phases\":[{\"id\":\"intro\",\"label\":\"Intro\",\"durationBeats\":16,\"chordSeq\":null,\"droneMode\":false,\"lv\":{\"arp\":0.82,\"echo\":0,\"thump\":0.7,\"piano\":0,\"sub\":0.32,\"pad\":0,\"bass\":0.28,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"build1\",\"label\":\"Build 1\",\"durationBeats\":16,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.82,\"echo\":0.42,\"thump\":0.72,\"piano\":0.52,\"sub\":0.38,\"pad\":0,\"bass\":0.45,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"verse1\",\"label\":\"Verse\",\"durationBeats\":20,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.8,\"echo\":0.46,\"thump\":0.72,\"piano\":0.55,\"sub\":0.42,\"pad\":0.48,\"bass\":0.5,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"chorus1\",\"label\":\"Chorus 1\",\"durationBeats\":16,\"chordSeq\":[\"Gm\",\"Eb\",\"Cm\",\"Bb\"],\"droneMode\":true,\"lv\":{\"arp\":0.78,\"echo\":0.48,\"thump\":0.72,\"piano\":0.58,\"sub\":0.46,\"pad\":0.52,\"bass\":0.52,\"shim\":0.46,\"drone\":0.72,\"beatpulse\":0.6,\"voices\":0.34}},{\"id\":\"break\",\"label\":\"Break\",\"durationBeats\":12,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.84,\"echo\":0.08,\"thump\":0.76,\"piano\":0.5,\"sub\":0.35,\"pad\":0.08,\"bass\":0.3,\"shim\":0,\"drone\":0,\"beatpulse\":0,\"voices\":0}},{\"id\":\"chorus2\",\"label\":\"Chorus 2\",\"durationBeats\":24,\"chordSeq\":[\"Gm\",\"Eb\",\"Cm\",\"Bb\"],\"droneMode\":true,\"lv\":{\"arp\":0.8,\"echo\":0.5,\"thump\":0.72,\"piano\":0.6,\"sub\":0.48,\"pad\":0.55,\"bass\":0.54,\"shim\":0.52,\"drone\":0.78,\"beatpulse\":0.65,\"voices\":0.4}},{\"id\":\"outro\",\"label\":\"Outro\",\"durationBeats\":16,\"chordSeq\":[\"Gm\",\"Eb\"],\"droneMode\":false,\"lv\":{\"arp\":0.72,\"echo\":0.15,\"thump\":0.65,\"piano\":0.42,\"sub\":0.28,\"pad\":0.12,\"bass\":0.22,\"shim\":0.1,\"drone\":0,\"beatpulse\":0,\"voices\":0.12}}]}");
+  const DEFAULT_PRESET = JSON.parse("{\"schemaVersion\":1,\"id\":\"drunken-sailor\",\"name\":\"Drunken Sailor\",\"description\":\"Traditional sea shanty in D minor. Bodhran stomps, concertina drone, crew chorus in call-and-response. Public domain folk song.\",\"defaults\":{\"bpm\":76,\"key\":\"Dm\",\"reverb\":0.22},\"keyOffsets\":{\"Dm\":0,\"Em\":2,\"Fm\":3,\"Gm\":5,\"Am\":7,\"Bbm\":8,\"Cm\":10},\"baseNotesHz\":{\"A1\":55,\"D2\":73.42,\"E2\":82.41,\"A2\":110,\"Bb2\":116.54,\"C3\":130.81,\"D3\":146.83,\"E3\":164.81,\"F3\":174.61,\"G3\":196,\"A3\":220,\"Bb3\":233.08,\"C4\":261.63,\"D4\":293.66,\"E4\":329.63,\"F4\":349.23,\"G4\":392,\"A4\":440},\"chordVoicings\":{\"Dm\":{\"label\":\"Dm\",\"notes\":[\"D3\",\"A3\",\"D4\",\"F4\"]},\"C\":{\"label\":\"C\",\"notes\":[\"C3\",\"G3\",\"C4\",\"E4\"]},\"Am\":{\"label\":\"Am\",\"notes\":[\"A2\",\"E3\",\"A3\",\"C4\"]},\"F\":{\"label\":\"F\",\"notes\":[\"F3\",\"A3\",\"C4\",\"F4\"]},\"Gm\":{\"label\":\"Gm\",\"notes\":[\"G3\",\"D4\",\"G4\"]},\"Bb\":{\"label\":\"Bb\",\"notes\":[\"Bb3\",\"D4\",\"F4\"]}},\"droneVoicings\":[{\"root\":\"D2\",\"fifth\":\"A2\"},{\"root\":\"C3\",\"fifth\":\"G3\"}],\"velocities\":[0.92,0.28,0.52,0.24,0.88,0.3,0.48,0.22,0.85,0.26,0.5,0.22,0.82,0.28,0.46,0.2],\"layerIds\":[\"arp\",\"echo\",\"thump\",\"piano\",\"sub\",\"pad\",\"bass\",\"shim\",\"drone\",\"beatpulse\",\"voices\"],\"layerMix\":{\"arp\":0.28,\"echo\":0.1,\"thump\":0.8,\"piano\":0.65,\"sub\":0.15,\"pad\":0.2,\"bass\":0.3,\"shim\":0.12,\"drone\":0.32,\"beatpulse\":0.45,\"voices\":0.55},\"layerConfigs\":{\"arp\":{\"stepsPerBar\":16,\"lfoHz\":4.8,\"attackSec\":0.015,\"decayTauMul\":0.85,\"gainScale\":0.28},\"echo\":{\"leftDelaySteps\":4,\"rightDelaySteps\":6,\"gainScale\":0.1},\"thump\":{\"durationSec\":0.55,\"startHz\":100,\"endHz\":42,\"pitchDecay\":5,\"ampDecay\":4,\"gainScale\":0.8},\"piano\":{\"harmonics\":[1,2,3],\"durationSec\":2,\"voiceDelaySec\":0.008,\"gainScale\":0.65},\"sub\":{\"rootNote\":\"D2\",\"overtoneNote\":\"A2\",\"overtoneMix\":0.3,\"gainScale\":0.15},\"pad\":{\"vibratoHz\":4,\"vibratoDepth\":1.5,\"lpfHz\":480,\"voiceGain\":0.12,\"gainScale\":0.2},\"bass\":{\"lpfHz\":300,\"hpfHz\":38,\"detuneCents\":-8,\"gainScale\":0.3},\"shim\":{\"triggerSteps\":[0,8],\"durationSec\":0.12,\"octaveMul\":1,\"gainScale\":0.12},\"drone\":{\"holdBeats\":16,\"pulseBeats\":16,\"lpfHz\":220,\"gainScale\":0.32},\"beatpulse\":{\"durationSec\":0.45,\"pitchGlide\":2,\"ampDecay\":4.5,\"gainScale\":0.45},\"voices\":{\"releaseSec\":2.8,\"vibratoHz\":3.8,\"formantHz\":720,\"triggerSteps\":[0,8],\"gainScale\":0.55}},\"arpPattern\":[\"D3\",\"D3\",\"F3\",\"G3\",\"A3\",\"A3\",\"G3\",\"F3\",\"D3\",\"F3\",\"A3\",\"D4\",\"A3\",\"G3\",\"F3\",\"D3\"],\"phaseFilterHz\":{\"shanty_call\":480,\"shanty_response\":620,\"full_crew\":780,\"heave_ho\":980,\"calm_sea\":400,\"all_hands\":1100,\"port\":360},\"phases\":[{\"id\":\"shanty_call\",\"label\":\"Shanty Call\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"Dm\"],\"droneMode\":false,\"lv\":{\"arp\":0.55,\"echo\":0,\"thump\":0.5,\"piano\":0,\"sub\":0.18,\"pad\":0,\"bass\":0.28,\"shim\":0,\"drone\":0,\"beatpulse\":0.35,\"voices\":0}},{\"id\":\"shanty_response\",\"label\":\"Crew Response\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"C\"],\"droneMode\":false,\"lv\":{\"arp\":0.5,\"echo\":0.12,\"thump\":0.6,\"piano\":0.42,\"sub\":0.25,\"pad\":0,\"bass\":0.38,\"shim\":0,\"drone\":0,\"beatpulse\":0.45,\"voices\":0.38}},{\"id\":\"full_crew\",\"label\":\"Full Crew\",\"durationBeats\":48,\"chordSeq\":[\"Dm\",\"C\",\"Dm\",\"Am\"],\"droneMode\":false,\"lv\":{\"arp\":0.45,\"echo\":0.18,\"thump\":0.68,\"piano\":0.5,\"sub\":0.32,\"pad\":0.28,\"bass\":0.48,\"shim\":0.08,\"drone\":0,\"beatpulse\":0.52,\"voices\":0.52}},{\"id\":\"heave_ho\",\"label\":\"Heave Ho!\",\"durationBeats\":48,\"chordSeq\":[\"Dm\",\"C\",\"F\",\"C\"],\"droneMode\":true,\"lv\":{\"arp\":0.4,\"echo\":0.25,\"thump\":0.82,\"piano\":0.58,\"sub\":0.4,\"pad\":0.4,\"bass\":0.55,\"shim\":0.15,\"drone\":0.62,\"beatpulse\":0.68,\"voices\":0.68}},{\"id\":\"calm_sea\",\"label\":\"Calm Sea\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"Am\"],\"droneMode\":false,\"lv\":{\"arp\":0.48,\"echo\":0.06,\"thump\":0.38,\"piano\":0.28,\"sub\":0.15,\"pad\":0.1,\"bass\":0.22,\"shim\":0,\"drone\":0,\"beatpulse\":0.28,\"voices\":0.18}},{\"id\":\"all_hands\",\"label\":\"All Hands!\",\"durationBeats\":48,\"chordSeq\":[\"Dm\",\"C\",\"Bb\",\"C\"],\"droneMode\":true,\"lv\":{\"arp\":0.42,\"echo\":0.3,\"thump\":0.88,\"piano\":0.65,\"sub\":0.45,\"pad\":0.45,\"bass\":0.6,\"shim\":0.2,\"drone\":0.7,\"beatpulse\":0.75,\"voices\":0.75}},{\"id\":\"port\",\"label\":\"Into Port\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"C\"],\"droneMode\":false,\"lv\":{\"arp\":0.38,\"echo\":0.08,\"thump\":0.32,\"piano\":0.22,\"sub\":0.1,\"pad\":0.06,\"bass\":0.16,\"shim\":0,\"drone\":0,\"beatpulse\":0.18,\"voices\":0.1}}]}");
 
   function deepMerge(a, b) {
     if (!b) return a;
@@ -218,13 +218,15 @@ const ProceduralMusic = (() => {
     /** Next 16th-note event time (AudioContext), used by lookahead scheduler. */
     let nextTickAt = 0;
     let schedulerIntervalId = null;
-    let droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn('G1') };
+    let droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn(layerConfigs.sub.rootNote || 'D2') };
+    let lastPlayedChord = null;
     /** Reset step sequencer counters so the arp pattern, groove, and chord
      *  progression start from the top. Call on manual seek and loop-back. */
     function resetSequencerCounters() {
       step = 0;
       pianoBarCount = 0;
-      droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn('G1') };
+      lastPlayedChord = null;
+      droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn(layerConfigs.sub.rootNote || 'D2') };
     }
     let analyser = null;
     let layerAnalysers = {};
@@ -389,64 +391,73 @@ const ProceduralMusic = (() => {
       function hpf(f) { const n=actx.createBiquadFilter(); n.type='highpass'; n.frequency.value=f; return n; }
       function g(v) { const n=actx.createGain(); n.gain.value=v; return n; }
 
-      // Arp
-      const arpG=g(0), arpF=lpf(420,0.85);
+      // Concertina melody (sawtooth for reedy timbre, heavy LPF)
+      const arpG=g(0), arpF=lpf(420,1.2);
       arpG.connect(arpF); arpF.connect(master); arpF.connect(nd.rev);
-      const arpO=o('triangle',ARP[0]), arpO2=o('triangle',ARP[0]); arpO2.detune.value=8;
-      o('sine',layerConfigs.arp.lfoHz).connect(g(1.1)).connect(arpO.frequency);
+      const arpO=o('sawtooth',ARP[0]), arpO2=o('sawtooth',ARP[0]); arpO2.detune.value=14;
+      const arpVib=o('sine',layerConfigs.arp.lfoHz), arpVibG=g(4.0); arpVib.connect(arpVibG); arpVibG.connect(arpO.frequency);
       arpO.connect(arpG); arpO2.connect(arpG);
       nd.arpGain=arpG; nd.arpFilt=arpF; nd.arpO=arpO; nd.arpO2=arpO2;
 
-      // Echo (arp2)
-      const dL=actx.createDelay(1); dL.delayTime.value=s16()*layerConfigs.echo.leftDelaySteps;
-      const dR=actx.createDelay(1); dR.delayTime.value=s16()*layerConfigs.echo.rightDelaySteps;
+      // Echo (delayed concertina copy for width)
+      const dL=actx.createDelay(2); dL.delayTime.value=s16()*layerConfigs.echo.leftDelaySteps;
+      const dR=actx.createDelay(2); dR.delayTime.value=s16()*layerConfigs.echo.rightDelaySteps;
       const mg=actx.createChannelMerger(2); dL.connect(mg,0,0); dR.connect(mg,0,1);
       const echoG=g(0); mg.connect(echoG); echoG.connect(master); echoG.connect(nd.rev);
       arpF.connect(dL); arpF.connect(dR);
       nd.echoGain=echoG; nd.dL=dL; nd.dR=dR;
 
-      // Thump
+      // Bodhran stomp
       const thumpG=g(0); thumpG.connect(master); nd.thumpGain=thumpG;
 
-      // Piano
+      // Chord stabs (concertina chords)
       const pianoG=g(0); pianoG.connect(master); pianoG.connect(nd.rev); nd.pianoGain=pianoG;
 
-      // Sub
+      // Sub foundation
+      const subRootN = layerConfigs.sub.rootNote || 'D2';
+      const subOvtN = layerConfigs.sub.overtoneNote || 'A2';
       const subG=g(0); subG.connect(master);
-      const subO1=o('sine',N.G1); subO1.connect(subG);
-      const sh=g(layerConfigs.sub.overtoneMix); const subO2=o('sine',N.G2); subO2.connect(sh); sh.connect(subG);
-      nd.subGain=subG; nd.subO1=subO1; nd.subO2=subO2;
+      const subO1=o('sine',N[subRootN]||73.42); subO1.connect(subG);
+      const sh=g(layerConfigs.sub.overtoneMix); const subO2=o('sine',N[subOvtN]||110); subO2.connect(sh); sh.connect(subG);
+      nd.subGain=subG; nd.subO1=subO1; nd.subO2=subO2; nd.subRootN=subRootN; nd.subOvtN=subOvtN;
 
-      // Pad
+      // Squeezebox drone pad (sawtooth + heavy LPF for bellows texture)
       const padG=g(0); padG.connect(master); padG.connect(nd.rev);
       nd.padOscs = [];
-      [['G3',0],['D4',5],['G2',0],['D3',3]].forEach(([name,d]) => {
-        const ov=o('sine',N[name],d);
+      const dv0 = (presetDroneVoicings && presetDroneVoicings[0]) || null;
+      const padNotes = dv0
+        ? [[dv0.root, 0], [dv0.fifth, 5], [dv0.root, -3], [dv0.fifth, 3]]
+        : [['D2',0],['A2',5],['D2',-3],['A2',3]];
+      padNotes.forEach(([name,d]) => {
+        const ov=o('sawtooth',N[name]||146.83,d);
         const vib=o('sine',layerConfigs.pad.vibratoHz), vg=g(layerConfigs.pad.vibratoDepth); vib.connect(vg); vg.connect(ov.frequency);
-        const lp=lpf(layerConfigs.pad.lpfHz,0.65), gn=g(layerConfigs.pad.voiceGain); ov.connect(lp); lp.connect(gn); gn.connect(padG);
+        const lp=lpf(layerConfigs.pad.lpfHz,0.5), gn=g(layerConfigs.pad.voiceGain); ov.connect(lp); lp.connect(gn); gn.connect(padG);
         nd.padOscs.push({ osc: ov, name });
       });
       nd.padGain=padG;
 
-      // Bass
+      // Bass line
+      const bassRootN = (presetDroneVoicings && presetDroneVoicings[0]?.root) || 'D2';
       const bassG=g(0); bassG.connect(master); bassG.connect(nd.rev);
-      const bO=o('sine',N.G2), bO2=o('sine',N.G2); bO2.detune.value=-5;
-      const bL=lpf(380,0.7), bH=hpf(45); bO.connect(bL); bO2.connect(bL); bL.connect(bH); bH.connect(bassG);
+      const bO=o('sine',N[bassRootN]||73.42), bO2=o('sine',N[bassRootN]||73.42); bO2.detune.value=layerConfigs.bass.detuneCents;
+      const bL=lpf(layerConfigs.bass.lpfHz,0.7), bH=hpf(layerConfigs.bass.hpfHz); bO.connect(bL); bO2.connect(bL); bL.connect(bH); bH.connect(bassG);
       nd.bassGain=bassG; nd.bassO=bO; nd.bassO2=bO2;
 
-      // Shimmer
+      // Ship's bell / ring accent
       const shimG=g(0); shimG.connect(master); shimG.connect(nd.rev); nd.shimGain=shimG;
 
-      // Drone + pulse
+      // Drone + pulse (low sustained fifths)
       const droneG=g(0); droneG.connect(master); droneG.connect(nd.rev); nd.droneGain=droneG;
       const pulseG=g(0); pulseG.connect(master); nd.pulseGain=pulseG;
-      const drO1=o('sine',N.G1), drO2=o('sine',N.G1); drO2.detune.value=6;
-      const drO3=o('sine',N.D2), drO4=o('sine',N.D2); drO4.detune.value=-4;
-      const drLPF=lpf(layerConfigs.drone.lpfHz,0.6);
+      const drRootN = (presetDroneVoicings && presetDroneVoicings[0]?.root) || 'D2';
+      const drFifthN = (presetDroneVoicings && presetDroneVoicings[0]?.fifth) || 'A2';
+      const drO1=o('sawtooth',N[drRootN]||73.42), drO2=o('sawtooth',N[drRootN]||73.42); drO2.detune.value=6;
+      const drO3=o('sawtooth',N[drFifthN]||110), drO4=o('sawtooth',N[drFifthN]||110); drO4.detune.value=-4;
+      const drLPF=lpf(layerConfigs.drone.lpfHz,0.5);
       drO1.connect(drLPF); drO2.connect(drLPF); drO3.connect(drLPF); drO4.connect(drLPF); drLPF.connect(droneG);
       nd.drO1=drO1; nd.drO2=drO2; nd.drO3=drO3; nd.drO4=drO4;
 
-      // Ethereal voices
+      // Crew chorus
       const voiceG=g(0); voiceG.connect(master); voiceG.connect(nd.rev); nd.voiceGain=voiceG;
 
       // Per-layer analysers for live layer-activity visualization (parallel tap; does not affect mix)
@@ -523,14 +534,19 @@ const ProceduralMusic = (() => {
       if (!actx) return;
       const t = when ?? actx.currentTime;
       const { N } = getScaleData();
-      if (nd.subO1) nd.subO1.frequency.setTargetAtTime(N.G1, t, 0.18);
-      if (nd.subO2) nd.subO2.frequency.setTargetAtTime(N.G2, t, 0.2);
-      if (nd.padOscs) nd.padOscs.forEach(v => v.osc.frequency.setTargetAtTime(N[v.name], t, 0.2));
+      const subR = nd.subRootN || layerConfigs.sub.rootNote || 'D2';
+      const subO = nd.subOvtN || layerConfigs.sub.overtoneNote || 'A2';
+      if (nd.subO1) nd.subO1.frequency.setTargetAtTime(N[subR] || 73.42, t, 0.18);
+      if (nd.subO2) nd.subO2.frequency.setTargetAtTime(N[subO] || 110, t, 0.2);
+      if (nd.padOscs) nd.padOscs.forEach(v => v.osc.frequency.setTargetAtTime(N[v.name] || 146.83, t, 0.2));
       if (nd.drO1 && nd.drO2 && nd.drO3 && nd.drO4) {
-        nd.drO1.frequency.setTargetAtTime(N.G1, t, 0.2);
-        nd.drO2.frequency.setTargetAtTime(N.G1, t, 0.2);
-        nd.drO3.frequency.setTargetAtTime(N.D2, t, 0.2);
-        nd.drO4.frequency.setTargetAtTime(N.D2, t, 0.2);
+        const dv = (presetDroneVoicings && presetDroneVoicings[0]) || { root: 'D2', fifth: 'A2' };
+        const drR = N[dv.root] || 73.42;
+        const drF = N[dv.fifth] || 110;
+        nd.drO1.frequency.setTargetAtTime(drR, t, 0.2);
+        nd.drO2.frequency.setTargetAtTime(drR, t, 0.2);
+        nd.drO3.frequency.setTargetAtTime(drF, t, 0.2);
+        nd.drO4.frequency.setTargetAtTime(drF, t, 0.2);
       }
     }
 
@@ -641,31 +657,73 @@ const ProceduralMusic = (() => {
       const gate = targetGain != null ? targetGain : vv;
       if (gate < 0.02) return;
       const dur = layerConfigs.voices.releaseSec;
-      chord.notes.slice(0, 3).forEach((freq, idx) => {
-        const osc = actx.createOscillator();
-        const form = actx.createBiquadFilter();
-        const env = actx.createGain();
-        const vib = actx.createOscillator();
-        const vibAmt = actx.createGain();
+      const baseFormant = layerConfigs.voices.formantHz;
+      const baseVibHz = layerConfigs.voices.vibratoHz;
 
-        osc.type = 'triangle';
-        osc.frequency.value = freq * (idx === 1 ? 2 : 1);
-        form.type = 'bandpass';
-        form.frequency.value = layerConfigs.voices.formantHz + (idx * 140);
-        form.Q.value = 1.4;
+      // Vowel formant pairs: crew alternates between open "ah" and rounded "oh"
+      const vowels = [
+        { f1: baseFormant,       f2: baseFormant * 1.55, q1: 5, q2: 4 },
+        { f1: baseFormant * 0.7, f2: baseFormant * 1.2,  q1: 6, q2: 5 },
+      ];
 
-        vib.frequency.value = layerConfigs.voices.vibratoHz + idx * 0.3;
-        vibAmt.gain.value = 2 + idx;
-        vib.connect(vibAmt); vibAmt.connect(osc.frequency);
+      const notes = chord.notes.slice(0, Math.min(4, chord.notes.length));
 
-        env.gain.setValueAtTime(0.0, when);
-        env.gain.linearRampToValueAtTime(vv * (0.34 - idx * 0.05), when + 0.08 + idx * 0.02);
-        env.gain.setTargetAtTime(0.001, when + 0.15, dur * 0.75);
+      notes.forEach((freq, ni) => {
+        const vowel = vowels[ni % vowels.length];
 
-        osc.connect(form); form.connect(env); env.connect(nd.voiceGain);
-        osc.start(when); vib.start(when);
-        osc.stop(when + dur + 0.25); vib.stop(when + dur + 0.25);
+        // 2 detuned crew voices per chord tone for rough choral thickness
+        for (let vi = 0; vi < 2; vi++) {
+          const detCents = (vi - 0.5) * 15 + (Math.random() - 0.5) * 8;
+          const delay = ni * 0.04 + vi * 0.025 + Math.random() * 0.02;
+          const startAt = when + delay;
+
+          const osc = actx.createOscillator();
+          osc.type = 'sawtooth';
+          osc.frequency.value = freq;
+          osc.detune.value = detCents;
+
+          const vib = actx.createOscillator();
+          const vibAmt = actx.createGain();
+          vib.frequency.value = baseVibHz + ni * 0.4 + vi * 0.3;
+          vibAmt.gain.value = 3.5 + ni * 1.2;
+          vib.connect(vibAmt); vibAmt.connect(osc.frequency);
+
+          // Parallel formant filters shape vowel character
+          const f1 = actx.createBiquadFilter();
+          f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 25; f1.Q.value = vowel.q1;
+          const f2 = actx.createBiquadFilter();
+          f2.type = 'bandpass'; f2.frequency.value = vowel.f2 + vi * 40; f2.Q.value = vowel.q2;
+          const fSum = actx.createGain(); fSum.gain.value = 1.0;
+          osc.connect(f1); osc.connect(f2); f1.connect(fSum); f2.connect(fSum);
+
+          const env = actx.createGain();
+          const peak = vv * (0.20 - ni * 0.025 - vi * 0.015);
+          env.gain.setValueAtTime(0.0, startAt);
+          env.gain.linearRampToValueAtTime(peak, startAt + 0.12 + ni * 0.025);
+          env.gain.setTargetAtTime(peak * 0.55, startAt + 0.45, dur * 0.38);
+          env.gain.setTargetAtTime(0.001, startAt + dur * 0.55, dur * 0.3);
+
+          fSum.connect(env); env.connect(nd.voiceGain);
+          osc.start(startAt); vib.start(startAt);
+          const endAt = startAt + dur + 0.5;
+          osc.stop(endAt); vib.stop(endAt);
+        }
       });
+
+      // Breath noise — filtered white noise adds airiness to the crew sound
+      const noiseDur = dur * 0.5;
+      const noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * noiseDur), actx.sampleRate);
+      const noiseData = noiseBuf.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
+      const noiseSrc = actx.createBufferSource(); noiseSrc.buffer = noiseBuf;
+      const noiseBpf = actx.createBiquadFilter();
+      noiseBpf.type = 'bandpass'; noiseBpf.frequency.value = 1600; noiseBpf.Q.value = 1.8;
+      const noiseEnv = actx.createGain();
+      noiseEnv.gain.setValueAtTime(0, when);
+      noiseEnv.gain.linearRampToValueAtTime(vv * 0.035, when + 0.18);
+      noiseEnv.gain.setTargetAtTime(0.001, when + 0.5, noiseDur * 0.25);
+      noiseSrc.connect(noiseBpf); noiseBpf.connect(noiseEnv); noiseEnv.connect(nd.voiceGain);
+      noiseSrc.start(when); noiseSrc.stop(when + noiseDur + 0.1);
     }
     function setDroneFreq(f1, f2, when) {
       nd.drO1.frequency.setTargetAtTime(f1,when,0.15); nd.drO2.frequency.setTargetAtTime(f1,when,0.18);
@@ -680,12 +738,17 @@ const ProceduralMusic = (() => {
       const sr = actx.sampleRate;
       const key = `${keyId}|${sr}`;
       if (shimmerBuffer && shimmerCacheKey === key) return shimmerBuffer;
-      const len = Math.floor(sr * 0.10);
+      const shimDur = layerConfigs.shim.durationSec || 0.12;
+      const len = Math.floor(sr * shimDur);
       const shBuf = actx.createBuffer(1, len, sr);
       const sd = shBuf.getChannelData(0);
-      const g4 = tn('G4') * 2;
+      const bellHz = tn('A4') * (layerConfigs.shim.octaveMul || 1);
+      const bellHz2 = bellHz * 2.71; // inharmonic partial for bell timbre
       for (let i = 0; i < sd.length; i++) {
-        sd[i] = Math.sin(2 * Math.PI * g4 * i / sr) * Math.exp(-i / sr * 20) * 0.5;
+        const t = i / sr;
+        const env = Math.exp(-t * (1 / shimDur) * 3.5);
+        sd[i] = (Math.sin(2 * Math.PI * bellHz * t) * 0.6
+               + Math.sin(2 * Math.PI * bellHz2 * t) * 0.25) * env * 0.5;
       }
       shimmerBuffer = shBuf;
       shimmerCacheKey = key;
@@ -745,33 +808,30 @@ const ProceduralMusic = (() => {
         phaseEnd: phHeard.end,
       });
 
-      // Arp retrigger — runs AFTER morphTo so its cancelScheduledValues(when)
+      // Concertina retrigger — runs AFTER morphTo so its cancelScheduledValues(when)
       // naturally supersedes morphTo's arpGain ramp for this same instant.
       const freq=ARP[(idx + arpRotate) % ARP.length], vel=VEL[idx], av=(lv.arp||0)*(layerMult.arp??1);
+      const arpAttack = layerConfigs.arp.attackSec || 0.015;
+      const arpDecayTau = s16() * (layerConfigs.arp.decayTauMul || 0.85);
       nd.arpO.frequency.setValueAtTime(freq,when);
       nd.arpO2.frequency.setValueAtTime(freq,when);
       nd.arpGain.gain.cancelScheduledValues(when);
       nd.arpGain.gain.setValueAtTime(0,when);
-      nd.arpGain.gain.linearRampToValueAtTime(av*vel*0.30, when+0.007);
-      nd.arpGain.gain.setTargetAtTime(av*vel*0.08, when+0.007, s16()*0.65);
+      nd.arpGain.gain.linearRampToValueAtTime(av*vel*0.30, when+arpAttack);
+      nd.arpGain.gain.setTargetAtTime(av*vel*0.08, when+arpAttack, arpDecayTau);
 
       if (idx===0 || idx===8) {
         const targetThump = (lv.thump ?? 0) * (layerMult.thump ?? 1) * LAYER_MAP.thump.scale;
-        fireThump(when, idx===0 ? 1.0 : 0.88, targetThump);
+        fireThump(when, idx===0 ? 1.0 : 0.82, targetThump);
 
         if (idx===0) {
           const seq = ph.chordSeq;
           const targetPiano = (lv.piano||0)*(layerMult.piano??1)*LAYER_MAP.piano.scale;
           if (seq && targetPiano > 0.02) {
-            const chord = CHORDS[seq[pianoBarCount % seq.length]];
-            firePiano(when, chord, targetPiano);
-            nd.bassO.frequency.setTargetAtTime(chord.notes[0],when,0.10);
-            nd.bassO2.frequency.setTargetAtTime(chord.notes[0],when,0.12);
-          }
-          const targetVoices = (lv.voices||0)*(layerMult.voices??1)*LAYER_MAP.voices.scale;
-          if (seq && targetVoices > 0.02) {
-            const chord = CHORDS[seq[pianoBarCount % seq.length]];
-            fireVoices(when, chord, targetVoices);
+            lastPlayedChord = CHORDS[seq[pianoBarCount % seq.length]];
+            firePiano(when, lastPlayedChord, targetPiano);
+            nd.bassO.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.10);
+            nd.bassO2.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.12);
           }
           pianoBarCount++;
         }
@@ -800,7 +860,7 @@ const ProceduralMusic = (() => {
         }
       }
 
-      // Shimmer on upbeats
+      // Ship's bell / ring accent on configured beats
       if (layerConfigs.shim.triggerSteps.includes(idx) && (lv.shim||0)*(layerMult.shim??1) > 0.02) {
         const sv = (lv.shim||0)*(layerMult.shim??1);
         const shBuf = getShimmerBuffer();
@@ -812,6 +872,16 @@ const ProceduralMusic = (() => {
         shG2.connect(nd.shimGain);
         shSrc.start(when);
       }
+
+      // Crew chorus on configured trigger steps (call-and-response rhythm)
+      const voiceTriggers = layerConfigs.voices.triggerSteps || [0, 8];
+      if (voiceTriggers.includes(idx)) {
+        const targetVoices = (lv.voices||0)*(layerMult.voices??1)*LAYER_MAP.voices.scale;
+        if (lastPlayedChord && targetVoices > 0.02) {
+          fireVoices(when, lastPlayedChord, targetVoices);
+        }
+      }
+
       step++;
 
       // Update echo delay times to current BPM

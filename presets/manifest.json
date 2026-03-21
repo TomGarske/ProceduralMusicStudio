@@ -4,17 +4,7 @@
     {
       "id": "drunken-sailor",
       "file": "drunken-sailor.json",
-      "name": "D Dorian Shanty (Drunken Sailor)"
-    },
-    {
-      "id": "studio-default",
-      "file": "default.json",
-      "name": "G Natural Minor (Studio)"
-    },
-    {
-      "id": "lessons-sohn",
-      "file": "lessons-sohn.json",
-      "name": "Eb Minor Atmospheric (Lessons)"
+      "name": "Drunken Sailor"
     }
   ]
 }
