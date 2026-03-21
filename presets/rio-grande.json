@@ -124,47 +124,116 @@
     "voices"
   ],
   "layerMix": {
-    "arp": 0.72,
-    "echo": 0.18,
-    "thump": 0.78,
-    "piano": 0.5,
-    "sub": 0.42,
-    "pad": 0.4,
-    "bass": 0.7,
-    "shim": 0.2,
-    "drone": 0.62,
-    "beatpulse": 0.52,
-    "voices": 0.68
+    "arp": 0.4,
+    "echo": 0.14,
+    "thump": 0.6,
+    "piano": 0.48,
+    "sub": 0.22,
+    "pad": 0.3,
+    "bass": 0.3,
+    "shim": 0.14,
+    "drone": 0.25,
+    "beatpulse": 0.35,
+    "voices": 0.62
   },
   "layerConfigs": {
-    "arp":       { "stepsPerBar": 16, "lfoHz": 4.4, "attackSec": 0.018, "decayTauMul": 0.90, "gainScale": 0.72 },
-    "echo":      { "leftDelaySteps": 5, "rightDelaySteps": 7, "gainScale": 0.18 },
-    "thump":     { "durationSec": 0.52, "startHz": 92, "endHz": 40, "pitchDecay": 5, "ampDecay": 4.0, "gainScale": 0.78 },
-    "piano":     { "harmonics": [1, 2, 3], "durationSec": 2.0, "voiceDelaySec": 0.008, "gainScale": 0.50 },
-    "sub":       { "rootNote": "G2", "overtoneNote": "G3", "overtoneMix": 0.30, "gainScale": 0.42 },
-    "pad":       { "vibratoHz": 3.6, "vibratoDepth": 2.0, "lpfHz": 420, "voiceGain": 0.12, "gainScale": 0.40 },
-    "bass":      { "lpfHz": 310, "hpfHz": 40, "detuneCents": -7, "gainScale": 0.70 },
-    "shim":      { "triggerSteps": [0, 8], "durationSec": 0.11, "octaveMul": 1, "gainScale": 0.20 },
-    "drone":     { "holdBeats": 16, "pulseBeats": 16, "lpfHz": 250, "gainScale": 0.62 },
-    "beatpulse": { "durationSec": 0.44, "pitchGlide": 1.8, "ampDecay": 4.2, "gainScale": 0.52 },
-    "voices":    { "releaseSec": 2.8, "vibratoHz": 3.5, "formantHz": 740, "triggerSteps": [0, 8], "gainScale": 0.68 }
+    "arp": {
+      "stepsPerBar": 16,
+      "lfoHz": 4.4,
+      "attackSec": 0.018,
+      "decayTauMul": 0.9,
+      "gainScale": 0.4
+    },
+    "echo": {
+      "leftDelaySteps": 5,
+      "rightDelaySteps": 7,
+      "gainScale": 0.14
+    },
+    "thump": {
+      "durationSec": 0.52,
+      "startHz": 92,
+      "endHz": 40,
+      "pitchDecay": 5,
+      "ampDecay": 4,
+      "gainScale": 0.6
+    },
+    "piano": {
+      "harmonics": [
+        1,
+        2,
+        3
+      ],
+      "durationSec": 2,
+      "voiceDelaySec": 0.008,
+      "gainScale": 0.48
+    },
+    "sub": {
+      "rootNote": "G2",
+      "overtoneNote": "G3",
+      "overtoneMix": 0.3,
+      "gainScale": 0.22
+    },
+    "pad": {
+      "vibratoHz": 3.6,
+      "vibratoDepth": 2,
+      "lpfHz": 420,
+      "voiceGain": 0.12,
+      "gainScale": 0.3
+    },
+    "bass": {
+      "lpfHz": 310,
+      "hpfHz": 40,
+      "detuneCents": -7,
+      "gainScale": 0.3
+    },
+    "shim": {
+      "triggerSteps": [
+        0,
+        8
+      ],
+      "durationSec": 0.11,
+      "octaveMul": 1,
+      "gainScale": 0.14
+    },
+    "drone": {
+      "holdBeats": 16,
+      "pulseBeats": 16,
+      "lpfHz": 250,
+      "gainScale": 0.25
+    },
+    "beatpulse": {
+      "durationSec": 0.44,
+      "pitchGlide": 1.8,
+      "ampDecay": 4.2,
+      "gainScale": 0.35
+    },
+    "voices": {
+      "releaseSec": 2.8,
+      "vibratoHz": 3.5,
+      "formantHz": 740,
+      "triggerSteps": [
+        0,
+        8
+      ],
+      "gainScale": 0.62
+    }
   },
   "arpPattern": [
     "G3",
-    "Bb3",
-    "D4",
-    "G4",
-    "D4",
-    "Bb3",
     "G3",
-    "D3",
     "Bb3",
+    "D4",
+    "D4",
+    "C4",
+    "Bb3",
+    "A3",
     "G3",
-    "D4",
-    "G4",
-    "F3",
+    "G3",
+    "Bb3",
     "D4",
     "Bb3",
+    "A3",
+    "G3",
     "G3"
   ],
   "phaseFilterHz": {
@@ -193,17 +262,17 @@
       ],
       "droneMode": false,
       "lv": {
-        "arp": 0.7,
-        "echo": 0.16,
-        "thump": 0.75,
-        "piano": 0.48,
-        "sub": 0.4,
-        "pad": 0.38,
-        "bass": 0.68,
-        "shim": 0.18,
-        "drone": 0.6,
-        "beatpulse": 0.5,
-        "voices": 0.66
+        "arp": 0.28,
+        "echo": 0.1,
+        "thump": 0.44,
+        "piano": 0.34,
+        "sub": 0.15,
+        "pad": 0.21,
+        "bass": 0.21,
+        "shim": 0.1,
+        "drone": 0.18,
+        "beatpulse": 0.24,
+        "voices": 0.46
       }
     },
     {
@@ -222,17 +291,17 @@
       ],
       "droneMode": false,
       "lv": {
-        "arp": 0.72,
-        "echo": 0.18,
-        "thump": 0.78,
-        "piano": 0.5,
-        "sub": 0.42,
-        "pad": 0.4,
-        "bass": 0.7,
-        "shim": 0.2,
-        "drone": 0.62,
-        "beatpulse": 0.52,
-        "voices": 0.68
+        "arp": 0.32,
+        "echo": 0.11,
+        "thump": 0.5,
+        "piano": 0.38,
+        "sub": 0.18,
+        "pad": 0.24,
+        "bass": 0.24,
+        "shim": 0.11,
+        "drone": 0.2,
+        "beatpulse": 0.28,
+        "voices": 0.52
       }
     },
     {
@@ -255,17 +324,17 @@
       ],
       "droneMode": false,
       "lv": {
-        "arp": 0.75,
-        "echo": 0.2,
-        "thump": 0.82,
-        "piano": 0.52,
-        "sub": 0.44,
-        "pad": 0.42,
-        "bass": 0.73,
-        "shim": 0.22,
-        "drone": 0.64,
-        "beatpulse": 0.54,
-        "voices": 0.7
+        "arp": 0.36,
+        "echo": 0.13,
+        "thump": 0.57,
+        "piano": 0.43,
+        "sub": 0.2,
+        "pad": 0.27,
+        "bass": 0.27,
+        "shim": 0.13,
+        "drone": 0.22,
+        "beatpulse": 0.31,
+        "voices": 0.59
       }
     },
     {
@@ -288,17 +357,17 @@
       ],
       "droneMode": true,
       "lv": {
-        "arp": 0.8,
-        "echo": 0.22,
-        "thump": 0.85,
-        "piano": 0.54,
-        "sub": 0.46,
-        "pad": 0.44,
-        "bass": 0.76,
-        "shim": 0.24,
-        "drone": 0.68,
-        "beatpulse": 0.56,
-        "voices": 0.75
+        "arp": 0.4,
+        "echo": 0.14,
+        "thump": 0.63,
+        "piano": 0.48,
+        "sub": 0.22,
+        "pad": 0.3,
+        "bass": 0.3,
+        "shim": 0.14,
+        "drone": 0.25,
+        "beatpulse": 0.35,
+        "voices": 0.65
       }
     },
     {
@@ -317,17 +386,17 @@
       ],
       "droneMode": false,
       "lv": {
-        "arp": 0.68,
-        "echo": 0.17,
-        "thump": 0.76,
-        "piano": 0.49,
-        "sub": 0.41,
-        "pad": 0.39,
-        "bass": 0.69,
-        "shim": 0.19,
-        "drone": 0.61,
-        "beatpulse": 0.51,
-        "voices": 0.67
+        "arp": 0.36,
+        "echo": 0.13,
+        "thump": 0.57,
+        "piano": 0.43,
+        "sub": 0.2,
+        "pad": 0.27,
+        "bass": 0.27,
+        "shim": 0.13,
+        "drone": 0.22,
+        "beatpulse": 0.31,
+        "voices": 0.59
       }
     },
     {
@@ -350,17 +419,17 @@
       ],
       "droneMode": true,
       "lv": {
-        "arp": 0.82,
-        "echo": 0.24,
-        "thump": 0.88,
-        "piano": 0.56,
-        "sub": 0.48,
-        "pad": 0.46,
-        "bass": 0.78,
-        "shim": 0.26,
-        "drone": 0.7,
-        "beatpulse": 0.58,
-        "voices": 0.78
+        "arp": 0.32,
+        "echo": 0.11,
+        "thump": 0.5,
+        "piano": 0.38,
+        "sub": 0.18,
+        "pad": 0.24,
+        "bass": 0.24,
+        "shim": 0.11,
+        "drone": 0.2,
+        "beatpulse": 0.28,
+        "voices": 0.52
       }
     },
     {
@@ -379,17 +448,17 @@
       ],
       "droneMode": false,
       "lv": {
-        "arp": 0.72,
-        "echo": 0.18,
-        "thump": 0.78,
-        "piano": 0.5,
-        "sub": 0.42,
-        "pad": 0.4,
-        "bass": 0.7,
-        "shim": 0.2,
-        "drone": 0.62,
-        "beatpulse": 0.52,
-        "voices": 0.68
+        "arp": 0.28,
+        "echo": 0.1,
+        "thump": 0.44,
+        "piano": 0.34,
+        "sub": 0.15,
+        "pad": 0.21,
+        "bass": 0.21,
+        "shim": 0.1,
+        "drone": 0.18,
+        "beatpulse": 0.24,
+        "voices": 0.46
       }
     }
   ]

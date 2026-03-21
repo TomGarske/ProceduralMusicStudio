@@ -138,6 +138,34 @@
       cursor: not-allowed;
       pointer-events: none;
     }
+    #btn-acapella {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text-mid);
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    #btn-acapella:hover {
+      border-color: var(--cyan-dim);
+      color: var(--cyan);
+      background: rgba(0,212,255,0.08);
+    }
+    #btn-acapella:active { transform: scale(0.93); }
+    #btn-acapella.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(255, 171, 0, 0.12);
+      box-shadow: 0 0 8px rgba(255, 171, 0, 0.15);
+    }
     #btn-play {
       width: 44px;
       height: 44px;
@@ -611,6 +639,7 @@
         <button type="button" id="btn-prev-shanty" title="Previous shanty" aria-label="Previous shanty">⏮</button>
         <button id="btn-play" title="Play / Stop" aria-label="Play or stop">▶</button>
         <button type="button" id="btn-next-shanty" title="Next shanty" aria-label="Next shanty">⏭</button>
+        <button type="button" id="btn-acapella" title="Acapella mode — voices only" aria-label="Toggle acapella mode">A</button>
       </div>
 
       <div class="ctrl" id="bpm-ctrl">
@@ -913,6 +942,54 @@ btnPlay.addEventListener('click', async () => {
     statusPill.classList.add('playing');
     updateMediaSessionPlaybackState();
     updateMediaSessionMetadata();
+  }
+});
+
+// ── Acapella mode ────────────────────────────────────────────────────────────
+// Mutes all instrument layers, keeps voices + fist thump for rhythm.
+// Boosts reverb for that raw crew-singing-below-deck feel.
+let acapellaMode = false;
+let acapellaSavedMult = {};   // saved layer multipliers before acapella
+let acapellaSavedReverb = 0;
+const ACAPELLA_VOICE_LAYERS = new Set(['voices', 'thump']);
+
+const btnAcapella = document.getElementById('btn-acapella');
+btnAcapella.addEventListener('click', async () => {
+  if (!engine) await bootEngine();
+  acapellaMode = !acapellaMode;
+  btnAcapella.classList.toggle('active', acapellaMode);
+  btnAcapella.title = acapellaMode ? 'Acapella ON — click to restore full mix' : 'Acapella mode — voices only';
+
+  if (acapellaMode) {
+    // Save current state
+    const state = engine.getState();
+    acapellaSavedReverb = state.reverb;
+    acapellaSavedMult = { ...state.layers };
+
+    // Mute everything except voice layers; boost voices
+    LAYERS.forEach(layer => {
+      if (ACAPELLA_VOICE_LAYERS.has(layer.id)) {
+        engine.setLayer(layer.id, layer.id === 'voices' ? 1.8 : 1.2);
+      } else {
+        engine.setLayer(layer.id, 0);
+      }
+    });
+    // Extra reverb for raw room sound
+    engine.setReverb(Math.min(0.65, acapellaSavedReverb + 0.25));
+    const rev = Math.round(Math.min(0.65, acapellaSavedReverb + 0.25) * 100);
+    document.getElementById('rev-slider').value = rev;
+    document.getElementById('rev-display').textContent = rev + '%';
+  } else {
+    // Restore saved multipliers
+    for (const [id, mult] of Object.entries(acapellaSavedMult)) {
+      engine.setLayer(id, mult);
+    }
+    engine.setReverb(acapellaSavedReverb);
+    const rev = Math.round(acapellaSavedReverb * 100);
+    document.getElementById('rev-slider').value = rev;
+    document.getElementById('rev-display').textContent = rev + '%';
+    // Re-sync sliders to engine state
+    syncAllLayersToEngine();
   }
 });
 
@@ -1426,6 +1503,9 @@ async function applyShantyFile(file) {
     renderPlaylistActive();
     await bootEngine();
     engine.applyPreset(activePresetJson);
+    // Reset acapella mode on preset switch
+    acapellaMode = false;
+    btnAcapella.classList.remove('active');
     const bpm = activePresetJson.defaults?.bpm ?? 76;
     document.getElementById('bpm-slider').value = bpm;
     document.getElementById('bpm-display').textContent = Math.round(bpm);

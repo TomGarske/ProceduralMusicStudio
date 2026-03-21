@@ -19,77 +19,244 @@
     "Gm": 10
   },
   "baseNotesHz": {
-    "A1": 55.0,
+    "A1": 55,
     "B1": 61.74,
     "C2": 65.41,
     "D2": 73.42,
     "E2": 82.41,
     "F2": 87.31,
-    "G2": 98.0,
-    "A2": 110.0,
+    "G2": 98,
+    "A2": 110,
     "B2": 123.47,
     "C3": 130.81,
     "D3": 146.83,
     "E3": 164.81,
     "F3": 174.61,
-    "G3": 196.0,
-    "A3": 220.0,
+    "G3": 196,
+    "A3": 220,
     "B3": 246.94,
     "C4": 261.63,
     "D4": 293.66,
     "E4": 329.63,
     "F4": 349.23,
-    "G4": 392.0,
-    "A4": 440.0
+    "G4": 392,
+    "A4": 440
   },
   "chordVoicings": {
-    "Am": { "label": "Am", "notes": ["A2", "E3", "A3", "C4"] },
-    "Dm": { "label": "Dm", "notes": ["D3", "A3", "D4", "F4"] },
-    "C":  { "label": "C",  "notes": ["C3", "G3", "C4", "E4"] },
-    "Em": { "label": "Em", "notes": ["E3", "B3", "E4", "G4"] },
-    "F":  { "label": "F",  "notes": ["F3", "A3", "C4", "F4"] },
-    "G":  { "label": "G",  "notes": ["G3", "B3", "D4", "G4"] }
+    "Am": {
+      "label": "Am",
+      "notes": [
+        "A2",
+        "E3",
+        "A3",
+        "C4"
+      ]
+    },
+    "Dm": {
+      "label": "Dm",
+      "notes": [
+        "D3",
+        "A3",
+        "D4",
+        "F4"
+      ]
+    },
+    "C": {
+      "label": "C",
+      "notes": [
+        "C3",
+        "G3",
+        "C4",
+        "E4"
+      ]
+    },
+    "Em": {
+      "label": "Em",
+      "notes": [
+        "E3",
+        "B3",
+        "E4",
+        "G4"
+      ]
+    },
+    "F": {
+      "label": "F",
+      "notes": [
+        "F3",
+        "A3",
+        "C4",
+        "F4"
+      ]
+    },
+    "G": {
+      "label": "G",
+      "notes": [
+        "G3",
+        "B3",
+        "D4",
+        "G4"
+      ]
+    }
   },
   "droneVoicings": [
-    { "root": "A1", "fifth": "E2" },
-    { "root": "D2", "fifth": "A2" }
+    {
+      "root": "A1",
+      "fifth": "E2"
+    },
+    {
+      "root": "D2",
+      "fifth": "A2"
+    }
   ],
   "velocities": [
-    0.95, 0.30, 0.60, 0.28, 0.90, 0.55, 0.52, 0.26,
-    0.88, 0.28, 0.58, 0.26, 0.92, 0.50, 0.48, 0.24
+    0.95,
+    0.3,
+    0.6,
+    0.28,
+    0.9,
+    0.55,
+    0.52,
+    0.26,
+    0.88,
+    0.28,
+    0.58,
+    0.26,
+    0.92,
+    0.5,
+    0.48,
+    0.24
   ],
   "layerIds": [
-    "arp", "echo", "thump", "piano", "sub", "pad", "bass", "shim", "drone", "beatpulse", "voices"
+    "arp",
+    "echo",
+    "thump",
+    "piano",
+    "sub",
+    "pad",
+    "bass",
+    "shim",
+    "drone",
+    "beatpulse",
+    "voices"
   ],
   "layerMix": {
     "arp": 0.35,
     "echo": 0.08,
-    "thump": 0.75,
-    "piano": 0.50,
-    "sub": 0.18,
-    "pad": 0.22,
-    "bass": 0.28,
-    "shim": 0.45,
-    "drone": 0.30,
-    "beatpulse": 0.50,
-    "voices": 0.72
+    "thump": 0.65,
+    "piano": 0.45,
+    "sub": 0.15,
+    "pad": 0.18,
+    "bass": 0.22,
+    "shim": 0.35,
+    "drone": 0.18,
+    "beatpulse": 0.35,
+    "voices": 0.68
   },
   "layerConfigs": {
-    "arp":       { "synthMode": "vocal_melody", "stepsPerBar": 16, "lfoHz": 2.5, "attackSec": 0.035, "decayTauMul": 1.10, "gainScale": 0.35 },
-    "echo":      { "leftDelaySteps": 3, "rightDelaySteps": 5, "gainScale": 0.08 },
-    "thump":     { "durationSec": 0.22, "startHz": 88, "endHz": 36, "pitchDecay": 7, "ampDecay": 7.0, "gainScale": 0.75 },
-    "piano":     { "harmonics": [1, 2, 3, 4], "durationSec": 1.2, "voiceDelaySec": 0.006, "gainScale": 0.50 },
-    "sub":       { "rootNote": "A1", "overtoneNote": "E2", "overtoneMix": 0.22, "gainScale": 0.18 },
-    "pad":       { "vibratoHz": 3.0, "vibratoDepth": 2.0, "lpfHz": 380, "voiceGain": 0.10, "gainScale": 0.22 },
-    "bass":      { "lpfHz": 280, "hpfHz": 45, "detuneCents": -6, "gainScale": 0.28 },
-    "shim":      { "synthMode": "clap", "triggerSteps": [4, 12], "durationSec": 0.06, "octaveMul": 1, "gainScale": 0.45 },
-    "drone":     { "holdBeats": 16, "pulseBeats": 16, "lpfHz": 200, "gainScale": 0.30 },
-    "beatpulse": { "durationSec": 0.30, "pitchGlide": 1.5, "ampDecay": 6.0, "gainScale": 0.50 },
-    "voices":    { "releaseSec": 2.4, "vibratoHz": 3.5, "formantHz": 680, "triggerSteps": [0, 8], "voiceCount": 3, "detuneSpread": 22, "breathLevel": 0.045, "gainScale": 0.72 }
+    "arp": {
+      "synthMode": "vocal_melody",
+      "stepsPerBar": 16,
+      "lfoHz": 2.5,
+      "attackSec": 0.035,
+      "decayTauMul": 1.1,
+      "gainScale": 0.35
+    },
+    "echo": {
+      "leftDelaySteps": 3,
+      "rightDelaySteps": 5,
+      "gainScale": 0.08
+    },
+    "thump": {
+      "durationSec": 0.22,
+      "startHz": 88,
+      "endHz": 36,
+      "pitchDecay": 7,
+      "ampDecay": 7,
+      "gainScale": 0.65
+    },
+    "piano": {
+      "harmonics": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "durationSec": 1.2,
+      "voiceDelaySec": 0.006,
+      "gainScale": 0.45
+    },
+    "sub": {
+      "rootNote": "A1",
+      "overtoneNote": "E2",
+      "overtoneMix": 0.22,
+      "gainScale": 0.15
+    },
+    "pad": {
+      "vibratoHz": 3,
+      "vibratoDepth": 2,
+      "lpfHz": 380,
+      "voiceGain": 0.1,
+      "gainScale": 0.18
+    },
+    "bass": {
+      "lpfHz": 280,
+      "hpfHz": 45,
+      "detuneCents": -6,
+      "gainScale": 0.22
+    },
+    "shim": {
+      "synthMode": "clap",
+      "triggerSteps": [
+        4,
+        12
+      ],
+      "durationSec": 0.06,
+      "octaveMul": 1,
+      "gainScale": 0.35
+    },
+    "drone": {
+      "holdBeats": 16,
+      "pulseBeats": 16,
+      "lpfHz": 200,
+      "gainScale": 0.18
+    },
+    "beatpulse": {
+      "durationSec": 0.3,
+      "pitchGlide": 1.5,
+      "ampDecay": 6,
+      "gainScale": 0.35
+    },
+    "voices": {
+      "releaseSec": 2.4,
+      "vibratoHz": 3.5,
+      "formantHz": 680,
+      "triggerSteps": [
+        0,
+        8
+      ],
+      "voiceCount": 3,
+      "detuneSpread": 22,
+      "breathLevel": 0.045,
+      "gainScale": 0.68
+    }
   },
   "arpPattern": [
-    "A3", "A3", "A3", "A3", "G3", "F3", "E3", "E3",
-    "A3", "A3", "G3", "A3", "C4", "C4", "A3", "G3"
+    "A3",
+    "A3",
+    "A3",
+    "A3",
+    "G3",
+    "F3",
+    "E3",
+    "E3",
+    "A3",
+    "A3",
+    "G3",
+    "A3",
+    "C4",
+    "C4",
+    "A3",
+    "G3"
   ],
   "phaseFilterHz": {
     "verse_1": 700,
@@ -101,101 +268,220 @@
     "outro": 580
   },
   "layerLabels": {
-    "arp":       { "label": "Lead Voice",     "desc": "Vocal melody with formant filters" },
-    "echo":      { "label": "Voice Echo",     "desc": "Doubled lead for depth" },
-    "thump":     { "label": "Boot Stomp",     "desc": "Heavy stomp on beats 1 & 3" },
-    "piano":     { "label": "Crew Stabs",     "desc": "Short vocal chord accents" },
-    "sub":       { "label": "Bass Hum",       "desc": "Low vocal root hum" },
-    "pad":       { "label": "Choir Pad",      "desc": "Sustained background ooh" },
-    "bass":      { "label": "Vocal Bass",     "desc": "Root-following bass voice" },
-    "shim":      { "label": "Hand Clap",      "desc": "Clap on beats 2 & 4" },
-    "drone":     { "label": "Vocal Hold",     "desc": "Sustained chord drone" },
-    "beatpulse": { "label": "Deck Pulse",     "desc": "Rhythmic deck thump" },
-    "voices":    { "label": "Crew Chorus",    "desc": "Full crew harmony — 3-voice choir" }
+    "arp": {
+      "label": "Lead Voice",
+      "desc": "Vocal melody with formant filters"
+    },
+    "echo": {
+      "label": "Voice Echo",
+      "desc": "Doubled lead for depth"
+    },
+    "thump": {
+      "label": "Boot Stomp",
+      "desc": "Heavy stomp on beats 1 & 3"
+    },
+    "piano": {
+      "label": "Crew Stabs",
+      "desc": "Short vocal chord accents"
+    },
+    "sub": {
+      "label": "Bass Hum",
+      "desc": "Low vocal root hum"
+    },
+    "pad": {
+      "label": "Choir Pad",
+      "desc": "Sustained background ooh"
+    },
+    "bass": {
+      "label": "Vocal Bass",
+      "desc": "Root-following bass voice"
+    },
+    "shim": {
+      "label": "Hand Clap",
+      "desc": "Clap on beats 2 & 4"
+    },
+    "drone": {
+      "label": "Vocal Hold",
+      "desc": "Sustained chord drone"
+    },
+    "beatpulse": {
+      "label": "Deck Pulse",
+      "desc": "Rhythmic deck thump"
+    },
+    "voices": {
+      "label": "Crew Chorus",
+      "desc": "Full crew harmony — 3-voice choir"
+    }
   },
   "phases": [
     {
       "id": "verse_1",
       "label": "The Billy o' Tea",
       "durationBeats": 32,
-      "chordSeq": ["Am", "Am", "Dm", "Em"],
+      "chordSeq": [
+        "Am",
+        "Am",
+        "Dm",
+        "Em"
+      ],
       "droneMode": false,
       "lv": {
-        "arp": 0.60, "echo": 0.0, "thump": 0.55, "piano": 0.0,
-        "sub": 0.15, "pad": 0.0, "bass": 0.20, "shim": 0.0,
-        "drone": 0.0, "beatpulse": 0.35, "voices": 0.0
+        "arp": 0.24,
+        "echo": 0,
+        "thump": 0.48,
+        "piano": 0,
+        "sub": 0.11,
+        "pad": 0,
+        "bass": 0.15,
+        "shim": 0,
+        "drone": 0,
+        "beatpulse": 0.24,
+        "voices": 0
       }
     },
     {
       "id": "chorus_1",
       "label": "Wellerman Comes",
       "durationBeats": 32,
-      "chordSeq": ["Am", "F", "C", "Em"],
+      "chordSeq": [
+        "Am",
+        "F",
+        "C",
+        "Em"
+      ],
       "droneMode": false,
       "lv": {
-        "arp": 0.40, "echo": 0.10, "thump": 0.72, "piano": 0.50,
-        "sub": 0.25, "pad": 0.18, "bass": 0.30, "shim": 0.55,
-        "drone": 0.0, "beatpulse": 0.50, "voices": 0.70
+        "arp": 0.28,
+        "echo": 0.06,
+        "thump": 0.55,
+        "piano": 0.36,
+        "sub": 0.12,
+        "pad": 0.14,
+        "bass": 0.18,
+        "shim": 0.28,
+        "drone": 0,
+        "beatpulse": 0.28,
+        "voices": 0.57
       }
     },
     {
       "id": "verse_2",
       "label": "Right Whale",
       "durationBeats": 32,
-      "chordSeq": ["Am", "Em", "Dm", "C"],
+      "chordSeq": [
+        "Am",
+        "Em",
+        "Dm",
+        "C"
+      ],
       "droneMode": false,
       "lv": {
-        "arp": 0.55, "echo": 0.06, "thump": 0.58, "piano": 0.25,
-        "sub": 0.18, "pad": 0.10, "bass": 0.22, "shim": 0.35,
-        "drone": 0.0, "beatpulse": 0.40, "voices": 0.25
+        "arp": 0.31,
+        "echo": 0.07,
+        "thump": 0.61,
+        "piano": 0.41,
+        "sub": 0.13,
+        "pad": 0.16,
+        "bass": 0.2,
+        "shim": 0.31,
+        "drone": 0,
+        "beatpulse": 0.31,
+        "voices": 0.64
       }
     },
     {
       "id": "chorus_full",
       "label": "Sugar & Tea & Rum",
       "durationBeats": 48,
-      "chordSeq": ["Am", "F", "C", "Em"],
+      "chordSeq": [
+        "Am",
+        "F",
+        "C",
+        "Em"
+      ],
       "droneMode": true,
       "lv": {
-        "arp": 0.35, "echo": 0.15, "thump": 0.80, "piano": 0.55,
-        "sub": 0.32, "pad": 0.30, "bass": 0.35, "shim": 0.60,
-        "drone": 0.55, "beatpulse": 0.58, "voices": 0.82
+        "arp": 0.35,
+        "echo": 0.08,
+        "thump": 0.68,
+        "piano": 0.45,
+        "sub": 0.15,
+        "pad": 0.18,
+        "bass": 0.22,
+        "shim": 0.35,
+        "drone": 0.18,
+        "beatpulse": 0.35,
+        "voices": 0.71
       }
     },
     {
       "id": "breakdown",
       "label": "Clap Break",
       "durationBeats": 16,
-      "chordSeq": ["Am"],
+      "chordSeq": [
+        "Am"
+      ],
       "droneMode": false,
       "lv": {
-        "arp": 0.0, "echo": 0.0, "thump": 0.65, "piano": 0.0,
-        "sub": 0.10, "pad": 0.0, "bass": 0.0, "shim": 0.70,
-        "drone": 0.0, "beatpulse": 0.50, "voices": 0.0
+        "arp": 0,
+        "echo": 0,
+        "thump": 0.61,
+        "piano": 0,
+        "sub": 0.13,
+        "pad": 0,
+        "bass": 0,
+        "shim": 0.31,
+        "drone": 0,
+        "beatpulse": 0.31,
+        "voices": 0
       }
     },
     {
       "id": "final_chorus",
       "label": "All Hands Sing!",
       "durationBeats": 48,
-      "chordSeq": ["Am", "Dm", "F", "Em"],
+      "chordSeq": [
+        "Am",
+        "Dm",
+        "F",
+        "Em"
+      ],
       "droneMode": true,
       "lv": {
-        "arp": 0.30, "echo": 0.18, "thump": 0.85, "piano": 0.60,
-        "sub": 0.38, "pad": 0.40, "bass": 0.38, "shim": 0.65,
-        "drone": 0.62, "beatpulse": 0.62, "voices": 0.90
+        "arp": 0.28,
+        "echo": 0.06,
+        "thump": 0.55,
+        "piano": 0.36,
+        "sub": 0.12,
+        "pad": 0.14,
+        "bass": 0.18,
+        "shim": 0.28,
+        "drone": 0.14,
+        "beatpulse": 0.28,
+        "voices": 0.57
       }
     },
     {
       "id": "outro",
       "label": "Sail Away",
       "durationBeats": 32,
-      "chordSeq": ["Am", "Em"],
+      "chordSeq": [
+        "Am",
+        "Em"
+      ],
       "droneMode": false,
       "lv": {
-        "arp": 0.25, "echo": 0.05, "thump": 0.30, "piano": 0.15,
-        "sub": 0.10, "pad": 0.08, "bass": 0.12, "shim": 0.18,
-        "drone": 0.0, "beatpulse": 0.20, "voices": 0.30
+        "arp": 0.24,
+        "echo": 0.06,
+        "thump": 0.48,
+        "piano": 0.32,
+        "sub": 0.11,
+        "pad": 0.13,
+        "bass": 0.15,
+        "shim": 0.24,
+        "drone": 0,
+        "beatpulse": 0.24,
+        "voices": 0.5
       }
     }
   ]

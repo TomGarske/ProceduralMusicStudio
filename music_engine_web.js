@@ -309,12 +309,12 @@ const ProceduralMusic = (() => {
       echo:     { node:'echoGain',  scale: 0.20 },
       thump:    { node:'thumpGain', scale: 0.85 },
       piano:    { node:'pianoGain', scale: 0.90 },
-      sub:      { node:'subGain',   scale: 0.13 },
+      sub:      { node:'subGain',   scale: 0.05 },   // 1 sine + 0.3× overtone → was 0.13, ÷2.6
       pad:      { node:'padGain',   scale: 0.20 },
-      bass:     { node:'bassGain',  scale: 0.22 },
+      bass:     { node:'bassGain',  scale: 0.08 },   // 2 sines through LPF → was 0.22, ÷2.75
       shim:     { node:'shimGain',  scale: 0.12 },
-      drone:    { node:'droneGain', scale: 0.30 },
-      beatpulse:{ node:'pulseGain', scale: 0.55 },
+      drone:    { node:'droneGain', scale: 0.07 },   // 4 raw sawtooths → was 0.30, ÷4.3
+      beatpulse:{ node:'pulseGain', scale: 0.20 },   // pitched pulse → was 0.55, ÷2.75
       voices:   { node:'voiceGain', scale: layerConfigs.voices.gainScale },
     };
 
@@ -882,9 +882,15 @@ const ProceduralMusic = (() => {
 
     function fireVoices(when, chord, targetGain=null) {
       if (!chord || !nd.voiceGain) return;
-      const vv = nd.voiceGain.gain.value * (layerMult.voices ?? 1);
-      const gate = targetGain != null ? targetGain : vv;
+      // Use targetGain (computed from phase lv) for both gating AND envelope levels.
+      // nd.voiceGain.gain.value is unreliable during morph transitions (may be near 0).
+      const nodeVal = nd.voiceGain.gain.value * (layerMult.voices ?? 1);
+      const gate = targetGain != null ? targetGain : nodeVal;
       if (gate < 0.02) return;
+      // Effective level for envelope peaks — use the higher of node value or target
+      // so voices are audible even during the first tick of a morph
+      const vv = Math.max(nodeVal, gate);
+
       const vc = layerConfigs.voices;
       const dur = vc.releaseSec;
       const baseFormant = vc.formantHz;
@@ -1089,13 +1095,18 @@ const ProceduralMusic = (() => {
 
         if (idx===0) {
           const seq = ph.chordSeq;
-          const targetPiano = (lv.piano||0)*(layerMult.piano??1)*LAYER_MAP.piano.scale;
-          if (seq && targetPiano > 0.02) {
+          // Always resolve the chord — voices, bass, and other layers depend on it
+          if (seq) {
             lastPlayedChord = CHORDS[seq[pianoBarCount % seq.length]];
+            // Bass follows the chord root regardless of piano level
+            if (lastPlayedChord) {
+              nd.bassO.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.10);
+              nd.bassO2.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.12);
+            }
+          }
+          const targetPiano = (lv.piano||0)*(layerMult.piano??1)*LAYER_MAP.piano.scale;
+          if (lastPlayedChord && targetPiano > 0.02) {
             firePiano(when, lastPlayedChord, targetPiano);
-            // Smooth bass frequency transition instead of immediate jump
-            nd.bassO.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.10);
-            nd.bassO2.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.12);
           }
           pianoBarCount++;
         }
