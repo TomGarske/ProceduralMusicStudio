@@ -1,0 +1,62 @@
+{
+  "presetId": "haul-away-joe",
+  "title": "Haul Away Joe",
+  "attribution": "Traditional short drag shanty, public domain (c. 1800s).",
+  "sections": [
+    {
+      "phaseId": "phase1",
+      "lines": [
+        { "beatOffset": 0,  "text": "When I was a little boy, so my mother told me" },
+        { "beatOffset": 8,  "text": "Way, haul away, we'll haul away, Joe!" }
+      ]
+    },
+    {
+      "phaseId": "phase2",
+      "lines": [
+        { "beatOffset": 0,  "text": "That if I did not kiss the girls, my lips would grow all mouldy" },
+        { "beatOffset": 8,  "text": "Way, haul away, we'll haul away, Joe!" }
+      ]
+    },
+    {
+      "phaseId": "phase3",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way, haul away, I'll sing to you of Nancy" },
+        { "beatOffset": 8,  "text": "Way, haul away, we'll haul away, Joe!" },
+        { "beatOffset": 16, "text": "Way, haul away, she's just my style and fancy" },
+        { "beatOffset": 24, "text": "Way, haul away, we'll haul away, Joe!" }
+      ]
+    },
+    {
+      "phaseId": "phase4",
+      "lines": [
+        { "beatOffset": 0,  "text": "King Louis was the King of France before the Revolution!" },
+        { "beatOffset": 8,  "text": "Way, haul away, we'll haul away, Joe!" },
+        { "beatOffset": 16, "text": "King Louis got his head cut off, which spoiled his constitution!" },
+        { "beatOffset": 24, "text": "Way, haul away, we'll haul away, Joe!" }
+      ]
+    },
+    {
+      "phaseId": "phase5",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way, haul away, we'll haul for better weather" },
+        { "beatOffset": 8,  "text": "Way, haul away, we'll haul away, Joe!" }
+      ]
+    },
+    {
+      "phaseId": "phase6",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way, haul away, we'll haul away together!" },
+        { "beatOffset": 8,  "text": "Way, haul away, we'll haul away, Joe!" },
+        { "beatOffset": 16, "text": "Way, haul away, the good ship now is rolling" },
+        { "beatOffset": 24, "text": "Way, haul away, we'll haul away, Joe!" }
+      ]
+    },
+    {
+      "phaseId": "phase7",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way, haul away, we'll haul away, Joe!" },
+        { "beatOffset": 8,  "text": "Haul away, Joe!" }
+      ]
+    }
+  ]
+}

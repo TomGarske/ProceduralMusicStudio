@@ -1,0 +1,69 @@
+{
+  "presetId": "leave-her-johnny",
+  "title": "Leave Her, Johnny",
+  "attribution": "Traditional pumping shanty, public domain (c. 1850s).",
+  "sections": [
+    {
+      "phaseId": "phase1",
+      "lines": [
+        { "beatOffset": 0,  "text": "Oh, the wind was foul and the sea ran high" },
+        { "beatOffset": 8,  "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 16, "text": "She shipped it green and none went by" },
+        { "beatOffset": 24, "text": "And it's time for us to leave her" }
+      ]
+    },
+    {
+      "phaseId": "phase2",
+      "lines": [
+        { "beatOffset": 0,  "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 8,  "text": "Oh, leave her, Johnny, leave her!" },
+        { "beatOffset": 16, "text": "For the voyage is long and the winds don't blow" },
+        { "beatOffset": 24, "text": "And it's time for us to leave her" }
+      ]
+    },
+    {
+      "phaseId": "phase3",
+      "lines": [
+        { "beatOffset": 0,  "text": "Oh, the skipper was bad but the mate was worse" },
+        { "beatOffset": 12, "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 24, "text": "He'd blow you down with a kick and a curse" },
+        { "beatOffset": 36, "text": "And it's time for us to leave her" }
+      ]
+    },
+    {
+      "phaseId": "phase4",
+      "lines": [
+        { "beatOffset": 0,  "text": "Oh, the rats have gone and we the crew" },
+        { "beatOffset": 12, "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 24, "text": "It's time, by God, that we went too" },
+        { "beatOffset": 36, "text": "And it's time for us to leave her" }
+      ]
+    },
+    {
+      "phaseId": "phase5",
+      "lines": [
+        { "beatOffset": 0,  "text": "I thought I heard the Old Man say" },
+        { "beatOffset": 8,  "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 16, "text": "You may go ashore and touch your pay" },
+        { "beatOffset": 24, "text": "And it's time for us to leave her" }
+      ]
+    },
+    {
+      "phaseId": "phase6",
+      "lines": [
+        { "beatOffset": 0,  "text": "We swear by rote for want of more" },
+        { "beatOffset": 12, "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 24, "text": "But now we're through so we'll go on shore" },
+        { "beatOffset": 36, "text": "And it's time for us to leave her" }
+      ]
+    },
+    {
+      "phaseId": "phase7",
+      "lines": [
+        { "beatOffset": 0,  "text": "Leave her, Johnny, leave her!" },
+        { "beatOffset": 8,  "text": "Oh, leave her, Johnny, leave her!" },
+        { "beatOffset": 16, "text": "And it's time for us to leave her..." }
+      ]
+    }
+  ]
+}

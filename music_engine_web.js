@@ -432,11 +432,26 @@ const ProceduralMusic = (() => {
       function hpf(f) { const n=actx.createBiquadFilter(); n.type='highpass'; n.frequency.value=f; return n; }
       function g(v) { const n=actx.createGain(); n.gain.value=v; return n; }
 
-      // Concertina melody (sawtooth for reedy timbre, heavy LPF)
-      const arpG=g(0), arpF=lpf(420,1.2);
-      arpG.connect(arpF); arpF.connect(master); arpF.connect(nd.rev);
-      const arpO=o('sawtooth',ARP[0]), arpO2=o('sawtooth',ARP[0]); arpO2.detune.value=14;
-      const arpVib=o('sine',layerConfigs.arp.lfoHz), arpVibG=g(4.0); arpVib.connect(arpVibG); arpVibG.connect(arpO.frequency);
+      // Melody layer — instrumental (LPF) or vocal (formant bandpass)
+      const arpIsVocal = layerConfigs.arp.synthMode === 'vocal_melody';
+      const arpG=g(0);
+      let arpF;
+      if (arpIsVocal) {
+        // Parallel formant bandpass filters for vowel-like timbre
+        const f1 = actx.createBiquadFilter(); f1.type='bandpass'; f1.frequency.value=700; f1.Q.value=5;
+        const f2 = actx.createBiquadFilter(); f2.type='bandpass'; f2.frequency.value=1100; f2.Q.value=4;
+        const fMix = g(1.0);
+        arpG.connect(f1); arpG.connect(f2); f1.connect(fMix); f2.connect(fMix);
+        fMix.connect(master); fMix.connect(nd.rev);
+        arpF = f1; // morphTo controls the primary formant center
+        nd.arpFilt2 = f2;
+      } else {
+        arpF = lpf(420, 1.2);
+        arpG.connect(arpF); arpF.connect(master); arpF.connect(nd.rev);
+      }
+      const arpLfoHz = layerConfigs.arp.lfoHz || (arpIsVocal ? 2.5 : 4.8);
+      const arpO=o('sawtooth',ARP[0]), arpO2=o('sawtooth',ARP[0]); arpO2.detune.value = arpIsVocal ? 8 : 14;
+      const arpVib=o('sine',arpLfoHz), arpVibG=g(arpIsVocal ? 2.0 : 4.0); arpVib.connect(arpVibG); arpVibG.connect(arpO.frequency);
       arpO.connect(arpG); arpO2.connect(arpG);
       nd.arpGain=arpG; nd.arpFilt=arpF; nd.arpO=arpO; nd.arpO2=arpO2;
 
@@ -745,11 +760,14 @@ const ProceduralMusic = (() => {
       const vv = nd.voiceGain.gain.value * (layerMult.voices ?? 1);
       const gate = targetGain != null ? targetGain : vv;
       if (gate < 0.02) return;
-      const dur = layerConfigs.voices.releaseSec;
-      const baseFormant = layerConfigs.voices.formantHz;
-      const baseVibHz = layerConfigs.voices.vibratoHz;
+      const vc = layerConfigs.voices;
+      const dur = vc.releaseSec;
+      const baseFormant = vc.formantHz;
+      const baseVibHz = vc.vibratoHz;
+      const numVoices = vc.voiceCount ?? 2;
+      const detSpread = vc.detuneSpread ?? 15;
+      const breathLvl = vc.breathLevel ?? 0.035;
 
-      // Vowel formant pairs: crew alternates between open "ah" and rounded "oh"
       const vowels = [
         { f1: baseFormant,       f2: baseFormant * 1.55, q1: 5, q2: 4 },
         { f1: baseFormant * 0.7, f2: baseFormant * 1.2,  q1: 6, q2: 5 },
@@ -760,10 +778,9 @@ const ProceduralMusic = (() => {
       notes.forEach((freq, ni) => {
         const vowel = vowels[ni % vowels.length];
 
-        // 2 detuned crew voices per chord tone for rough choral thickness
-        for (let vi = 0; vi < 2; vi++) {
-          const detCents = (vi - 0.5) * 15 + (Math.random() - 0.5) * 8;
-          const delay = ni * 0.04 + vi * 0.025 + Math.random() * 0.02;
+        for (let vi = 0; vi < numVoices; vi++) {
+          const detCents = (vi - (numVoices - 1) * 0.5) * detSpread / Math.max(1, numVoices - 1) + (Math.random() - 0.5) * 8;
+          const delay = ni * 0.04 + vi * (0.025 / Math.max(1, numVoices - 1)) + Math.random() * 0.02;
           const startAt = when + delay;
 
           const osc = actx.createOscillator();
@@ -777,7 +794,6 @@ const ProceduralMusic = (() => {
           vibAmt.gain.value = 3.5 + ni * 1.2;
           vib.connect(vibAmt); vibAmt.connect(osc.frequency);
 
-          // Parallel formant filters shape vowel character
           const f1 = actx.createBiquadFilter();
           f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 25; f1.Q.value = vowel.q1;
           const f2 = actx.createBiquadFilter();
@@ -786,7 +802,7 @@ const ProceduralMusic = (() => {
           osc.connect(f1); osc.connect(f2); f1.connect(fSum); f2.connect(fSum);
 
           const env = actx.createGain();
-          const peak = vv * (0.20 - ni * 0.025 - vi * 0.015);
+          const peak = vv * (0.20 - ni * 0.025 - vi * (0.015 / numVoices));
           env.gain.setValueAtTime(0.0, startAt);
           env.gain.linearRampToValueAtTime(peak, startAt + 0.12 + ni * 0.025);
           env.gain.setTargetAtTime(peak * 0.55, startAt + 0.45, dur * 0.38);
@@ -799,19 +815,17 @@ const ProceduralMusic = (() => {
         }
       });
 
-      // Breath noise — use pre-rendered buffer instead of synthesizing each time
       const noiseDur = dur * 0.5;
       const noiseBuf = getBreathNoiseBuffer();
       const noiseSrc = actx.createBufferSource();
       noiseSrc.buffer = noiseBuf;
-      // Randomize playback offset within the buffer for variation
       const maxOffset = Math.max(0, noiseBuf.duration - noiseDur - 0.2);
       const noiseOffset = Math.random() * maxOffset;
       const noiseBpf = actx.createBiquadFilter();
       noiseBpf.type = 'bandpass'; noiseBpf.frequency.value = 1600; noiseBpf.Q.value = 1.8;
       const noiseEnv = actx.createGain();
       noiseEnv.gain.setValueAtTime(0, when);
-      noiseEnv.gain.linearRampToValueAtTime(vv * 0.035, when + 0.18);
+      noiseEnv.gain.linearRampToValueAtTime(vv * breathLvl, when + 0.18);
       noiseEnv.gain.setTargetAtTime(0.001, when + 0.5, noiseDur * 0.25);
       noiseSrc.connect(noiseBpf); noiseBpf.connect(noiseEnv); noiseEnv.connect(nd.voiceGain);
       noiseSrc.start(when, noiseOffset, noiseDur + 0.1);
@@ -828,15 +842,43 @@ const ProceduralMusic = (() => {
 
     function getShimmerBuffer() {
       const sr = actx.sampleRate;
-      const key = `${keyId}|${sr}`;
+      const mode = layerConfigs.shim.synthMode || 'bell';
+      const key = `${mode}|${keyId}|${sr}`;
       if (shimmerBuffer && shimmerCacheKey === key) return shimmerBuffer;
+
+      if (mode === 'clap') {
+        const clapDur = layerConfigs.shim.durationSec || 0.06;
+        const len = Math.floor(sr * clapDur);
+        const shBuf = actx.createBuffer(1, len, sr);
+        const sd = shBuf.getChannelData(0);
+        const bpfCenter = 2400;
+        const bpfQ = 1.5;
+        for (let i = 0; i < len; i++) {
+          const t = i / sr;
+          const noise = Math.random() * 2 - 1;
+          // Double-tap envelope simulates flesh impact
+          const env1 = Math.exp(-t * 80);
+          const env2 = t > 0.008 ? Math.exp(-(t - 0.008) * 60) * 0.7 : 0;
+          const env = env1 + env2;
+          // Simple bandpass approximation via resonant shaping
+          const angle = 2 * Math.PI * bpfCenter * t;
+          const shaped = noise * (0.5 + 0.5 * Math.sin(angle * bpfQ * 0.1));
+          let fadeEnv = 1.0;
+          if (i < 4) fadeEnv = i / 4;
+          if (i > len - 8) fadeEnv = (len - i) / 8;
+          sd[i] = shaped * env * 0.65 * fadeEnv;
+        }
+        shimmerBuffer = shBuf;
+        shimmerCacheKey = key;
+        return shBuf;
+      }
+
       const shimDur = layerConfigs.shim.durationSec || 0.12;
       const len = Math.floor(sr * shimDur);
       const shBuf = actx.createBuffer(1, len, sr);
       const sd = shBuf.getChannelData(0);
       const bellHz = tn('A4') * (layerConfigs.shim.octaveMul || 1);
-      const bellHz2 = bellHz * 2.71; // inharmonic partial for bell timbre
-      // Anti-click: 0.5ms fade-in and 2ms fade-out
+      const bellHz2 = bellHz * 2.71;
       const fadeInSamples = Math.floor(sr * 0.0005);
       const fadeOutSamples = Math.floor(sr * 0.002);
       for (let i = 0; i < sd.length; i++) {
@@ -1224,9 +1266,8 @@ const ProceduralMusic = (() => {
       },
 
       setBPM(newBpm) {
-        bpmTarget = Math.max(40, Math.min(160, newBpm));
+        bpmTarget = Math.max(40, Math.min(200, newBpm));
         if (!playing) bpm = bpmTarget;
-        // Delay lines will sync on next tick
       },
 
       setReverb(wet) {

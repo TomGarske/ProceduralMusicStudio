@@ -489,6 +489,54 @@
       box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.45);
     }
 
+    /* ── Lyrics visualizer ─────────────────────────────────────────────── */
+    #lyrics-panel { min-height: 0; }
+    #lyrics-panel.hidden { display: none; }
+    #lyrics-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 8px 8px;
+      min-height: 72px;
+      justify-content: center;
+    }
+    .lyrics-line {
+      text-align: center;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      transition: opacity 0.35s ease, transform 0.35s ease, font-size 0.35s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .lyrics-prev {
+      font-size: 11px;
+      color: var(--text-dim);
+      opacity: 0.35;
+      transform: translateY(2px);
+    }
+    .lyrics-current {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--cyan);
+      text-shadow: 0 0 12px rgba(0,212,255,0.25);
+      letter-spacing: 0.02em;
+    }
+    .lyrics-next {
+      font-size: 12px;
+      color: var(--text-mid);
+      opacity: 0.5;
+      transform: translateY(-2px);
+    }
+    .lyrics-attribution {
+      font-size: 9px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+
     /* ── Footer note ─────────────────────────────────────────────────────── */
     footer {
       text-align: center;
@@ -579,7 +627,7 @@
 
       <div class="ctrl" id="bpm-ctrl">
         <div class="ctrl-label"><span>BPM</span><span id="bpm-display">76</span></div>
-        <input type="range" id="bpm-slider" min="40" max="160" value="76" step="1">
+        <input type="range" id="bpm-slider" min="40" max="200" value="76" step="1">
       </div>
 
       <div class="ctrl" id="vol-ctrl">
@@ -615,6 +663,17 @@
       <input type="checkbox" id="phase-loop">
       <span>Loop Selected Phase</span>
     </label>
+  </div>
+
+  <!-- ── Lyrics Visualizer ──────────────────────────────────────────────── -->
+  <div class="panel hidden" id="lyrics-panel">
+    <div class="panel-title">Lyrics</div>
+    <div id="lyrics-display">
+      <div id="lyrics-prev" class="lyrics-line lyrics-prev"></div>
+      <div id="lyrics-current" class="lyrics-line lyrics-current"></div>
+      <div id="lyrics-next" class="lyrics-line lyrics-next"></div>
+    </div>
+    <div id="lyrics-attribution" class="lyrics-attribution"></div>
   </div>
 
   <!-- ── Oscilloscope ────────────────────────────────────────────────────── -->
@@ -1243,7 +1302,120 @@ document.getElementById('preset-select').addEventListener('change', async () => 
   }
 });
 
-initPresets().then(() => renderPhaseRow());
+// ── Lyrics system ─────────────────────────────────────────────────────
+let activeLyricsData = null;
+let currentLyricLine = -1;
+const lyricsPanel = document.getElementById('lyrics-panel');
+const lyricsPrev = document.getElementById('lyrics-prev');
+const lyricsCurrent = document.getElementById('lyrics-current');
+const lyricsNext = document.getElementById('lyrics-next');
+const lyricsAttribution = document.getElementById('lyrics-attribution');
+
+async function loadLyricsForPreset(presetId) {
+  activeLyricsData = null;
+  currentLyricLine = -1;
+  const entry = presetManifestList.find(p => p.id === presetId);
+  if (!entry || !entry.lyrics) {
+    lyricsPanel.classList.add('hidden');
+    return;
+  }
+  try {
+    const r = await fetch('presets/' + entry.lyrics);
+    if (!r.ok) throw new Error(r.status);
+    activeLyricsData = await r.json();
+    lyricsPanel.classList.remove('hidden');
+    lyricsPrev.textContent = '';
+    lyricsCurrent.textContent = activeLyricsData.title || '';
+    lyricsNext.textContent = 'Press play to begin';
+    lyricsAttribution.textContent = activeLyricsData.attribution || '';
+  } catch (e) {
+    lyricsPanel.classList.add('hidden');
+  }
+}
+
+function updateLyricsFromBeat(phaseId, phaseProgress, phaseStart, phaseEnd) {
+  if (!activeLyricsData || !activeLyricsData.sections) return;
+  const section = activeLyricsData.sections.find(s => s.phaseId === phaseId);
+  if (!section || !section.lines || !section.lines.length) {
+    if (lyricsCurrent.textContent !== '') {
+      lyricsPrev.textContent = lyricsCurrent.textContent;
+      lyricsCurrent.textContent = '';
+      lyricsNext.textContent = '';
+    }
+    return;
+  }
+  const phaseDur = Math.max(1, phaseEnd - phaseStart);
+  const beatInPhase = phaseProgress * phaseDur;
+  let lineIdx = 0;
+  for (let i = section.lines.length - 1; i >= 0; i--) {
+    if (beatInPhase >= section.lines[i].beatOffset) { lineIdx = i; break; }
+  }
+  const lineKey = phaseId + '|' + lineIdx;
+  if (currentLyricLine === lineKey) return;
+  currentLyricLine = lineKey;
+  const prev = lineIdx > 0 ? section.lines[lineIdx - 1].text : '';
+  const curr = section.lines[lineIdx].text;
+  const next = lineIdx < section.lines.length - 1 ? section.lines[lineIdx + 1].text : '';
+  lyricsPrev.textContent = prev;
+  lyricsCurrent.textContent = curr;
+  lyricsNext.textContent = next;
+}
+
+// ── Preset-driven layer labels ────────────────────────────────────────
+const DEFAULT_LAYER_LABELS = {};
+LAYERS.forEach(l => { DEFAULT_LAYER_LABELS[l.id] = { label: l.label, desc: l.desc }; });
+
+function updateLayerLabelsFromPreset(preset) {
+  const labels = preset?.layerLabels || {};
+  LAYERS.forEach(layer => {
+    const custom = labels[layer.id];
+    const lbl = custom?.label || DEFAULT_LAYER_LABELS[layer.id].label;
+    const desc = custom?.desc || DEFAULT_LAYER_LABELS[layer.id].desc;
+    const card = document.getElementById(`sl-${layer.id}`)?.closest('.layer-ctrl');
+    if (!card) return;
+    const nameEl = card.querySelector('.layer-name');
+    const descEl = card.querySelector('.layer-desc');
+    if (nameEl) nameEl.textContent = lbl;
+    if (descEl) descEl.textContent = desc;
+  });
+}
+
+// Wire lyrics into the beat event after engine boot
+const origBootEngine = bootEngine;
+bootEngine = async function() {
+  await origBootEngine();
+  engine.on('beat', ({ phase, phaseProgress, phaseStart, phaseEnd }) => {
+    updateLyricsFromBeat(phase, phaseProgress, phaseStart, phaseEnd);
+  });
+  if (activePresetJson) {
+    updateLayerLabelsFromPreset(activePresetJson);
+    const pid = activePresetJson.id || presetManifestList[0]?.id;
+    if (pid) loadLyricsForPreset(pid);
+  }
+};
+
+// Wire lyrics + labels into preset changes
+const origPresetChange = document.getElementById('preset-select').onchange;
+document.getElementById('preset-select').addEventListener('change', async () => {
+  const sel = document.getElementById('preset-select');
+  const entry = presetManifestList.find(p => p.file === sel.value);
+  if (!entry) return;
+  setTimeout(() => {
+    if (activePresetJson) {
+      updateLayerLabelsFromPreset(activePresetJson);
+      loadLyricsForPreset(entry.id);
+    }
+  }, 100);
+});
+
+initPresets().then(() => {
+  renderPhaseRow();
+  if (activePresetJson) {
+    updateLayerLabelsFromPreset(activePresetJson);
+    const pid = activePresetJson.id || presetManifestList[0]?.id;
+    if (pid) loadLyricsForPreset(pid);
+  }
+});
 </script>
 </body>
 </html>

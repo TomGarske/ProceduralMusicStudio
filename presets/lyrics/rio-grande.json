@@ -1,0 +1,69 @@
+{
+  "presetId": "rio-grande",
+  "title": "Rio Grande",
+  "attribution": "Traditional capstan shanty, public domain (c. 1840s).",
+  "sections": [
+    {
+      "phaseId": "phase1",
+      "lines": [
+        { "beatOffset": 0,  "text": "Oh, say were you ever in Rio Grande?" },
+        { "beatOffset": 8,  "text": "Way, oh, Rio!" },
+        { "beatOffset": 16, "text": "It's there that the river runs down golden sand" },
+        { "beatOffset": 24, "text": "And we're bound for the Rio Grande!" }
+      ]
+    },
+    {
+      "phaseId": "phase2",
+      "lines": [
+        { "beatOffset": 0,  "text": "Then away, boys, away!" },
+        { "beatOffset": 8,  "text": "Way, oh, Rio!" },
+        { "beatOffset": 16, "text": "Sing fare ye well, my pretty young girls" },
+        { "beatOffset": 24, "text": "And we're bound for the Rio Grande!" }
+      ]
+    },
+    {
+      "phaseId": "phase3",
+      "lines": [
+        { "beatOffset": 0,  "text": "Our ship went sailing out over the bar" },
+        { "beatOffset": 12, "text": "Way, oh, Rio!" },
+        { "beatOffset": 24, "text": "We pointed her nose for the southern star" },
+        { "beatOffset": 36, "text": "And we're bound for the Rio Grande!" }
+      ]
+    },
+    {
+      "phaseId": "phase4",
+      "lines": [
+        { "beatOffset": 0,  "text": "Then away, boys, away!" },
+        { "beatOffset": 12, "text": "Way, oh, Rio!" },
+        { "beatOffset": 24, "text": "Sing fare ye well, my pretty young girls" },
+        { "beatOffset": 36, "text": "And we're bound for the Rio Grande!" }
+      ]
+    },
+    {
+      "phaseId": "phase5",
+      "lines": [
+        { "beatOffset": 0,  "text": "Goodbye to Sally and goodbye to Sue" },
+        { "beatOffset": 8,  "text": "Way, oh, Rio!" },
+        { "beatOffset": 16, "text": "And you who are listening, goodbye to you" },
+        { "beatOffset": 24, "text": "And we're bound for the Rio Grande!" }
+      ]
+    },
+    {
+      "phaseId": "phase6",
+      "lines": [
+        { "beatOffset": 0,  "text": "Then away, boys, away!" },
+        { "beatOffset": 12, "text": "Way, oh, Rio!" },
+        { "beatOffset": 24, "text": "So it's pack up your donkey and get under way" },
+        { "beatOffset": 36, "text": "And we're bound for the Rio Grande!" }
+      ]
+    },
+    {
+      "phaseId": "phase7",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way, oh, Rio!" },
+        { "beatOffset": 8,  "text": "We're bound for the Rio Grande!" },
+        { "beatOffset": 16, "text": "And we're bound for the Rio Grande..." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "presetId": "drunken-sailor",
+  "title": "What Shall We Do with a Drunken Sailor?",
+  "attribution": "Traditional sea shanty, public domain (pre-1839).",
+  "sections": [
+    {
+      "phaseId": "shanty_call",
+      "lines": [
+        { "beatOffset": 0,  "text": "What shall we do with a drunken sailor?" },
+        { "beatOffset": 8,  "text": "What shall we do with a drunken sailor?" },
+        { "beatOffset": 16, "text": "What shall we do with a drunken sailor?" },
+        { "beatOffset": 24, "text": "Early in the morning!" }
+      ]
+    },
+    {
+      "phaseId": "shanty_response",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way hay and up she rises" },
+        { "beatOffset": 8,  "text": "Way hay and up she rises" },
+        { "beatOffset": 16, "text": "Way hay and up she rises" },
+        { "beatOffset": 24, "text": "Early in the morning!" }
+      ]
+    },
+    {
+      "phaseId": "full_crew",
+      "lines": [
+        { "beatOffset": 0,  "text": "Put him in a long-boat till he's sober" },
+        { "beatOffset": 12, "text": "Put him in a long-boat till he's sober" },
+        { "beatOffset": 24, "text": "Put him in a long-boat till he's sober" },
+        { "beatOffset": 36, "text": "Early in the morning!" }
+      ]
+    },
+    {
+      "phaseId": "heave_ho",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way hay and up she rises" },
+        { "beatOffset": 12, "text": "Way hay and up she rises" },
+        { "beatOffset": 24, "text": "Way hay and up she rises" },
+        { "beatOffset": 36, "text": "Early in the morning!" }
+      ]
+    },
+    {
+      "phaseId": "calm_sea",
+      "lines": [
+        { "beatOffset": 0,  "text": "Shave his belly with a rusty razor" },
+        { "beatOffset": 8,  "text": "Shave his belly with a rusty razor" },
+        { "beatOffset": 16, "text": "Shave his belly with a rusty razor" },
+        { "beatOffset": 24, "text": "Early in the morning!" }
+      ]
+    },
+    {
+      "phaseId": "all_hands",
+      "lines": [
+        { "beatOffset": 0,  "text": "Way hay and up she rises" },
+        { "beatOffset": 12, "text": "Way hay and up she rises" },
+        { "beatOffset": 24, "text": "Way hay and up she rises" },
+        { "beatOffset": 36, "text": "Early in the morning!" }
+      ]
+    },
+    {
+      "phaseId": "port",
+      "lines": [
+        { "beatOffset": 0,  "text": "That's what we do with a drunken sailor" },
+        { "beatOffset": 8,  "text": "That's what we do with a drunken sailor" },
+        { "beatOffset": 16, "text": "That's what we do with a drunken sailor" },
+        { "beatOffset": 24, "text": "Early in the morning!" }
+      ]
+    }
+  ]
+}

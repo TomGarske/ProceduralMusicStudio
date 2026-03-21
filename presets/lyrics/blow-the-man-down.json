@@ -1,0 +1,66 @@
+{
+  "presetId": "blow-the-man-down",
+  "title": "Blow the Man Down",
+  "attribution": "Traditional halyard shanty, public domain (c. 1860s).",
+  "sections": [
+    {
+      "phaseId": "phase1",
+      "lines": [
+        { "beatOffset": 0,  "text": "Come all ye young fellows that follow the sea" },
+        { "beatOffset": 8,  "text": "To me, way hey, blow the man down!" },
+        { "beatOffset": 16, "text": "Now please pay attention and listen to me" }
+      ]
+    },
+    {
+      "phaseId": "phase2",
+      "lines": [
+        { "beatOffset": 0,  "text": "Give me some time to blow the man down!" },
+        { "beatOffset": 8,  "text": "I'm a deep water sailor just come from Hong Kong" },
+        { "beatOffset": 16, "text": "To me, way hey, blow the man down!" }
+      ]
+    },
+    {
+      "phaseId": "phase3",
+      "lines": [
+        { "beatOffset": 0,  "text": "If you give me some whiskey, I'll sing you a song" },
+        { "beatOffset": 8,  "text": "Give me some time to blow the man down!" },
+        { "beatOffset": 16, "text": "On a trim Black Ball liner I first served my time" },
+        { "beatOffset": 24, "text": "To me, way hey, blow the man down!" }
+      ]
+    },
+    {
+      "phaseId": "phase4",
+      "lines": [
+        { "beatOffset": 0,  "text": "And on a trim Black Ball liner I wasted my prime" },
+        { "beatOffset": 12, "text": "Give me some time to blow the man down!" },
+        { "beatOffset": 24, "text": "It's when a Black Baller's preparing for sea" },
+        { "beatOffset": 36, "text": "To me, way hey, blow the man down!" }
+      ]
+    },
+    {
+      "phaseId": "phase5",
+      "lines": [
+        { "beatOffset": 0,  "text": "You'd split your sides laughing at sights that you'd see" },
+        { "beatOffset": 8,  "text": "Give me some time to blow the man down!" },
+        { "beatOffset": 16, "text": "With tinkers and tailors and sailors and all..." }
+      ]
+    },
+    {
+      "phaseId": "phase6",
+      "lines": [
+        { "beatOffset": 0,  "text": "That ship for good seamen on board a Black Ball!" },
+        { "beatOffset": 12, "text": "To me, way hey, blow the man down!" },
+        { "beatOffset": 24, "text": "Give me some time to blow the man down!" },
+        { "beatOffset": 36, "text": "So blow the man down, bullies, blow the man down!" }
+      ]
+    },
+    {
+      "phaseId": "phase7",
+      "lines": [
+        { "beatOffset": 0,  "text": "To me, way hey, blow the man down!" },
+        { "beatOffset": 8,  "text": "Give me some time to blow the man down!" },
+        { "beatOffset": 16, "text": "Blow the man down..." }
+      ]
+    }
+  ]
+}

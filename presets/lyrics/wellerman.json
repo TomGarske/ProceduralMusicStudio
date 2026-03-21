@@ -1,0 +1,72 @@
+{
+  "presetId": "wellerman",
+  "title": "Wellerman (Soon May the Wellerman Come)",
+  "attribution": "Traditional New Zealand whaling song, first published 1970s. Public domain.",
+  "sections": [
+    {
+      "phaseId": "verse_1",
+      "lines": [
+        { "beatOffset": 0,  "text": "There once was a ship that put to sea" },
+        { "beatOffset": 8,  "text": "And the name of that ship was the Billy o' Tea" },
+        { "beatOffset": 16, "text": "The winds blew hard, her bow dipped down" },
+        { "beatOffset": 24, "text": "Blow, me bully boys, blow!" }
+      ]
+    },
+    {
+      "phaseId": "chorus_1",
+      "lines": [
+        { "beatOffset": 0,  "text": "Soon may the Wellerman come" },
+        { "beatOffset": 8,  "text": "To bring us sugar and tea and rum" },
+        { "beatOffset": 16, "text": "One day, when the tonguin' is done" },
+        { "beatOffset": 24, "text": "We'll take our leave and go" }
+      ]
+    },
+    {
+      "phaseId": "verse_2",
+      "lines": [
+        { "beatOffset": 0,  "text": "She had not been two weeks from shore" },
+        { "beatOffset": 8,  "text": "When down on her a right whale bore" },
+        { "beatOffset": 16, "text": "The captain called all hands and swore" },
+        { "beatOffset": 24, "text": "He'd take that whale in tow!" }
+      ]
+    },
+    {
+      "phaseId": "chorus_full",
+      "lines": [
+        { "beatOffset": 0,  "text": "Soon may the Wellerman come" },
+        { "beatOffset": 8,  "text": "To bring us sugar and tea and rum" },
+        { "beatOffset": 16, "text": "One day, when the tonguin' is done" },
+        { "beatOffset": 24, "text": "We'll take our leave and go" },
+        { "beatOffset": 32, "text": "Before the boat had hit the water" },
+        { "beatOffset": 40, "text": "The whale's tail came up and caught her" }
+      ]
+    },
+    {
+      "phaseId": "breakdown",
+      "lines": [
+        { "beatOffset": 0,  "text": "All hands to the side, harpooned and fought her" },
+        { "beatOffset": 8,  "text": "When she dived down below!" }
+      ]
+    },
+    {
+      "phaseId": "final_chorus",
+      "lines": [
+        { "beatOffset": 0,  "text": "Soon may the Wellerman come" },
+        { "beatOffset": 8,  "text": "To bring us sugar and tea and rum" },
+        { "beatOffset": 16, "text": "One day, when the tonguin' is done" },
+        { "beatOffset": 24, "text": "We'll take our leave and go" },
+        { "beatOffset": 32, "text": "For forty days, or even more" },
+        { "beatOffset": 40, "text": "The line went slack, then tight once more" }
+      ]
+    },
+    {
+      "phaseId": "outro",
+      "lines": [
+        { "beatOffset": 0,  "text": "Soon may the Wellerman come" },
+        { "beatOffset": 8,  "text": "To bring us sugar and tea and rum" },
+        { "beatOffset": 16, "text": "One day, when the tonguin' is done" },
+        { "beatOffset": 24, "text": "We'll take our leave and go..." }
+      ]
+    }
+  ]
+}
