@@ -8,6 +8,8 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      --waveform-h:   143px;  /* ~25% shorter than prior 190px shared strip */
+      --arrangement-h: 238px; /* ~25% taller than prior 190px */
       --bg:        #0d0d0d;
       --bg2:       #121212;
       --bg3:       #1a1a1a;
@@ -152,34 +154,8 @@
       transition: transform 0.1s;
     }
     input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-    input[type=range].layer-slider::-webkit-slider-thumb { background: var(--layer-color); box-shadow: 0 0 6px rgba(255,171,0,0.4); }
+    input[type=range].layer-slider::-webkit-slider-thumb { background: var(--layer-color); box-shadow: 0 0 4px rgba(255,171,0,0.22); }
     input[type=range].layer-slider.muted::-webkit-slider-thumb { background: var(--text-dim); box-shadow: none; }
-
-    /* ── Key selector ────────────────────────────────────────────────────── */
-    #key-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .key-btn {
-      padding: 5px 12px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-mid);
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.04em;
-    }
-    .key-btn:hover { border-color: var(--amber); color: var(--amber); }
-    .key-btn.active {
-      border-color: var(--amber);
-      color: var(--amber);
-      background: rgba(255,171,0,0.1);
-      box-shadow: 0 0 10px rgba(255,171,0,0.15);
-    }
 
     /* ── Phase timeline ──────────────────────────────────────────────────── */
     #phase-row {
@@ -192,6 +168,59 @@
       flex-direction: column;
       gap: 4px;
       min-width: 96px;
+    }
+    .phase-item-head {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      min-width: 0;
+    }
+    .phase-item-head .phase-btn {
+      flex: 1;
+      min-width: 0;
+      border-radius: var(--radius) 0 0 var(--radius);
+      border-right: none;
+    }
+    .phase-item-head .phase-remove {
+      flex: 0 0 0;
+      align-self: stretch;
+      border: 1px solid var(--border);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: var(--bg3);
+      color: var(--text-dim);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+      opacity: 0;
+      width: 0;
+      min-width: 0;
+      overflow: hidden;
+      border-width: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease, color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .phase-item:hover .phase-item-head .phase-remove {
+      flex: 0 0 24px;
+      opacity: 1;
+      width: 24px;
+      min-width: 24px;
+      border-width: 1px;
+      pointer-events: auto;
+    }
+    .phase-item:not(:hover) .phase-item-head .phase-btn {
+      border-radius: var(--radius);
+      border-right: 1px solid var(--border);
+    }
+    .phase-item:hover .phase-item-head .phase-btn {
+      border-radius: var(--radius) 0 0 var(--radius);
+      border-right: none;
+    }
+    .phase-item-head .phase-remove:hover {
+      color: var(--red);
+      border-color: rgba(255, 23, 68, 0.45);
+      background: rgba(255, 23, 68, 0.08);
     }
     .phase-btn {
       padding: 6px 14px;
@@ -234,8 +263,7 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
-
-    /* ── Phase/Chord display ─────────────────────────────────────────────── */
+    /* ── Phase readout + Synthesize ───────────────────────────────────────── */
     #info-row {
       display: flex;
       gap: 18px;
@@ -252,35 +280,117 @@
     }
     .info-chip .info-key { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
     .info-chip .info-val { color: var(--cyan); font-size: 14px; font-weight: 600; min-width: 60px; }
-    #chord-val { color: var(--amber) !important; }
+    .synthesize-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 14px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .synthesize-btn:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+    .synthesize-btn.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(255,171,0,0.1);
+      box-shadow: 0 0 10px rgba(255,171,0,0.15);
+    }
+    .phase-btn-placeholder {
+      opacity: 0.55;
+      cursor: not-allowed;
+      border-style: dashed !important;
+    }
 
-    /* ── Oscilloscope ────────────────────────────────────────────────────── */
-    #scope-wrap {
+    /* ── Oscilloscope + Arrangement (label style; heights split) ───────────── */
+    #scope-wrap,
+    #arrangement-wrap {
       position: relative;
     }
     #scope {
       width: 100%;
-      height: 190px;
+      height: var(--waveform-h);
       display: block;
       border-radius: var(--radius);
       background: #060a0c;
     }
-    #scope-label {
+    .viz-label {
       position: absolute;
       top: 8px;
       left: 10px;
+      z-index: 1;
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--cyan-dim);
       pointer-events: none;
     }
+    .viz-label-row {
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .viz-time-span {
+      text-transform: none;
+      letter-spacing: 0.06em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
 
-    /* ── Layer mixer ─────────────────────────────────────────────────────── */
-    #mixer-grid {
+    .arrangement-live-wrap {
+      display: block;
+      overflow: hidden;
+    }
+    .arrangement-live-canvas-wrap {
+      height: var(--arrangement-h);
+      min-width: 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #060a0c;
+      overflow: hidden;
+    }
+    #arrangement-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      vertical-align: top;
+    }
+
+    /* ── Layer mixer (flat list, logical hierarchy order) ──────────────────── */
+    #mixer-layers {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 10px;
+    }
+    .mixer-add-tile {
+      min-height: 140px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .mixer-add-tile:hover {
+      border-color: var(--cyan-dim);
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.06);
     }
     .layer-ctrl {
       --layer-color: var(--amber);
@@ -323,26 +433,18 @@
       font-size: 10px;
       color: var(--text-dim);
     }
-    .layer-config {
+    .layer-chords {
       font-size: 9px;
-      color: #7f8d95;
-      line-height: 1.4;
+      color: var(--text-mid);
+      letter-spacing: 0.04em;
+      line-height: 1.35;
     }
-    /* Mute button */
-    .mute-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 3px;
+    .layer-chords .layer-chords-label {
       color: var(--text-dim);
-      font-size: 9px;
-      padding: 1px 5px;
-      cursor: pointer;
-      font-family: inherit;
-      letter-spacing: 0.06em;
-      transition: all 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-right: 4px;
     }
-    .mute-btn:hover { border-color: var(--red); color: var(--red); }
-    .mute-btn.muted { border-color: var(--red); color: var(--red); background: rgba(255,23,68,0.08); }
     .active-wrap {
       display: inline-flex;
       align-items: center;
@@ -357,6 +459,64 @@
       width: 11px;
       height: 11px;
       cursor: pointer;
+    }
+    .layer-solo-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-dim);
+      font-size: 9px;
+      font-weight: 700;
+      font-family: inherit;
+      width: 22px;
+      height: 20px;
+      padding: 0;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .layer-solo-btn:hover {
+      border-color: var(--cyan-dim);
+      color: var(--cyan);
+    }
+    .layer-solo-btn.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.12);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
+    }
+    .layer-edit-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-dim);
+      font-size: 9px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 2px 8px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .layer-edit-btn:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+    .layer-edit-btn.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(255, 171, 0, 0.12);
+      box-shadow: 0 0 8px rgba(255, 171, 0, 0.15);
+    }
+    .layer-ctrl.is-solo-muted {
+      opacity: 0.55;
+    }
+    .layer-ctrl.is-soloed {
+      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.35);
+    }
+    .layer-ctrl.is-edit-focus {
+      box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.45);
     }
 
     /* ── Footer note ─────────────────────────────────────────────────────── */
@@ -384,7 +544,7 @@
 
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header>
-    <h1>Procedural Music Studio <span id="key-title">/ Gm</span></h1>
+    <h1>Procedural Music Studio</h1>
     <div id="status-pill">stopped</div>
   </header>
 
@@ -394,8 +554,8 @@
       <button id="btn-play" title="Play / Stop">▶</button>
 
       <div class="ctrl" id="bpm-ctrl">
-        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">100</span></div>
-        <input type="range" id="bpm-slider" min="60" max="200" value="100" step="1">
+        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">83</span></div>
+        <input type="range" id="bpm-slider" min="50" max="120" value="83" step="1">
       </div>
 
       <div class="ctrl" id="vol-ctrl">
@@ -404,8 +564,8 @@
       </div>
 
       <div class="ctrl" id="rev-ctrl">
-        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">30%</span></div>
-        <input type="range" id="rev-slider" min="0" max="60" value="30" step="1">
+        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">15%</span></div>
+        <input type="range" id="rev-slider" min="0" max="60" value="15" step="1">
       </div>
 
       <div id="info-row">
@@ -413,56 +573,15 @@
           <span class="info-key">Phase</span>
           <span class="info-val" id="phase-val">—</span>
         </div>
-        <div class="info-chip">
-          <span class="info-key">Chord</span>
-          <span class="info-val" id="chord-val">—</span>
-        </div>
+        <button type="button" id="btn-synthesize" class="synthesize-btn" title="Post-loop evolving music (formerly Novel phase)">Synthesize</button>
       </div>
     </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Key</div>
-    <div id="key-row"></div>
   </div>
 
   <!-- ── Phase Timeline ──────────────────────────────────────────────────── -->
   <div class="panel">
     <div class="panel-title">Song Phases</div>
-    <div id="phase-row">
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="intro">Intro</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="intro"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="build1">Build 1</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="build1"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="verse1">Verse</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="verse1"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="chorus1">Chorus 1</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="chorus1"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="break">Break</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="break"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="chorus2">Chorus 2</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="chorus2"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="outro">Outro</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="outro"></div></div>
-      </div>
-      <div class="phase-item">
-        <button class="phase-btn" data-phase="novel">Novel Phase</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="novel"></div></div>
-      </div>
-    </div>
+    <div id="phase-row"></div>
     <label class="phase-loop-wrap" title="Loop currently selected phase">
       <input type="checkbox" id="phase-loop">
       <span>Loop Selected Phase</span>
@@ -472,119 +591,167 @@
   <!-- ── Oscilloscope ────────────────────────────────────────────────────── -->
   <div class="panel" id="scope-wrap">
     <canvas id="scope"></canvas>
-    <div id="scope-label">Waveform</div>
+    <div id="scope-label" class="viz-label">Waveform</div>
+  </div>
+
+  <!-- ── Arrangement (live per-layer RMS) ─────────────────────────────────── -->
+  <div class="panel" id="arrangement-panel" aria-label="Layer activity">
+    <div id="arrangement-wrap">
+      <div class="arrangement-live-wrap">
+        <div class="arrangement-live-canvas-wrap">
+          <canvas id="arrangement-canvas" width="400" height="72"></canvas>
+        </div>
+      </div>
+      <div id="arrangement-label" class="viz-label viz-label-row">
+        <span>Arrangement</span>
+        <span id="arrangement-time-span" class="viz-time-span" title=""></span>
+      </div>
+    </div>
   </div>
 
   <!-- ── Layer Mixer ─────────────────────────────────────────────────────── -->
   <div class="panel">
     <div class="panel-title">Layer Mixer — multipliers applied on top of phase values</div>
-    <div id="mixer-grid"></div>
+    <div id="mixer-layers"></div>
   </div>
 
   <footer>
-    <a href="https://github.com/BurnBridgers/ProceduralMusicStudio" target="_blank">GitHub</a>
-    &nbsp;·&nbsp; G natural minor · 100 BPM · Web Audio API
+    <a href="https://github.com/TomGarske/ProceduralMusicStudio" target="_blank">GitHub</a>
+    &nbsp;·&nbsp; 83 BPM · Web Audio API
   </footer>
 
 </div>
 
 <script src="music_engine_web.js"></script>
+<script src="arrangement_live.js"></script>
 <script>
-// ── Layer definitions ────────────────────────────────────────────────────
+// ── Layer definitions (order = rhythm → low end → harmony → melody → texture) ─
 const LAYERS = [
+  { id:'thump',     label:'Kick / Thump',   desc:'Pitch-swept sine kick drum', default:50 },
+  { id:'beatpulse', label:'Beat Pulse',     desc:'Rhythmic sidechain-style pulse', default:50 },
+  { id:'sub',       label:'Sub Bass',       desc:'Low-frequency sine foundation', default:50 },
+  { id:'bass',      label:'Bass',           desc:'Root-note bass line', default:50 },
+  { id:'piano',     label:'Piano',          desc:'Multi-partial chord stabs', default:50 },
+  { id:'pad',       label:'String Pad',     desc:'Detuned sine pad with vibrato', default:50 },
+  { id:'drone',     label:'Drone',          desc:'Held root + pulse (chorus only)', default:50 },
   { id:'arp',       label:'Arpeggio',       desc:'Triangle-wave melodic pattern', default:50 },
   { id:'echo',      label:'Echo / Arp 2',   desc:'Delayed arp copy with feedback', default:50 },
-  { id:'thump',     label:'Kick / Thump',   desc:'Pitch-swept sine kick drum', default:50 },
-  { id:'piano',     label:'Piano',          desc:'Multi-partial chord stabs', default:50 },
-  { id:'sub',       label:'Sub Bass',       desc:'Low-frequency sine foundation', default:50 },
-  { id:'pad',       label:'String Pad',     desc:'Detuned sine pad with vibrato', default:50 },
-  { id:'bass',      label:'Bass',           desc:'Root-note bass line', default:50 },
   { id:'shim',      label:'Shimmer',        desc:'High-freq sparkle (chorus only)', default:50 },
-  { id:'drone',     label:'Drone',          desc:'Held root + pulse (chorus only)', default:50 },
-  { id:'beatpulse', label:'Beat Pulse',     desc:'Rhythmic sidechain-style pulse', default:50 },
   { id:'voices',    label:'Ethereal Voices',desc:'Airy choir swells on phrase turns', default:50 },
-  { id:'pluck',     label:'Glass Plucks',   desc:'Optional pluck accents (default off)', default:0 },
-  { id:'noisebed',  label:'Noise Bed',      desc:'Optional filtered texture layer (default off)', default:0 },
 ];
-const KEYS = ['Gm', 'Am', 'Bbm', 'Cm', 'Dm', 'Em', 'Fm'];
-const LAYER_COLORS = {
-  arp:'#00d4ff', echo:'#4fc3f7', thump:'#ff7043', piano:'#ffd54f', sub:'#9575cd',
-  pad:'#80cbc4', bass:'#26a69a', shim:'#f06292', drone:'#ba68c8', beatpulse:'#ff8a65',
-  voices:'#b39ddb', pluck:'#ffcc80', noisebed:'#90a4ae',
-};
-const progressEls = Object.fromEntries(
-  Array.from(document.querySelectorAll('.phase-progress-fill')).map(el => [el.dataset.progress, el])
-);
+/** Layers that follow the phase chord progression (shown in the mixer). */
+const CHORD_LAYER_IDS = ['piano', 'bass', 'voices'];
+
+/** Default scripted phases (same order as engine) — used before engine boots. */
+const ALL_SCRIPTED_PHASES = [
+  { id: 'intro', label: 'Intro' },
+  { id: 'build1', label: 'Build 1' },
+  { id: 'verse1', label: 'Verse' },
+  { id: 'chorus1', label: 'Chorus 1' },
+  { id: 'break', label: 'Break' },
+  { id: 'chorus2', label: 'Chorus 2' },
+  { id: 'outro', label: 'Outro' },
+];
+let progressEls = {};
+function refreshProgressEls() {
+  progressEls = Object.fromEntries(
+    Array.from(document.querySelectorAll('.phase-progress-fill')).map(el => [el.dataset.progress, el])
+  );
+}
+function renderPhaseRow() {
+  const row = document.getElementById('phase-row');
+  if (!row) return;
+  const list = engine?.getPhases?.()?.filter(p => p.id !== 'novel') ?? ALL_SCRIPTED_PHASES;
+  const canRemove = list.length > 1;
+  row.innerHTML = '';
+  list.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'phase-item';
+    item.dataset.phase = p.id;
+    if (canRemove) {
+      item.innerHTML = `
+        <div class="phase-item-head">
+          <button type="button" class="phase-btn" data-phase="${p.id}">${p.label}</button>
+          <button type="button" class="phase-remove" data-phase="${p.id}" title="Remove phase from song" aria-label="Remove ${p.label}">×</button>
+        </div>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="${p.id}"></div></div>
+      `;
+    } else {
+      item.innerHTML = `
+        <button type="button" class="phase-btn" data-phase="${p.id}">${p.label}</button>
+        <div class="phase-progress"><div class="phase-progress-fill" data-progress="${p.id}"></div></div>
+      `;
+    }
+    row.appendChild(item);
+  });
+  const placeholder = document.createElement('div');
+  placeholder.className = 'phase-item';
+  placeholder.innerHTML = `
+    <button type="button" class="phase-btn phase-btn-placeholder" disabled data-phase="placeholder" title="Coming soon">New phase…</button>
+    <div class="phase-progress"><div class="phase-progress-fill" data-progress="novel"></div></div>
+  `;
+  row.appendChild(placeholder);
+  refreshProgressEls();
+}
+/** Layer slider 0–200 → multiplier 0–2× phase level (must match engine `setLayer` max). */
+const LAYER_SLIDER_MAX = 200;
+const LAYER_MULT_MAX = 2;
 
 // ── Engine boot ──────────────────────────────────────────────────────────
 let engine = null;
 let scopeRaf = null;
-const muted = {};   // track per-layer mute state
 const layerActive = {};  // active/inactive state per layer
-let selectedKey = 'Gm';
+let soloLayerId = null;  // null = all layers audible per mixer; else only this id is heard
+let arrangementFocusLayerId = null;  // set by Edit: solo + highlight card + arrangement shows only this layer
+
+function syncArrangementVizFocus() {
+  if (window.ArrangementLive && typeof ArrangementLive.setFocusLayer === 'function') {
+    ArrangementLive.setFocusLayer(arrangementFocusLayerId);
+  }
+}
 let novelMode = false;
 let phaseLoopEnabled = false;
 let selectedPhaseId = 'intro';
 
-function formatLayerConfigLine(layer, cfg) {
-  const keys = Object.keys(cfg || {}).filter(k => k !== 'gainScale');
-  const picked = keys.slice(0, 3).map(k => `${k}:${Array.isArray(cfg[k]) ? cfg[k].join('/') : cfg[k]}`);
-  return `Default:${layer.default}% | gain:${(cfg?.gainScale ?? 0).toFixed(2)}${picked.length ? ` | ${picked.join(' | ')}` : ''}`;
-}
-function refreshLayerConfigHints() {
-  const cfg = engine?.getLayerConfigs ? engine.getLayerConfigs() : null;
-  LAYERS.forEach(layer => {
-    const el = document.getElementById(`lc-${layer.id}`);
-    if (!el) return;
-    el.textContent = formatLayerConfigLine(layer, cfg?.[layer.id] || {});
+function updateChordLayerLabels() {
+  const seq = engine?.getState?.()?.chordSeq;
+  const inner = seq && seq.length
+    ? `<span class="layer-chords-label">Chords</span><span>${seq.join(' · ')}</span>`
+    : `<span class="layer-chords-label">Chords</span><span>—</span>`;
+  CHORD_LAYER_IDS.forEach(id => {
+    const el = document.getElementById(`chords-${id}`);
+    if (el) el.innerHTML = inner;
   });
 }
-
-function syncHeaderKey() {
-  document.getElementById('key-title').textContent = `/ ${selectedKey}`;
-}
-
-function renderKeyButtons() {
-  const keyRow = document.getElementById('key-row');
-  keyRow.innerHTML = '';
-  KEYS.forEach(keyId => {
-    const b = document.createElement('button');
-    b.className = 'key-btn';
-    b.dataset.key = keyId;
-    b.textContent = keyId;
-    b.classList.toggle('active', keyId === selectedKey);
-    b.addEventListener('click', () => {
-      selectedKey = keyId;
-      syncHeaderKey();
-      document.querySelectorAll('.key-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.key === keyId));
-      if (engine) engine.setKey(keyId);
-    });
-    keyRow.appendChild(b);
-  });
-}
-syncHeaderKey();
-renderKeyButtons();
 
 function bootEngine() {
   if (engine) return;
   engine = ProceduralMusic.create();
-  engine.setKey(selectedKey);
+  window.__PROC_ENGINE = engine;
+  engine.setKey('Gm');
   engine.setNovelMode(novelMode);
   engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
-  refreshLayerConfigHints();
 
   // Wire events
+  engine.on('phaseMarker', ({ label }) => {
+    if (window.ArrangementLive && typeof ArrangementLive.onPhaseMarker === 'function') {
+      ArrangementLive.onPhaseMarker(label);
+    }
+  });
   engine.on('phase', ({ id, label }) => {
     document.getElementById('phase-val').textContent = label;
+    const isNovelPhase = id === 'novel' || String(id).startsWith('novel-');
+    const btnSyn = document.getElementById('btn-synthesize');
+    if (btnSyn) btnSyn.classList.toggle('active', isNovelPhase);
     document.querySelectorAll('.phase-btn').forEach(b => {
-      const isNovelButton = b.dataset.phase === 'novel';
-      const isNovelPhase = id === 'novel' || String(id).startsWith('novel-');
-      b.classList.toggle('active', isNovelButton ? isNovelPhase : b.dataset.phase === id);
+      if (b.dataset.phase === 'placeholder') return;
+      b.classList.toggle('active', !isNovelPhase && b.dataset.phase === id);
     });
     updateLayerDisplayFromState(engine.getState());
-  });
-  engine.on('chord', name => {
-    document.getElementById('chord-val').textContent = name || '—';
+    // Re-apply layer multipliers after phase levels change (otherwise layers at 0 in the
+    // first phase keep layerMult at 0 and stay silent after the phase advances).
+    syncAllLayersToEngine();
+    updateChordLayerLabels();
   });
   engine.on('beat', ({ phase, phaseProgress }) => {
     const progressKey = String(phase).startsWith('novel-') ? 'novel' : phase;
@@ -598,8 +765,11 @@ function bootEngine() {
   engine.setVolume(parseFloat(document.getElementById('vol-slider').value) / 100);
   engine.setReverb(parseFloat(document.getElementById('rev-slider').value) / 100);
   engine.setBPM(parseInt(document.getElementById('bpm-slider').value));
-  syncAllLayersToEngine();
   updateLayerDisplayFromState(engine.getState());
+  syncAllLayersToEngine();
+  updateChordLayerLabels();
+
+  renderPhaseRow();
 
   // Start oscilloscope
   startScope();
@@ -612,7 +782,7 @@ const statusPill = document.getElementById('status-pill');
 btnPlay.addEventListener('click', () => {
   bootEngine();
   const state = engine.getState();
-  if (state.playing) {
+  if (state.transportActive) {
     engine.stop();
     btnPlay.classList.remove('playing');
     btnPlay.innerHTML = '▶';
@@ -648,24 +818,63 @@ document.getElementById('rev-slider').addEventListener('input', e => {
   if (engine) engine.setReverb(v / 100);
 });
 
-// ── Phase buttons ─────────────────────────────────────────────────────────
-document.querySelectorAll('.phase-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
+// ── Phase row: select phase, remove (×), restore strip ───────────────────
+document.getElementById('phase-row').addEventListener('click', e => {
+  const rm = e.target.closest('.phase-remove');
+  if (rm) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = rm.dataset.phase;
     bootEngine();
-    const selectedPhase = btn.dataset.phase;
-    selectedPhaseId = selectedPhase;
-    novelMode = selectedPhase === 'novel';
-    engine.setNovelMode(novelMode);
-    engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
-    if (!engine.getState().playing) {
-      engine.play();
-      btnPlay.classList.add('playing');
-      btnPlay.innerHTML = '■';
-      statusPill.textContent = 'playing';
-      statusPill.classList.add('playing');
+    if (engine.removePhase(id)) {
+      const active = engine.getPhases().filter(p => p.id !== 'novel');
+      if (selectedPhaseId === id) {
+        selectedPhaseId = active[0]?.id ?? 'intro';
+      }
+      if (phaseLoopEnabled && !engine.getState().phaseLoopId) {
+        const loopEl = document.getElementById('phase-loop');
+        if (loopEl) loopEl.checked = false;
+        phaseLoopEnabled = false;
+      }
+      engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
+      renderPhaseRow();
     }
-    engine.seekToPhase(novelMode ? 'novel' : selectedPhase);
-  });
+    return;
+  }
+  const btn = e.target.closest('.phase-btn');
+  if (!btn || btn.disabled || btn.dataset.phase === 'placeholder') return;
+  bootEngine();
+  const selectedPhase = btn.dataset.phase;
+  selectedPhaseId = selectedPhase;
+  novelMode = false;
+  engine.setNovelMode(false);
+  document.getElementById('btn-synthesize')?.classList.remove('active');
+  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
+  if (!engine.getState().transportActive) {
+    engine.play();
+    btnPlay.classList.add('playing');
+    btnPlay.innerHTML = '■';
+    statusPill.textContent = 'playing';
+    statusPill.classList.add('playing');
+  }
+  engine.seekToPhase(selectedPhase);
+});
+
+// ── Synthesize (post-loop / novel mode) — was “Novel Phase” in the timeline ─
+document.getElementById('btn-synthesize').addEventListener('click', () => {
+  bootEngine();
+  selectedPhaseId = 'novel';
+  novelMode = true;
+  engine.setNovelMode(true);
+  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
+  if (!engine.getState().transportActive) {
+    engine.play();
+    btnPlay.classList.add('playing');
+    btnPlay.innerHTML = '■';
+    statusPill.textContent = 'playing';
+    statusPill.classList.add('playing');
+  }
+  engine.seekToPhase('novel');
 });
 
 const phaseLoopEl = document.getElementById('phase-loop');
@@ -679,22 +888,54 @@ phaseLoopEl.addEventListener('change', () => {
   engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
 });
 
-// ── Layer mixer build ─────────────────────────────────────────────────────
-const mixerGrid = document.getElementById('mixer-grid');
+// ── Layer mixer (flat list, hierarchy order) ───────────────────────────
+const mixerLayersEl = document.getElementById('mixer-layers');
 function getEffectiveLayerValue(layerId, sliderVal) {
   if (!layerActive[layerId]) return 0;
-  if (muted[layerId]) return 0;
+  if (soloLayerId !== null && layerId !== soloLayerId) return 0;
   return sliderVal;
+}
+function updateSoloStyles() {
+  document.querySelectorAll('.layer-solo-btn').forEach(btn => {
+    const id = btn.dataset.layer;
+    btn.classList.toggle('active', soloLayerId !== null && soloLayerId === id);
+  });
+  document.querySelectorAll('.layer-ctrl').forEach(card => {
+    const sl = card.querySelector('.layer-slider');
+    const id = sl?.dataset?.layer;
+    if (!id) return;
+    card.classList.toggle('is-soloed', soloLayerId !== null && soloLayerId === id);
+    card.classList.toggle('is-solo-muted', soloLayerId !== null && soloLayerId !== id);
+  });
+}
+function updateEditStyles() {
+  document.querySelectorAll('.layer-edit-btn').forEach(btn => {
+    const id = btn.dataset.layer;
+    btn.classList.toggle('active', arrangementFocusLayerId === id);
+  });
+  document.querySelectorAll('.layer-ctrl').forEach(card => {
+    const sl = card.querySelector('.layer-slider');
+    const id = sl?.dataset?.layer;
+    if (!id) return;
+    card.classList.toggle('is-edit-focus', arrangementFocusLayerId === id);
+  });
 }
 function syncLayerToEngine(layerId) {
   if (!engine) return;
   const slider = document.getElementById(`sl-${layerId}`);
   if (!slider) return;
-  const desiredVal = parseInt(slider.value) / 100;
+  const desiredVal = parseInt(slider.value, 10) / 100;
   const state = engine.getState();
   const baseVal = state?.phaseLevels?.[layerId] ?? 0;
   const effectiveVal = getEffectiveLayerValue(layerId, desiredVal);
-  const mult = baseVal > 0 ? Math.min(1, effectiveVal / baseVal) : 0;
+  // Phase base 0: ratio is undefined; use 1 when the layer is active so gains follow the
+  // phase once it turns on (otherwise mult stays 0 forever after intro).
+  let mult;
+  if (baseVal > 0) {
+    mult = Math.min(LAYER_MULT_MAX, effectiveVal / baseVal);
+  } else {
+    mult = effectiveVal > 0 ? 1 : 0;
+  }
   engine.setLayer(layerId, mult);
 }
 function syncAllLayersToEngine() {
@@ -720,50 +961,72 @@ function updateLayerDisplayFromState(state) {
   });
 }
 
-LAYERS.forEach(layer => {
+function buildLayerCard(layer) {
   const card = document.createElement('div');
   card.className = 'layer-ctrl';
-  card.style.setProperty('--layer-color', LAYER_COLORS[layer.id] || '#ffab00');
   const defaultVal = layer.default ?? 50;
+  const chordBlock = CHORD_LAYER_IDS.includes(layer.id)
+    ? `<div class="layer-chords" id="chords-${layer.id}"></div>`
+    : '';
   card.innerHTML = `
     <div class="layer-header">
       <span class="layer-name">${layer.label}</span>
-      <div style="display:flex;align-items:center;gap:6px">
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end">
         <span class="layer-val ${defaultVal === 0 ? 'muted' : ''}" id="lv-${layer.id}">${(defaultVal / 100).toFixed(2)}</span>
+        <button type="button" class="layer-solo-btn" data-layer="${layer.id}" title="Isolate this layer (solo)">S</button>
+        <button type="button" class="layer-edit-btn" data-layer="${layer.id}" title="Solo this layer; arrangement shows only this layer">Edit</button>
         <label class="active-wrap" title="Enable/disable this layer">
           <input type="checkbox" id="active-${layer.id}" data-layer="${layer.id}" checked>
           <span>Active</span>
         </label>
-        <button class="mute-btn" id="mute-${layer.id}" data-layer="${layer.id}" title="Mute layer">Mute</button>
       </div>
     </div>
     <input type="range" class="layer-slider" id="sl-${layer.id}"
-           min="0" max="100" value="${defaultVal}" step="1" data-layer="${layer.id}">
+           min="0" max="${LAYER_SLIDER_MAX}" value="${defaultVal}" step="1" data-layer="${layer.id}">
     <div class="layer-desc">${layer.desc}</div>
-    <div class="layer-config" id="lc-${layer.id}">Default:${defaultVal}%</div>
+    ${chordBlock}
   `;
-  mixerGrid.appendChild(card);
 
   const slider = card.querySelector(`#sl-${layer.id}`);
   const valEl  = card.querySelector(`#lv-${layer.id}`);
-  const muteBtn = card.querySelector(`#mute-${layer.id}`);
   const activeChk = card.querySelector(`#active-${layer.id}`);
-  muted[layer.id] = false;
   layerActive[layer.id] = true;
   slider.classList.toggle('muted', parseInt(slider.value) === 0);
 
   slider.addEventListener('input', e => {
-    const v = parseInt(e.target.value) / 100;
+    const v = parseInt(e.target.value, 10) / 100;
     valEl.textContent = v.toFixed(2);
     syncLayerToEngine(layer.id);
     valEl.classList.toggle('muted', v === 0);
     slider.classList.toggle('muted', v === 0);
   });
 
-  muteBtn.addEventListener('click', () => {
-    muted[layer.id] = !muted[layer.id];
-    muteBtn.classList.toggle('muted', muted[layer.id]);
-    syncLayerToEngine(layer.id);
+  const soloBtn = card.querySelector('.layer-solo-btn');
+  soloBtn.addEventListener('click', () => {
+    soloLayerId = soloLayerId === layer.id ? null : layer.id;
+    if (arrangementFocusLayerId !== null && soloLayerId !== arrangementFocusLayerId) {
+      arrangementFocusLayerId = null;
+    }
+    updateSoloStyles();
+    updateEditStyles();
+    syncArrangementVizFocus();
+    syncAllLayersToEngine();
+    updateLayerDisplayFromState(engine?.getState());
+  });
+
+  const editBtn = card.querySelector('.layer-edit-btn');
+  editBtn.addEventListener('click', () => {
+    if (arrangementFocusLayerId === layer.id) {
+      arrangementFocusLayerId = null;
+      soloLayerId = null;
+    } else {
+      arrangementFocusLayerId = layer.id;
+      soloLayerId = layer.id;
+    }
+    updateSoloStyles();
+    updateEditStyles();
+    syncArrangementVizFocus();
+    syncAllLayersToEngine();
     updateLayerDisplayFromState(engine?.getState());
   });
 
@@ -773,20 +1036,39 @@ LAYERS.forEach(layer => {
     syncLayerToEngine(layer.id);
     updateLayerDisplayFromState(engine?.getState());
   });
+  return card;
+}
+
+LAYERS.forEach(layer => {
+  mixerLayersEl.appendChild(buildLayerCard(layer));
 });
-refreshLayerConfigHints();
+const mixerAddTile = document.createElement('button');
+mixerAddTile.type = 'button';
+mixerAddTile.className = 'mixer-add-tile';
+mixerAddTile.textContent = '+ Add new layer';
+mixerAddTile.title = 'Add a new layer (coming soon)';
+mixerAddTile.addEventListener('click', () => {
+  /* Placeholder — future: add user-defined layer slot */
+});
+mixerLayersEl.appendChild(mixerAddTile);
+updateSoloStyles();
+updateEditStyles();
+updateChordLayerLabels();
+
+if (window.ArrangementLive) {
+  ArrangementLive.init(LAYERS.map(l => l.id));
+}
 
 // ── Oscilloscope ──────────────────────────────────────────────────────────
 const canvas = document.getElementById('scope');
 const ctx2d  = canvas.getContext('2d');
-const layerVizAlpha = {};
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
   canvas.width  = rect.width  * dpr;
   canvas.height = rect.height * dpr;
-  ctx2d.scale(dpr, dpr);
+  ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
@@ -801,60 +1083,57 @@ function drawScope() {
   ctx2d.fillStyle = '#060a0c';
   ctx2d.fillRect(0, 0, W, H);
 
-  const cy = H * 0.5;
-  const amp = H * 0.48 * 5;
-  const layerAnalysers = engine?.getLayerAnalysers ? engine.getLayerAnalysers() : {};
-  const playing = !!engine?.getState?.().playing;
-
-  // Shared grid/center line for overlaid waveforms.
-  ctx2d.strokeStyle = 'rgba(255,255,255,0.08)';
+  // Grid lines
+  ctx2d.strokeStyle = '#0d1a1f';
   ctx2d.lineWidth = 1;
-  for (let i = 1; i < 4; i++) {
-    const y = (H / 4) * i;
+  const gridLines = 4;
+  for (let i = 1; i < gridLines; i++) {
+    const y = (H / gridLines) * i;
     ctx2d.beginPath(); ctx2d.moveTo(0, y); ctx2d.lineTo(W, y); ctx2d.stroke();
   }
-  ctx2d.strokeStyle = 'rgba(255,255,255,0.16)';
-  ctx2d.beginPath(); ctx2d.moveTo(0, cy); ctx2d.lineTo(W, cy); ctx2d.stroke();
+  // Center line
+  ctx2d.strokeStyle = '#0d2a30';
+  ctx2d.beginPath(); ctx2d.moveTo(0, H/2); ctx2d.lineTo(W, H/2); ctx2d.stroke();
 
-  if (!playing) return;
-
-  LAYERS.forEach((layer) => {
-    const color = LAYER_COLORS[layer.id] || '#78909c';
-    const analyser = layerAnalysers[layer.id];
-    if (!analyser) return;
-
-    const buf = new Float32Array(analyser.fftSize);
-    analyser.getFloatTimeDomainData(buf);
-    const rms = Math.sqrt(buf.reduce((acc, s) => acc + s * s, 0) / buf.length);
-    const targetAlpha = (layerActive[layer.id] && rms > 0.0025) ? 0.95 : 0;
-    const prevAlpha = layerVizAlpha[layer.id] ?? 0;
-    const alpha = prevAlpha + (targetAlpha - prevAlpha) * 0.16;
-    layerVizAlpha[layer.id] = alpha;
-    if (alpha < 0.02) return;
-
-    let start = 0;
-    for (let i = 1; i < buf.length - 1; i++) {
-      if (buf[i-1] < 0 && buf[i] >= 0) { start = i; break; }
-    }
-
-    const maxPts = Math.min(512, buf.length - start);
-    const stepX = W / Math.max(1, maxPts - 1);
-    ctx2d.strokeStyle = color;
-    ctx2d.lineWidth = 1.25;
-    ctx2d.globalAlpha = alpha;
-    ctx2d.shadowBlur = 4;
-    ctx2d.shadowColor = color;
+  if (!engine) {
+    ctx2d.strokeStyle = 'rgba(0,212,255,0.2)';
+    ctx2d.lineWidth = 1.5;
     ctx2d.beginPath();
-    for (let i = 0; i < maxPts; i++) {
-      const x = i * stepX;
-      const sample = buf[start + i] || 0;
-      const y = cy - sample * amp;
-      if (i === 0) ctx2d.moveTo(x, y);
-      else ctx2d.lineTo(x, y);
-    }
+    ctx2d.moveTo(0, H/2);
+    ctx2d.lineTo(W, H/2);
     ctx2d.stroke();
-  });
-  ctx2d.globalAlpha = 1;
+    return;
+  }
+
+  const analyser = engine.getAnalyser();
+  if (!analyser) return;
+
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+
+  let start = 0;
+  for (let i = 1; i < buf.length - 1; i++) {
+    if (buf[i-1] < 0 && buf[i] >= 0) { start = i; break; }
+  }
+
+  const sliceW = W / Math.min(1024, buf.length);
+  const state = engine.getState();
+  const playing = state.playing;
+
+  ctx2d.lineWidth = 1.8;
+  ctx2d.strokeStyle = playing ? '#00d4ff' : 'rgba(0,212,255,0.3)';
+  ctx2d.shadowBlur = playing ? 8 : 0;
+  ctx2d.shadowColor = '#00d4ff';
+  ctx2d.beginPath();
+
+  let drawn = 0;
+  for (let i = start; i < buf.length && drawn < 1024; i++, drawn++) {
+    const x = drawn * sliceW;
+    const y = (1 - (buf[i] * 1.38 + 1) * 0.5) * H;
+    if (drawn === 0) ctx2d.moveTo(x, y);
+    else ctx2d.lineTo(x, y);
+  }
+  ctx2d.stroke();
   ctx2d.shadowBlur = 0;
 }
 
@@ -872,14 +1151,16 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     btnPlay.click();
   }
-  // Number keys 1-7 → phases
-  const phaseKeys = ['intro','build1','verse1','chorus1','break','chorus2','outro'];
-  const idx = parseInt(e.key) - 1;
-  if (idx >= 0 && idx < phaseKeys.length) {
+  // Number keys 1–9 → Nth active scripted phase
+  const idx = parseInt(e.key, 10) - 1;
+  if (idx >= 0 && idx < 9) {
     bootEngine();
-    engine.seekToPhase(phaseKeys[idx]);
+    const phases = engine.getPhases().filter(p => p.id !== 'novel');
+    if (idx < phases.length) engine.seekToPhase(phases[idx].id);
   }
 });
+
+renderPhaseRow();
 </script>
 </body>
 </html>
