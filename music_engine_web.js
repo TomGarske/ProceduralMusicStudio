@@ -19,12 +19,11 @@
 //   engine.setKey(id)               // e.g. 'Gm', 'Am', 'Dm'
 //   engine.setPhaseLoop(id|null)    // lock playback to a phase id
 //   engine.setArpFilter(hz)         // arp LPF cutoff, default auto per phase
-//   engine.getAnalyser()            // AnalyserNode (post output delay; matches heard mix)
+//   engine.getAnalyser()            // AnalyserNode (realtime, no output delay)
 //   engine.getLayerAnalysers()      // { layerId: AnalyserNode } per-layer RMS taps (after play)
+//   engine.resumeAudioContext()     // Promise — resume suspended AudioContext (e.g. after screen unlock)
 //   engine.getState()               // { playing, transportActive, phase, ... }
-//   engine.setArrangementLookaheadSec(seconds) // strip duration (markers + quantized output delay)
-//   engine.setArrangementOutputDelaySec(seconds) // alias; same as setArrangementLookaheadSec
-//   engine.on(event, callback)      // 'phase' | 'chord' | 'beat' | 'phaseMarker'
+//   engine.on(event, callback)      // 'phase' | 'chord' | 'beat'
 //   engine.off(event, callback)
 
 const ProceduralMusic = (() => {
@@ -250,63 +249,22 @@ const ProceduralMusic = (() => {
     let analyser = null;
     let layerAnalysers = {};
 
-    /** Grey-strip duration (s): marker drift time and output delay (viz vs speakers). */
-    let arrangementLookaheadSec = 0;
-    /** Driven with lookahead from arrangement; delays master → destination. */
-    let arrangementOutputDelaySec = 0;
-    /** Last quantized strip sec applied to DelayNode (matches marker La/D). */
-    let lastStripQuantSec = -1;
-    let lastMarkerEmittedT = null;
-
-    /** 250ms steps — fewer delayTime updates (reduces zipper/static from DelayNode). */
-    function quantizeStripSec(s) {
-      const v = Math.max(0, Number(s) || 0);
-      const cap = (nd.outputDelayMax || 16) - 0.0001;
-      return Math.round(Math.min(v, cap) * 4) / 4;
-    }
-
-    // Event emitter
-    const listeners = { phase:[], chord:[], beat:[], phaseMarker:[] };
-    function emit(type, data) { (listeners[type]||[]).forEach(fn => { try { fn(data); } catch(e){} }); }
-
-    function resetPhaseMarkerState() {
-      lastMarkerEmittedT = null;
-    }
-
-    /**
-     * Emit once per boundary T so the marker reaches the divider when the **heard** morph happens at T + strip.
-     * La and D must match (same quantized strip as DelayNode). Window: el ∈ [T + D − La, T + D).
-     */
-    function maybeEmitPhaseMarker(el) {
-      const strip = quantizeStripSec(arrangementLookaheadSec);
-      const La = strip;
-      const D = strip;
-      if (La <= 0 || !playing || !actx) return;
-      if (phaseLoopId) return;
-
-      if (
-        lastMarkerEmittedT !== null &&
-        el >= lastMarkerEmittedT + D - 1e-9
-      ) {
-        lastMarkerEmittedT = null;
-      }
-
-      const phL = getPhase(el - 1e-6);
-      const phR = getPhase(el + 1e-6);
-      const Tcand = new Set([phL.end, phL.start, phR.end, phR.start]);
-      for (const T of Tcand) {
-        if (!Number.isFinite(T) || T <= 1e-9) continue;
-        if (el < T + D - La - 1e-9) continue;
-        if (el >= T + D - 1e-9) continue;
-        const phOut = getPhase(T - 1e-6);
-        const incoming = getPhase(T + 1e-4);
-        if (incoming.id === phOut.id) continue;
-        if (lastMarkerEmittedT === T) continue;
-        lastMarkerEmittedT = T;
-        emit('phaseMarker', { id: incoming.id, label: incoming.label });
-        return;
+    // Event emitter — deferred so tick() only queues events; callbacks run after
+    // the scheduler's tight loop finishes, keeping audio scheduling jank-free.
+    const listeners = { phase:[], chord:[], beat:[] };
+    let pendingEvents = [];
+    function emit(type, data) { pendingEvents.push([type, data]); }
+    function flushEvents() {
+      const batch = pendingEvents;
+      pendingEvents = [];
+      for (let i = 0; i < batch.length; i++) {
+        const [type, data] = batch[i];
+        const cbs = listeners[type];
+        if (cbs) for (let j = 0; j < cbs.length; j++) { try { cbs[j](data); } catch(e){} }
       }
     }
+
+    function resetPhaseMarkerState() { /* no-op: realtime playback, no lookahead markers */ }
 
     function getScriptedPhase(t) {
       if (!Number.isFinite(t) || t < 0) t = 0;
@@ -344,19 +302,6 @@ const ProceduralMusic = (() => {
       return Math.max(0, pausedAt + (when - startTime));
     }
 
-    /** Heard transport at scheduled time (output delay compensated). */
-    function heardTransportAt(when) {
-      const el = transportAt(when);
-      const lag = nd.outputDelay ? nd.outputDelay.delayTime.value : 0;
-      return Math.max(0, el - lag);
-    }
-
-    /** Transport time minus output delay — aligns UI progress with what speakers play. */
-    function heardElapsedSec() {
-      const el = elapsed();
-      const lag = nd.outputDelay ? nd.outputDelay.delayTime.value : 0;
-      return Math.max(0, el - lag);
-    }
 
     // Layer → node name → scale factor (used by morphTo + per-layer analysers)
     const LAYER_MAP = {
@@ -391,21 +336,14 @@ const ProceduralMusic = (() => {
       masterComp.release.value = 0.15;
       nd.masterComp = masterComp;
 
-      // Oscilloscope tap — post output delay so waveform matches speakers
       analyser = actx.createAnalyser();
       analyser.fftSize = 2048;
-      analyser.smoothingTimeConstant = 0.8;
-      const outputDelay = actx.createDelay(16);
-      nd.outputDelay = outputDelay;
-      nd.outputDelayMax = 16;
-      lastStripQuantSec = quantizeStripSec(arrangementOutputDelaySec);
-      outputDelay.delayTime.setValueAtTime(lastStripQuantSec, actx.currentTime);
+      analyser.smoothingTimeConstant = 0.72;
 
-      // Signal chain: master → compressor → outputDelay → destination + analyser
+      // Signal chain: master → compressor → destination + analyser (zero-latency)
       master.connect(masterComp);
-      masterComp.connect(outputDelay);
-      outputDelay.connect(actx.destination);
-      outputDelay.connect(analyser);
+      masterComp.connect(actx.destination);
+      masterComp.connect(analyser);
 
       // Reverb — higher quality IR (longer, stereo decorrelated)
       const irLen = Math.floor(actx.sampleRate * 2.2);
@@ -613,6 +551,61 @@ const ProceduralMusic = (() => {
       }
     }
 
+    /**
+     * Multi-layer physical drum synthesis — models a fist/bodhran strike:
+     *
+     *  Layer 1 — Knuckle impact: broadband noise burst (bandpass 200–800 Hz, ~10ms)
+     *            The initial percussive crack of a fist hitting stretched skin.
+     *
+     *  Layer 2 — Skin slap:     high-freq noise burst (bandpass 1.5–4 kHz, ~4ms)
+     *            The sharp, bright transient from the skin surface.
+     *
+     *  Layer 3 — Fundamental:   pitch-swept sine (120→55 Hz, faster decay)
+     *            The main body tone of the drum head resonating.
+     *
+     *  Layer 4 — Second mode:   sine at ~1.6× fundamental, faster decay
+     *            The drum head's second resonant mode; gives hollow character.
+     *
+     *  Layer 5 — Sub thud:      very low sine (35–50 Hz, fast decay)
+     *            Chest-feel weight; the "boom" felt more than heard.
+     *
+     *  All layers are summed into a single pre-rendered buffer per sample rate.
+     *  A seeded PRNG ensures the noise is deterministic (identical across plays).
+     */
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     *  FIST THUMP — Physical model of a clenched fist hitting a wooden
+     *  barrel or table top.  Seven synthesis layers, mixed to emphasize
+     *  what makes a fist hit sound different from a drum:
+     *
+     *  1. KNUCKLE CRACK  — Harsh, wide-band noise burst (300–1200 Hz)
+     *     with near-zero attack. Louder and longer than a drum stick
+     *     because bone-on-wood has more broadband energy than a padded
+     *     beater on a skin head.
+     *
+     *  2. FLESH SLAP  — Mid-high noise (1.2–3.5 kHz), slightly delayed
+     *     (~1 ms after the knuckle) because the fleshy palm lags behind
+     *     the knuckles on impact. Gives the "meaty" quality.
+     *
+     *  3. WOOD RING  — Short, bright resonance (350–600 Hz) from the
+     *     barrel/table surface vibrating. Asymmetric half-sine burst for
+     *     the "clonk" quality that separates wood from skin.
+     *
+     *  4. FUNDAMENTAL THUD  — Low pitch-swept sine (110→48 Hz) that is
+     *     the weight of the hit. Shorter pitch decay than a drum since
+     *     wood damps faster than a drum head.
+     *
+     *  5. SECOND MODE  — Sine at 2.2× fundamental (wood has higher
+     *     overtone ratios than circular drum membranes). Decays fast.
+     *
+     *  6. SUB WEIGHT  — Very low sine (30–45 Hz), extremely fast decay.
+     *     The "felt in your chest" thud of a heavy fist landing.
+     *
+     *  7. FINGER RATTLE  — Tiny burst of very high noise (3–6 kHz,
+     *     ~2ms) simulating fingers rattling on contact. Subtle but
+     *     adds realism and differentiates from a palm slap.
+     * ══════════════════════════════════════════════════════════════════════
+     */
     function getThumpBufferBase() {
       const sr = actx.sampleRate;
       if (thumpBufferBase && thumpBufferSr === sr) return thumpBufferBase;
@@ -620,18 +613,150 @@ const ProceduralMusic = (() => {
       const len = Math.floor(sr * dur);
       const buf = actx.createBuffer(1, len, sr);
       const d = buf.getChannelData(0);
-      // Anti-click: apply 2ms fade-in and 5ms fade-out
-      const fadeInSamples = Math.floor(sr * 0.002);
-      const fadeOutSamples = Math.floor(sr * 0.005);
+
+      // Seeded PRNG for deterministic noise (identical across plays)
+      let seed = 48271;
+      function rand() { seed = (seed * 16807) % 2147483647; return (seed / 2147483647) * 2 - 1; }
+
+      const cfg = layerConfigs.thump;
+      const startHz  = cfg.startHz  || 110;
+      const endHz    = cfg.endHz    || 48;
+      const pDecay   = cfg.pitchDecay || 12;   // faster pitch drop than a drum
+      const aDecay   = cfg.ampDecay   || 6;    // faster overall decay (wood damps)
+
+      const fadeInN  = Math.floor(sr * 0.0003);  // 0.3ms — almost instant
+      const fadeOutN = Math.floor(sr * 0.006);
+
+      // ─── Layer 1: Knuckle crack (wide-band noise, 300–1200 Hz) ─────
+      const knuckleLen = Math.floor(sr * 0.018);  // 18ms — longer than a drum hit
+      const knuckle = new Float32Array(len);
+      {
+        const fc = 750 / sr;
+        const q = 0.7;           // wide bandwidth
+        const w0 = 2 * Math.PI * fc;
+        let lp = 0, bp = 0, hp = 0;
+        for (let i = 0; i < len; i++) {
+          const inp = i < knuckleLen ? rand() : 0;
+          hp = inp - lp - q * bp;
+          bp += w0 * hp;
+          lp += w0 * bp;
+          const t = i / sr;
+          const att = i < Math.floor(sr * 0.0004) ? i / Math.floor(sr * 0.0004) : 1;
+          const env = Math.exp(-t * 85) * att;
+          knuckle[i] = bp * env * 2.8;   // dominant layer — this IS the fist
+        }
+      }
+
+      // ─── Layer 2: Flesh slap (1.2–3.5 kHz, 1ms delayed) ───────────
+      const slapDelay = Math.floor(sr * 0.001);
+      const slapLen = Math.floor(sr * 0.008);
+      const fleshSlap = new Float32Array(len);
+      {
+        const fc = 2200 / sr;
+        const q = 0.8;
+        const w0 = 2 * Math.PI * fc;
+        let lp = 0, bp = 0, hp = 0;
+        for (let i = 0; i < len; i++) {
+          const si = i - slapDelay;
+          const inp = (si >= 0 && si < slapLen) ? rand() : 0;
+          hp = inp - lp - q * bp;
+          bp += w0 * hp;
+          lp += w0 * bp;
+          const t = Math.max(0, si) / sr;
+          const att = (si >= 0 && si < Math.floor(sr * 0.0003)) ? si / Math.floor(sr * 0.0003) : 1;
+          const env = si >= 0 ? Math.exp(-t * 200) * att : 0;
+          fleshSlap[i] = bp * env * 1.4;
+        }
+      }
+
+      // ─── Layer 3: Wood ring (asymmetric burst, 350–600 Hz) ─────────
+      const woodRing = new Float32Array(len);
+      {
+        const ringHz = 480;
+        const ringDecay = 55;     // fast — wood damps quickly
+        for (let i = 0; i < len; i++) {
+          const t = i / sr;
+          // Asymmetric half-sine impulse gives the "clonk"
+          const phase = ringHz * t;
+          const raw = Math.sin(2 * Math.PI * phase);
+          // Rectify slightly — wood resonance is asymmetric
+          const asym = raw > 0 ? raw : raw * 0.35;
+          const env = Math.exp(-t * ringDecay);
+          woodRing[i] = asym * env * 0.55;
+        }
+      }
+
+      // ─── Layer 7: Finger rattle (3–6 kHz, 2ms, micro-delayed) ─────
+      const rattleDelay = Math.floor(sr * 0.002);
+      const rattleLen = Math.floor(sr * 0.003);
+      const rattle = new Float32Array(len);
+      {
+        const fc = 4500 / sr;
+        const q = 1.0;
+        const w0 = 2 * Math.PI * fc;
+        let lp = 0, bp = 0, hp = 0;
+        for (let i = 0; i < len; i++) {
+          const ri = i - rattleDelay;
+          const inp = (ri >= 0 && ri < rattleLen) ? rand() * 0.6 : 0;
+          hp = inp - lp - q * bp;
+          bp += w0 * hp;
+          lp += w0 * bp;
+          const t = Math.max(0, ri) / sr;
+          const env = ri >= 0 ? Math.exp(-t * 450) : 0;
+          rattle[i] = bp * env * 0.35;
+        }
+      }
+
+      // ─── Pitched layers (phase accumulators) ───────────────────────
+      let phase1 = 0;  // fundamental
+      let phase2 = 0;  // second mode
+      let phase3 = 0;  // sub
+
       for (let i = 0; i < d.length; i++) {
         const t = i / sr;
-        const f = layerConfigs.thump.startHz * Math.exp(-t * layerConfigs.thump.pitchDecay) + layerConfigs.thump.endHz;
-        const env = Math.exp(-t * layerConfigs.thump.ampDecay);
-        let fadeEnv = 1.0;
-        if (i < fadeInSamples) fadeEnv = i / fadeInSamples;
-        if (i > len - fadeOutSamples) fadeEnv = (len - i) / fadeOutSamples;
-        d[i] = Math.sin(2 * Math.PI * f * t) * env * 0.85 * fadeEnv;
+
+        // Layer 4 — Fundamental thud (pitch-swept sine, wood-fast decay)
+        const f1 = startHz * Math.exp(-t * pDecay) + endHz;
+        phase1 += f1 / sr;
+        const fund = Math.sin(2 * Math.PI * phase1) * Math.exp(-t * aDecay) * 0.60;
+
+        // Layer 5 — Second mode at 2.2× (wood overtone, not drum 1.6×)
+        const f2 = f1 * 2.2;
+        phase2 += f2 / sr;
+        const mode2 = Math.sin(2 * Math.PI * phase2) * Math.exp(-t * (aDecay * 2.5)) * 0.22;
+
+        // Layer 6 — Sub weight (30–45 Hz, very fast decay)
+        const subHz = endHz * 0.65;
+        phase3 += subHz / sr;
+        const sub = Math.sin(2 * Math.PI * phase3) * Math.exp(-t * (aDecay * 3.0)) * 0.40;
+
+        // ── Sum all seven layers ──
+        let sample = knuckle[i]
+                   + fleshSlap[i]
+                   + woodRing[i]
+                   + rattle[i]
+                   + fund
+                   + mode2
+                   + sub;
+
+        // Anti-click fade envelope
+        if (i < fadeInN) sample *= i / fadeInN;
+        if (i > len - fadeOutN) sample *= (len - i) / fadeOutN;
+
+        d[i] = sample;
       }
+
+      // ── Normalize — keep transient punch, prevent clipping ──
+      let peak = 0;
+      for (let i = 0; i < d.length; i++) {
+        const a = Math.abs(d[i]);
+        if (a > peak) peak = a;
+      }
+      if (peak > 0.01) {
+        const scale = 0.92 / peak;
+        for (let i = 0; i < d.length; i++) d[i] *= scale;
+      }
+
       thumpBufferBase = buf;
       thumpBufferSr = sr;
       return buf;
@@ -646,7 +771,7 @@ const ProceduralMusic = (() => {
       const src = actx.createBufferSource();
       src.buffer = buf;
       const tG = actx.createGain();
-      tG.gain.value = ((tv * 0.52) / Math.max(0.001, gRead)) * vel;
+      tG.gain.value = ((tv * 0.58) / Math.max(0.001, gRead)) * vel;
       src.connect(tG);
       tG.connect(nd.thumpGain);
       src.start(when);
@@ -837,8 +962,8 @@ const ProceduralMusic = (() => {
     }
 
     const SCHEDULER_INTERVAL_MS = 25;
-    const SCHEDULER_LOOKAHEAD_SEC = 0.12;    // Increased from 0.1 for more scheduling headroom
-    const SCHEDULER_MAX_TICKS_PER_WAKE = 64; // Increased from 48 to handle tempo spikes
+    const SCHEDULER_LOOKAHEAD_SEC = 0.5;
+    const SCHEDULER_MAX_TICKS_PER_WAKE = 256;
 
     function getShimmerBuffer() {
       const sr = actx.sampleRate;
@@ -905,30 +1030,26 @@ const ProceduralMusic = (() => {
         nextTickAt += s16();
         n++;
       }
+      // Flush queued events AFTER the tight scheduling loop so UI callbacks
+      // never block audio node scheduling.
+      flushEvents();
+      if (playing && schedulerIntervalId !== null) {
+        schedulerIntervalId = setTimeout(schedulerLoop, SCHEDULER_INTERVAL_MS);
+      }
     }
 
     function tick(whenIn) {
       if (!actx || !playing) return;
       const when = Math.max(whenIn, actx.currentTime);
-      if (Math.abs(bpmTarget - bpm) > 0.01) {
-        bpm += (bpmTarget - bpm) * 0.08;
-      } else {
-        bpm = bpmTarget;
-      }
+      bpm = bpmTarget;
       const el = transportAt(when);
-      maybeEmitPhaseMarker(el);
       const ph = getPhase(el);
       const lv = ph.lv || {};
       const { ARP, CHORDS, droneChords } = getScaleData();
       const idx = step % 16;
       const arpRotate = ph.randomMod?.arpRotate ?? 0;
 
-      // ── Phase transition — MUST fire before any per-step scheduling so that
-      //    morphTo's cancelScheduledValues(when) doesn't clobber events from
-      //    earlier ticks that the lookahead already queued.
       if (ph !== currentPhase) {
-        // Detect loop-back: scripted timeline wrapped (e.g. outro → intro).
-        // Reset sequencer so arp pattern, chords, and drone start cleanly.
         const isWrapBack = currentPhase
           && ph.start < currentPhase.start;
         if (isWrapBack) resetSequencerCounters();
@@ -937,15 +1058,13 @@ const ProceduralMusic = (() => {
         emit('phase', { id: ph.id, label: ph.label });
       }
 
-      const elHeard = heardTransportAt(when);
-      const phHeard = getPhase(elHeard);
       emit('beat', {
         step: idx,
-        phase: phHeard.id,
-        phaseLabel: phHeard.label,
-        phaseProgress: getPhaseProgress(phHeard, elHeard),
-        phaseStart: phHeard.start,
-        phaseEnd: phHeard.end,
+        phase: ph.id,
+        phaseLabel: ph.label,
+        phaseProgress: getPhaseProgress(ph, el),
+        phaseStart: ph.start,
+        phaseEnd: ph.end,
       });
 
       // Concertina retrigger — smooth envelope to avoid clicks
@@ -1037,8 +1156,8 @@ const ProceduralMusic = (() => {
     function beginPlayback() {
       if (!actx) return;
       if (playing) return;
-      if (schedulerIntervalId) {
-        clearInterval(schedulerIntervalId);
+      if (schedulerIntervalId !== null) {
+        clearTimeout(schedulerIntervalId);
         schedulerIntervalId = null;
       }
 
@@ -1054,8 +1173,8 @@ const ProceduralMusic = (() => {
         currentPhase = null;
         resetPhaseMarkerState();
         morphTo(getPhase(pausedAt));
+        schedulerIntervalId = 0;
         schedulerLoop();
-        schedulerIntervalId = setInterval(schedulerLoop, SCHEDULER_INTERVAL_MS);
         return;
       }
 
@@ -1066,25 +1185,8 @@ const ProceduralMusic = (() => {
       currentPhase = null;
       resetPhaseMarkerState();
       morphTo(getPhase(pausedAt));
+      schedulerIntervalId = 0;
       schedulerLoop();
-      schedulerIntervalId = setInterval(schedulerLoop, SCHEDULER_INTERVAL_MS);
-    }
-
-    function applyArrangementStripTiming(sec) {
-      const s = Math.max(0, Number(sec) || 0);
-      arrangementLookaheadSec = s;
-      arrangementOutputDelaySec = s;
-      if (!nd.outputDelay || !nd.outputDelayMax || !actx) return;
-      const q = quantizeStripSec(s);
-      if (lastStripQuantSec === q) return;
-      lastStripQuantSec = q;
-      const p = nd.outputDelay.delayTime;
-      const t0 = actx.currentTime;
-      // HIGH-FIDELITY: Use smooth ramp instead of hard step for delay time changes
-      const cur = p.value;
-      p.cancelScheduledValues(t0);
-      p.setValueAtTime(cur, t0);
-      p.setTargetAtTime(q, t0, 0.05); // 50ms smooth ramp instead of instant step
     }
 
     function applyPresetInternal(preset) {
@@ -1137,8 +1239,8 @@ const ProceduralMusic = (() => {
         pausedAt = elapsed();
         playing = false;
         resetPhaseMarkerState();
-        if (schedulerIntervalId) {
-          clearInterval(schedulerIntervalId);
+        if (schedulerIntervalId !== null) {
+          clearTimeout(schedulerIntervalId);
           schedulerIntervalId = null;
         }
         if (actx) actx.suspend();
@@ -1151,8 +1253,8 @@ const ProceduralMusic = (() => {
         // ── 1. Kill playback immediately
         playing = false;
         resetPhaseMarkerState();
-        if (schedulerIntervalId) {
-          clearInterval(schedulerIntervalId);
+        if (schedulerIntervalId !== null) {
+          clearTimeout(schedulerIntervalId);
           schedulerIntervalId = null;
         }
 
@@ -1193,6 +1295,7 @@ const ProceduralMusic = (() => {
               pendingSeekPhaseId = id;
             }
             emit('phase', { id: activePhases[i].id, label: activePhases[i].label });
+            flushEvents();
             return;
           }
         }
@@ -1211,6 +1314,7 @@ const ProceduralMusic = (() => {
         const ph = getPhase(elapsed());
         if (actx) morphTo(ph);
         emit('phase', { id: ph.id, label: ph.label });
+        flushEvents();
         return true;
       },
 
@@ -1225,6 +1329,7 @@ const ProceduralMusic = (() => {
         const ph = getPhase(elapsed());
         if (actx) morphTo(ph);
         emit('phase', { id: ph.id, label: ph.label });
+        flushEvents();
         return true;
       },
 
@@ -1234,7 +1339,10 @@ const ProceduralMusic = (() => {
 
       setVolume(v) {
         volumeSetting = Math.max(0, Math.min(2, v));
-        if (nd.master) nd.master.gain.setTargetAtTime(volumeToGain(volumeSetting), actx.currentTime, 0.3);
+        if (nd.master && actx) {
+          nd.master.gain.cancelScheduledValues(actx.currentTime);
+          nd.master.gain.setValueAtTime(volumeToGain(volumeSetting), actx.currentTime);
+        }
       },
 
       // name: 'arp'|'echo'|'thump'|'piano'|'sub'|'pad'|'bass'|'shim'|'drone'|'beatpulse'|'voices'
@@ -1267,12 +1375,15 @@ const ProceduralMusic = (() => {
 
       setBPM(newBpm) {
         bpmTarget = Math.max(40, Math.min(200, newBpm));
-        if (!playing) bpm = bpmTarget;
+        bpm = bpmTarget;
       },
 
       setReverb(wet) {
         reverbWet = Math.max(0, Math.min(0.80, wet));
-        if (nd.revG) ramp(nd.revG.gain, reverbWet, 0.5);
+        if (nd.revG && actx) {
+          nd.revG.gain.cancelScheduledValues(actx.currentTime);
+          nd.revG.gain.setValueAtTime(reverbWet, actx.currentTime);
+        }
       },
 
       setArpFilter(hz) {
@@ -1283,6 +1394,12 @@ const ProceduralMusic = (() => {
       getAnalyser() { return analyser; },
 
       getLayerAnalysers() { return { ...layerAnalysers }; },
+
+      /** Call after visibility returns (mobile unlock) so Web Audio can resume. */
+      resumeAudioContext() {
+        if (actx && actx.state === 'suspended') return actx.resume();
+        return Promise.resolve();
+      },
 
       getState() {
         const ph = currentPhase || (activePhases[0]);
@@ -1323,10 +1440,6 @@ const ProceduralMusic = (() => {
         return ['Gm', 'Eb', 'Cm', 'Bb'];
       },
       getLayerConfigs() { return { ...layerConfigs }; },
-
-      /** futureW×frameMs; markers + DelayNode share 250ms-quantized strip; delayTime scheduled +3ms. */
-      setArrangementLookaheadSec: applyArrangementStripTiming,
-      setArrangementOutputDelaySec: applyArrangementStripTiming,
 
       on(event, cb) { if (listeners[event]) listeners[event].push(cb); },
       off(event, cb) { if (listeners[event]) listeners[event] = listeners[event].filter(f => f !== cb); },

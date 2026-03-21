@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d0d0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Sea Shanty Studio</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,23 +96,48 @@
     #transport {
       display: grid;
       grid-template-columns: auto 1fr 1fr 1fr minmax(180px, 1.1fr);
-      grid-template-rows: auto auto;
-      grid-template-areas:
-        "play bpm vol rev info"
-        "preset preset preset preset preset";
       align-items: end;
       gap: 14px 16px;
     }
-    #transport #btn-play { grid-area: play; align-self: center; }
-    #transport #bpm-ctrl { grid-area: bpm; }
-    #transport #vol-ctrl { grid-area: vol; }
-    #transport #rev-ctrl { grid-area: rev; }
-    #transport #info-row { grid-area: info; justify-self: end; min-width: 0; }
-    #transport #preset-ctrl {
-      grid-area: preset;
-      align-self: stretch;
-    }
+    #transport #transport-play-group { align-self: center; }
+    #transport #info-row { justify-self: end; min-width: 0; }
 
+    #transport-play-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #btn-prev-shanty,
+    #btn-next-shanty {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text-mid);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    #btn-prev-shanty:hover,
+    #btn-next-shanty:hover {
+      border-color: var(--cyan-dim);
+      color: var(--cyan);
+      background: rgba(0,212,255,0.08);
+    }
+    #btn-prev-shanty:active,
+    #btn-next-shanty:active { transform: scale(0.93); }
+    #btn-prev-shanty:disabled,
+    #btn-next-shanty:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     #btn-play {
       width: 44px;
       height: 44px;
@@ -266,15 +293,69 @@
       background: var(--cyan);
       transition: width 0.12s linear;
     }
-    .phase-loop-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 10px;
+    /* ── Playlist ───────────────────────────────────────────────────────── */
+    .playlist-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin: 0 -4px 0 0;
+    }
+    .playlist-list::-webkit-scrollbar { width: 6px; }
+    .playlist-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    .playlist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      background: var(--bg3);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .playlist-item:hover {
+      border-color: var(--cyan-dim);
+      background: rgba(0, 212, 255, 0.06);
+    }
+    .playlist-item.active {
+      border-color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15);
+    }
+    .playlist-item-index {
+      flex: 0 0 1.5em;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      font-size: 11px;
+      padding-top: 1px;
+    }
+    .playlist-item-body { min-width: 0; flex: 1; }
+    .playlist-item-title {
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .playlist-item.active .playlist-item-title { color: var(--cyan); }
+    .playlist-item-desc {
       font-size: 10px;
       color: var(--text-dim);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      line-height: 1.35;
+      margin-top: 3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     /* ── Phase readout + Synthesize ───────────────────────────────────────── */
     #info-row {
@@ -309,7 +390,8 @@
       height: var(--waveform-h);
       display: block;
       border-radius: var(--radius);
-      background: #060a0c;
+      background: radial-gradient(ellipse 120% 80% at 50% 100%, #0a1418 0%, #060a0c 55%);
+      border: 1px solid var(--border);
     }
     .viz-label {
       position: absolute;
@@ -346,7 +428,7 @@
       min-width: 0;
       border-radius: var(--radius);
       border: 1px solid var(--border);
-      background: #060a0c;
+      background: var(--bg2);
       overflow: hidden;
     }
     #arrangement-canvas {
@@ -489,54 +571,6 @@
       box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.45);
     }
 
-    /* ── Lyrics visualizer ─────────────────────────────────────────────── */
-    #lyrics-panel { min-height: 0; }
-    #lyrics-panel.hidden { display: none; }
-    #lyrics-display {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 12px 8px 8px;
-      min-height: 72px;
-      justify-content: center;
-    }
-    .lyrics-line {
-      text-align: center;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      transition: opacity 0.35s ease, transform 0.35s ease, font-size 0.35s ease;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-    .lyrics-prev {
-      font-size: 11px;
-      color: var(--text-dim);
-      opacity: 0.35;
-      transform: translateY(2px);
-    }
-    .lyrics-current {
-      font-size: 17px;
-      font-weight: 600;
-      color: var(--cyan);
-      text-shadow: 0 0 12px rgba(0,212,255,0.25);
-      letter-spacing: 0.02em;
-    }
-    .lyrics-next {
-      font-size: 12px;
-      color: var(--text-mid);
-      opacity: 0.5;
-      transform: translateY(-2px);
-    }
-    .lyrics-attribution {
-      font-size: 9px;
-      color: var(--text-dim);
-      text-align: center;
-      margin-top: 4px;
-      letter-spacing: 0.04em;
-    }
-
     /* ── Footer note ─────────────────────────────────────────────────────── */
     footer {
       text-align: center;
@@ -547,71 +581,21 @@
     footer a { color: var(--cyan-dim); text-decoration: none; }
     footer a:hover { color: var(--cyan); }
 
-    /* ── Preset row (full width under sliders) ───────────────────────────── */
-    #preset-ctrl {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
-      padding-top: 2px;
-      border-top: 1px solid var(--border);
-    }
-    #preset-ctrl .ctrl-label span {
-      color: var(--text-mid);
-      font-variant-numeric: normal;
-    }
-    #preset-select {
-      width: 100%;
-      max-width: none;
-      box-sizing: border-box;
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--bg3);
-      color: var(--text);
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      line-height: 1.3;
-    }
-    #preset-select:hover { border-color: var(--cyan-dim); }
-    #preset-select:focus {
-      outline: none;
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.2);
-    }
-    #preset-description {
-      margin: 0;
-      font-size: 10px;
-      line-height: 1.4;
-      color: var(--text-dim);
-      letter-spacing: 0.02em;
-      max-height: 2.8em;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    #preset-description:empty { display: none; }
-
     @media (max-width: 640px) {
       #transport {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: auto;
-        grid-template-areas:
-          "play bpm"
-          "vol vol"
-          "rev rev"
-          "info info"
-          "preset preset";
         gap: 12px;
       }
       #transport #info-row { justify-self: stretch; }
-      #transport #btn-play { justify-self: start; }
+      #transport #transport-play-group { justify-self: start; }
     }
   </style>
 </head>
 <body>
+<!-- Keeps the OS media session / audio route active on some mobile browsers when the screen locks -->
+<audio id="media-keepalive" loop playsinline preload="auto" aria-hidden="true"
+  src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 <div id="app">
 
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
@@ -623,7 +607,11 @@
   <!-- ── Transport ───────────────────────────────────────────────────────── -->
   <div class="panel">
     <div id="transport">
-      <button id="btn-play" title="Play / Stop">▶</button>
+      <div id="transport-play-group">
+        <button type="button" id="btn-prev-shanty" title="Previous shanty" aria-label="Previous shanty">⏮</button>
+        <button id="btn-play" title="Play / Stop" aria-label="Play or stop">▶</button>
+        <button type="button" id="btn-next-shanty" title="Next shanty" aria-label="Next shanty">⏭</button>
+      </div>
 
       <div class="ctrl" id="bpm-ctrl">
         <div class="ctrl-label"><span>BPM</span><span id="bpm-display">76</span></div>
@@ -647,33 +635,19 @@
         </div>
       </div>
 
-      <div class="ctrl" id="preset-ctrl">
-        <div class="ctrl-label"><span>Preset</span></div>
-        <select id="preset-select" aria-label="Music preset"></select>
-        <p id="preset-description" class="preset-desc"></p>
-      </div>
     </div>
+  </div>
+
+  <!-- ── Playlist ────────────────────────────────────────────────────────── -->
+  <div class="panel" id="playlist-panel">
+    <div class="panel-title">Playlist</div>
+    <div id="playlist-list" class="playlist-list" role="list" aria-label="Sea shanty playlist"></div>
   </div>
 
   <!-- ── Phase Timeline ──────────────────────────────────────────────────── -->
   <div class="panel">
     <div class="panel-title">Shanty Phases</div>
     <div id="phase-row"></div>
-    <label class="phase-loop-wrap" title="Loop currently selected phase">
-      <input type="checkbox" id="phase-loop">
-      <span>Loop Selected Phase</span>
-    </label>
-  </div>
-
-  <!-- ── Lyrics Visualizer ──────────────────────────────────────────────── -->
-  <div class="panel hidden" id="lyrics-panel">
-    <div class="panel-title">Lyrics</div>
-    <div id="lyrics-display">
-      <div id="lyrics-prev" class="lyrics-line lyrics-prev"></div>
-      <div id="lyrics-current" class="lyrics-line lyrics-current"></div>
-      <div id="lyrics-next" class="lyrics-line lyrics-next"></div>
-    </div>
-    <div id="lyrics-attribution" class="lyrics-attribution"></div>
   </div>
 
   <!-- ── Oscilloscope ────────────────────────────────────────────────────── -->
@@ -715,8 +689,8 @@
 <script>
 // ── Layer definitions (order = rhythm → low end → harmony → melody → texture) ─
 const LAYERS = [
-  { id:'thump',     label:'Bodhran',        desc:'Frame drum stomp on beats 1 & 3', default:50 },
-  { id:'beatpulse', label:'Stomp Pulse',    desc:'Deck-thump rhythmic pulse', default:50 },
+  { id:'thump',     label:'Fist Thump',     desc:'Knuckle-on-barrel strike on beats 1 & 3', default:50 },
+  { id:'beatpulse', label:'Deck Stomp',     desc:'Boot-stomp rhythmic pulse', default:50 },
   { id:'sub',       label:'Hull Rumble',    desc:'Low drone foundation', default:50 },
   { id:'bass',      label:'Bass Line',      desc:'Root-following bass', default:50 },
   { id:'piano',     label:'Concertina Chords', desc:'Chord stabs on the downbeat', default:50 },
@@ -795,8 +769,8 @@ function syncArrangementVizFocus() {
     ArrangementLive.setFocusLayer(arrangementFocusLayerId);
   }
 }
-let phaseLoopEnabled = false;
-let selectedPhaseId = 'intro';
+
+const mediaKeepalive = document.getElementById('media-keepalive');
 
 function updateChordLayerLabels() {
   const seq = engine?.getState?.()?.chordSeq;
@@ -823,30 +797,71 @@ async function bootEngine() {
   engine = ProceduralMusic.create(opts);
   window.__PROC_ENGINE = engine;
   engine.setKey(activePresetJson?.defaults?.key ?? 'Gm');
-  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
+  engine.setPhaseLoop(null);
 
   // Wire events
-  engine.on('phaseMarker', ({ label }) => {
-    if (window.ArrangementLive && typeof ArrangementLive.onPhaseMarker === 'function') {
-      ArrangementLive.onPhaseMarker(label);
+  // Cache DOM refs once — avoid querySelectorAll on every phase change
+  const phaseValEl = document.getElementById('phase-val');
+  let cachedPhaseBtns = Array.from(document.querySelectorAll('.phase-btn'));
+  const origRenderPhaseRow = renderPhaseRow;
+  renderPhaseRow = function() {
+    origRenderPhaseRow();
+    cachedPhaseBtns = Array.from(document.querySelectorAll('.phase-btn'));
+  };
+
+  let phaseRafPending = false;
+  let lastPhaseEvent = null;
+  engine.on('phase', (data) => {
+    lastPhaseEvent = data;
+    if (!phaseRafPending) {
+      phaseRafPending = true;
+      requestAnimationFrame(() => {
+        phaseRafPending = false;
+        if (!lastPhaseEvent) return;
+        const { id, label } = lastPhaseEvent;
+        phaseValEl.textContent = label;
+        for (let i = 0; i < cachedPhaseBtns.length; i++) {
+          cachedPhaseBtns[i].classList.toggle('active', cachedPhaseBtns[i].dataset.phase === id);
+        }
+        updateLayerDisplayFromState(engine.getState());
+        updateChordLayerLabels();
+      });
     }
   });
+
+  // Throttle MediaMetadata — at most once per 2s (allocations are expensive)
+  let lastMediaMetaUpdate = 0;
   engine.on('phase', ({ id, label }) => {
-    document.getElementById('phase-val').textContent = label;
-    document.querySelectorAll('.phase-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.phase === id);
-    });
-    updateLayerDisplayFromState(engine.getState());
-    // Re-apply layer multipliers after phase levels change (otherwise layers at 0 in the
-    // first phase keep layerMult at 0 and stay silent after the phase advances).
-    syncAllLayersToEngine();
-    updateChordLayerLabels();
+    const now = performance.now();
+    if (now - lastMediaMetaUpdate < 2000) return;
+    lastMediaMetaUpdate = now;
+    if ('mediaSession' in navigator && activePresetJson) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: activePresetJson.name || 'Sea Shanty',
+          artist: `${label} · Sea Shanty Studio`,
+          album: 'Sea shanties',
+        });
+      } catch (_) {}
+    }
   });
-  engine.on('beat', ({ phase, phaseProgress }) => {
-    Object.keys(progressEls).forEach(key => {
-      const fill = progressEls[key];
-      fill.style.width = key === phase ? `${Math.round((phaseProgress || 0) * 100)}%` : '0%';
-    });
+
+  let beatRafPending = false;
+  let lastBeatData = null;
+  engine.on('beat', (data) => {
+    lastBeatData = data;
+    if (!beatRafPending) {
+      beatRafPending = true;
+      requestAnimationFrame(() => {
+        beatRafPending = false;
+        if (!lastBeatData) return;
+        const { phase, phaseProgress } = lastBeatData;
+        const keys = Object.keys(progressEls);
+        for (let i = 0; i < keys.length; i++) {
+          progressEls[keys[i]].style.width = keys[i] === phase ? `${Math.round((phaseProgress || 0) * 100)}%` : '0%';
+        }
+      });
+    }
   });
 
   // Sync sliders to the loaded preset's defaults, then push to engine
@@ -864,6 +879,8 @@ async function bootEngine() {
   updateChordLayerLabels();
 
   renderPhaseRow();
+  updateMediaSessionPlaybackState();
+  updateMediaSessionMetadata();
 
   // Start oscilloscope
   startScope();
@@ -878,17 +895,30 @@ btnPlay.addEventListener('click', async () => {
   const state = engine.getState();
   if (state.transportActive) {
     engine.stop();
+    try { mediaKeepalive.pause(); } catch (_) {}
     btnPlay.classList.remove('playing');
     btnPlay.innerHTML = '▶';
     statusPill.textContent = 'stopped';
     statusPill.classList.remove('playing');
+    updateMediaSessionPlaybackState();
   } else {
     engine.play();
+    try {
+      mediaKeepalive.volume = 0.02;
+      mediaKeepalive.play().catch(() => {});
+    } catch (_) {}
     btnPlay.classList.add('playing');
     btnPlay.innerHTML = '■';
     statusPill.textContent = 'playing';
     statusPill.classList.add('playing');
+    updateMediaSessionPlaybackState();
+    updateMediaSessionMetadata();
   }
+});
+
+// ── Prevent scroll-wheel from changing slider values (causes audio glitches) ──
+document.querySelectorAll('input[type=range]').forEach(slider => {
+  slider.addEventListener('wheel', e => { e.preventDefault(); }, { passive: false });
 });
 
 // ── Transport sliders ─────────────────────────────────────────────────────
@@ -921,16 +951,6 @@ document.getElementById('phase-row').addEventListener('click', async e => {
     const id = rm.dataset.phase;
     await bootEngine();
     if (engine.removePhase(id)) {
-      const active = engine.getPhases();
-      if (selectedPhaseId === id) {
-        selectedPhaseId = active[0]?.id ?? 'intro';
-      }
-      if (phaseLoopEnabled && !engine.getState().phaseLoopId) {
-        const loopEl = document.getElementById('phase-loop');
-        if (loopEl) loopEl.checked = false;
-        phaseLoopEnabled = false;
-      }
-      engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
       renderPhaseRow();
     }
     return;
@@ -939,8 +959,6 @@ document.getElementById('phase-row').addEventListener('click', async e => {
   if (!btn || btn.disabled) return;
   await bootEngine();
   const selectedPhase = btn.dataset.phase;
-  selectedPhaseId = selectedPhase;
-  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
   if (!engine.getState().transportActive) {
     engine.play();
     btnPlay.classList.add('playing');
@@ -949,17 +967,6 @@ document.getElementById('phase-row').addEventListener('click', async e => {
     statusPill.classList.add('playing');
   }
   engine.seekToPhase(selectedPhase);
-});
-
-const phaseLoopEl = document.getElementById('phase-loop');
-phaseLoopEl.addEventListener('change', () => {
-  phaseLoopEnabled = phaseLoopEl.checked;
-  if (!engine) return;
-  const state = engine.getState();
-  if (phaseLoopEnabled && state?.phase) {
-    selectedPhaseId = state.phase;
-  }
-  engine.setPhaseLoop(phaseLoopEnabled ? selectedPhaseId : null);
 });
 
 // ── Layer mixer (flat list, hierarchy order) ───────────────────────────
@@ -1016,23 +1023,33 @@ function syncAllLayersToEngine() {
   if (!engine) return;
   LAYERS.forEach(layer => syncLayerToEngine(layer.id));
 }
+const layerDomCache = {};
+function cacheLayerDom() {
+  LAYERS.forEach(layer => {
+    const slider = document.getElementById(`sl-${layer.id}`);
+    const valEl = document.getElementById(`lv-${layer.id}`);
+    const card = slider?.closest('.layer-ctrl');
+    if (slider && valEl && card) {
+      layerDomCache[layer.id] = { slider, valEl, card };
+    }
+  });
+}
 function updateLayerDisplayFromState(state) {
   if (!state) return;
   const phaseLevels = state.phaseLevels || {};
-  LAYERS.forEach(layer => {
-    const card = document.getElementById(`sl-${layer.id}`)?.closest('.layer-ctrl');
-    const slider = document.getElementById(`sl-${layer.id}`);
-    const valEl = document.getElementById(`lv-${layer.id}`);
-    if (!slider || !valEl || !card) return;
+  for (let i = 0; i < LAYERS.length; i++) {
+    const layer = LAYERS[i];
+    const cached = layerDomCache[layer.id];
+    if (!cached) continue;
+    const { slider, valEl, card } = cached;
     const base = phaseLevels[layer.id] ?? 0;
     const effectiveVal = getEffectiveLayerValue(layer.id, base);
-    // Keep slider at the phase/base value so Active checkbox is a true gate, not a value reset.
     slider.value = Math.round(base * 100);
     valEl.textContent = base.toFixed(2);
     valEl.classList.toggle('muted', effectiveVal === 0);
     slider.classList.toggle('muted', effectiveVal === 0);
     card.classList.toggle('inactive-phase', !layerActive[layer.id]);
-  });
+  }
 }
 
 function buildLayerCard(layer) {
@@ -1067,6 +1084,7 @@ function buildLayerCard(layer) {
   layerActive[layer.id] = true;
   slider.classList.toggle('muted', parseInt(slider.value) === 0);
 
+  slider.addEventListener('wheel', e => { e.preventDefault(); }, { passive: false });
   slider.addEventListener('input', e => {
     const v = parseInt(e.target.value, 10) / 100;
     valEl.textContent = v.toFixed(2);
@@ -1116,6 +1134,7 @@ function buildLayerCard(layer) {
 LAYERS.forEach(layer => {
   mixerLayersEl.appendChild(buildLayerCard(layer));
 });
+cacheLayerDom();
 updateSoloStyles();
 updateEditStyles();
 updateChordLayerLabels();
@@ -1148,29 +1167,35 @@ function drawScope() {
 
   const W = scopeCssW;
   const H = scopeCssH;
+  const pad = 10;
+  const mid = H * 0.5;
 
-  ctx2d.clearRect(0, 0, W, H);
-  ctx2d.fillStyle = '#060a0c';
+  const bgGrad = ctx2d.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#0a1218');
+  bgGrad.addColorStop(1, '#05080c');
+  ctx2d.fillStyle = bgGrad;
   ctx2d.fillRect(0, 0, W, H);
 
-  // Grid lines
-  ctx2d.strokeStyle = '#0d1a1f';
+  ctx2d.strokeStyle = 'rgba(0, 212, 255, 0.07)';
   ctx2d.lineWidth = 1;
-  const gridLines = 4;
-  for (let i = 1; i < gridLines; i++) {
-    const y = (H / gridLines) * i;
-    ctx2d.beginPath(); ctx2d.moveTo(0, y); ctx2d.lineTo(W, y); ctx2d.stroke();
-  }
-  // Center line
-  ctx2d.strokeStyle = '#0d2a30';
-  ctx2d.beginPath(); ctx2d.moveTo(0, H/2); ctx2d.lineTo(W, H/2); ctx2d.stroke();
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, mid);
+  ctx2d.lineTo(W, mid);
+  ctx2d.stroke();
+  ctx2d.strokeStyle = 'rgba(0, 212, 255, 0.04)';
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, H * 0.28);
+  ctx2d.lineTo(W, H * 0.28);
+  ctx2d.moveTo(0, H * 0.72);
+  ctx2d.lineTo(W, H * 0.72);
+  ctx2d.stroke();
 
   if (!engine) {
-    ctx2d.strokeStyle = 'rgba(0,212,255,0.2)';
-    ctx2d.lineWidth = 1.5;
+    ctx2d.strokeStyle = 'rgba(0,212,255,0.12)';
+    ctx2d.lineWidth = 1.2;
     ctx2d.beginPath();
-    ctx2d.moveTo(0, H/2);
-    ctx2d.lineTo(W, H/2);
+    ctx2d.moveTo(pad, mid);
+    ctx2d.lineTo(W - pad, mid);
     ctx2d.stroke();
     return;
   }
@@ -1183,28 +1208,47 @@ function drawScope() {
   }
   analyser.getFloatTimeDomainData(scopeTimeBuf);
   const buf = scopeTimeBuf;
-
-  let start = 0;
-  for (let i = 1; i < buf.length - 1; i++) {
-    if (buf[i-1] < 0 && buf[i] >= 0) { start = i; break; }
-  }
-
-  const sliceW = W / Math.min(1024, buf.length);
   const playing = btnPlay.classList.contains('playing');
 
-  ctx2d.lineWidth = 1.8;
-  ctx2d.strokeStyle = playing ? '#00d4ff' : 'rgba(0,212,255,0.3)';
-  ctx2d.shadowBlur = playing ? 8 : 0;
-  ctx2d.shadowColor = '#00d4ff';
-  ctx2d.beginPath();
-
-  let drawn = 0;
-  for (let i = start; i < buf.length && drawn < 1024; i++, drawn++) {
-    const x = drawn * sliceW;
-    const y = (1 - (buf[i] * 1.38 + 1) * 0.5) * H;
-    if (drawn === 0) ctx2d.moveTo(x, y);
-    else ctx2d.lineTo(x, y);
+  const plotW = Math.max(1, W - pad * 2);
+  const stride = Math.max(1, Math.floor(buf.length / plotW));
+  let peak = 0.0001;
+  for (let i = 0; i < buf.length; i += stride) {
+    peak = Math.max(peak, Math.abs(buf[i]));
   }
+  const gain = Math.min(2.4, 0.42 / peak);
+
+  const pts = [];
+  let prev = 0;
+  let x = 0;
+  for (let i = 0; i < buf.length && x < plotW; i += stride, x++) {
+    const sm = prev * 0.28 + buf[i] * 0.72;
+    prev = sm;
+    const y = mid - sm * gain * (H * 0.4);
+    pts.push({ x: pad + x, y });
+  }
+  if (pts.length < 2) return;
+
+  const fGrad = ctx2d.createLinearGradient(0, 0, 0, H);
+  fGrad.addColorStop(0, playing ? 'rgba(0, 212, 255, 0.12)' : 'rgba(0, 212, 255, 0.04)');
+  fGrad.addColorStop(1, 'rgba(0, 212, 255, 0)');
+  ctx2d.beginPath();
+  ctx2d.moveTo(pts[0].x, mid);
+  for (let i = 0; i < pts.length; i++) ctx2d.lineTo(pts[i].x, pts[i].y);
+  ctx2d.lineTo(pts[pts.length - 1].x, mid);
+  ctx2d.closePath();
+  ctx2d.fillStyle = fGrad;
+  ctx2d.fill();
+
+  ctx2d.beginPath();
+  ctx2d.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx2d.lineTo(pts[i].x, pts[i].y);
+  ctx2d.strokeStyle = playing ? 'rgba(0, 230, 255, 0.92)' : 'rgba(0, 212, 255, 0.32)';
+  ctx2d.lineWidth = playing ? 1.45 : 1;
+  ctx2d.lineJoin = 'round';
+  ctx2d.lineCap = 'round';
+  ctx2d.shadowBlur = playing ? 5 : 0;
+  ctx2d.shadowColor = 'rgba(0, 212, 255, 0.45)';
   ctx2d.stroke();
   ctx2d.shadowBlur = 0;
 }
@@ -1232,134 +1276,202 @@ document.addEventListener('keydown', async e => {
   }
 });
 
+let currentPresetFile = null;
+
 async function initPresets() {
   try {
     const m = await fetch('presets/manifest.json').then(r => r.json());
     presetManifestList = m.presets || [];
-    const sel = document.getElementById('preset-select');
-    if (!sel) return;
-    sel.innerHTML = '';
-    for (const p of presetManifestList) {
-      const opt = document.createElement('option');
-      opt.value = p.file;
-      opt.textContent = p.name;
-      sel.appendChild(opt);
-    }
     const first = presetManifestList[0];
     if (first) {
       const r = await fetch('presets/' + first.file);
       activePresetJson = await r.json();
-      sel.value = first.file;
+      currentPresetFile = first.file;
     }
-    updatePresetHint();
   } catch (e) {
     console.warn('Preset manifest/load failed; using bundled engine default.', e);
     presetManifestList = [];
   }
 }
 
-function updatePresetHint() {
-  const el = document.getElementById('preset-description');
-  if (!el || !activePresetJson) return;
-  const d = (activePresetJson.description || '').trim();
-  el.textContent = d;
-  el.title = d.length > 120 ? d : '';
+function renderPlaylist() {
+  const list = document.getElementById('playlist-list');
+  if (!list) return;
+  list.innerHTML = '';
+  presetManifestList.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'playlist-item';
+    btn.setAttribute('role', 'listitem');
+    btn.dataset.file = p.file;
+    btn.innerHTML = `
+      <span class="playlist-item-index">${String(i + 1).padStart(2, '0')}</span>
+      <div class="playlist-item-body">
+        <div class="playlist-item-title">${p.name}</div>
+      </div>
+    `;
+    list.appendChild(btn);
+  });
 }
 
-document.getElementById('preset-select').addEventListener('change', async () => {
-  const sel = document.getElementById('preset-select');
-  const file = sel.value;
+function renderPlaylistActive() {
+  document.querySelectorAll('.playlist-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.file === currentPresetFile);
+  });
+}
+
+function updateSkipButtonsState() {
+  const dis = presetManifestList.length < 2;
+  const prev = document.getElementById('btn-prev-shanty');
+  const next = document.getElementById('btn-next-shanty');
+  if (prev) prev.disabled = dis;
+  if (next) next.disabled = dis;
+}
+
+function updateMediaSessionMetadata() {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    const title = activePresetJson?.name || 'Sea Shanty Studio';
+    const artist = 'Sea Shanty Studio · Procedural';
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title,
+      artist,
+      album: 'Sea shanties',
+    });
+  } catch (_) {}
+}
+
+function updateMediaSessionPlaybackState() {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    const playing = engine?.getState?.()?.transportActive;
+    navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+  } catch (_) {}
+}
+
+function setupMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.setActionHandler('play', async () => {
+      await bootEngine();
+      if (!engine.getState().transportActive) {
+        engine.play();
+        try {
+          mediaKeepalive.volume = 0.02;
+          mediaKeepalive.play().catch(() => {});
+        } catch (_) {}
+        btnPlay.classList.add('playing');
+        btnPlay.innerHTML = '■';
+        statusPill.textContent = 'playing';
+        statusPill.classList.add('playing');
+      }
+      updateMediaSessionPlaybackState();
+    });
+    navigator.mediaSession.setActionHandler('pause', async () => {
+      await bootEngine();
+      if (engine.getState().transportActive) {
+        engine.stop();
+        try { mediaKeepalive.pause(); } catch (_) {}
+        btnPlay.classList.remove('playing');
+        btnPlay.innerHTML = '▶';
+        statusPill.textContent = 'stopped';
+        statusPill.classList.remove('playing');
+      }
+      updateMediaSessionPlaybackState();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      document.getElementById('btn-prev-shanty').click();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      document.getElementById('btn-next-shanty').click();
+    });
+    navigator.mediaSession.setActionHandler('stop', async () => {
+      await bootEngine();
+      if (engine.getState().transportActive) {
+        engine.stop();
+        try { mediaKeepalive.pause(); } catch (_) {}
+        btnPlay.classList.remove('playing');
+        btnPlay.innerHTML = '▶';
+        statusPill.textContent = 'stopped';
+        statusPill.classList.remove('playing');
+      }
+      updateMediaSessionPlaybackState();
+    });
+  } catch (e) {
+    console.warn('Media Session not fully available', e);
+  }
+}
+
+function getCurrentShantyIndex() {
+  return presetManifestList.findIndex(p => p.file === currentPresetFile);
+}
+
+async function goToShantyDelta(delta) {
+  const n = presetManifestList.length;
+  if (n < 2) return;
+  const i = getCurrentShantyIndex();
+  if (i < 0) return;
+  const next = presetManifestList[(i + delta + n) % n];
+  await applyShantyFile(next.file);
+}
+
+async function applyShantyFile(file) {
   const entry = presetManifestList.find(p => p.file === file);
-  if (!entry) return;
+  if (!entry) return false;
   try {
     const r = await fetch('presets/' + file);
     activePresetJson = await r.json();
-    updatePresetHint();
-    if (engine) {
-      // Full stop + hard reset — destroys AudioContext, flushes all scheduled nodes
-      engine.applyPreset(activePresetJson);
-
-      // Update UI to stopped state
-      const btnPlay = document.getElementById('btn-play');
-      const statusPill = document.getElementById('status-pill');
-      btnPlay.classList.remove('playing');
-      btnPlay.innerHTML = '▶';
-      statusPill.textContent = 'stopped';
-      statusPill.classList.remove('playing');
-
-      // Sync sliders to the new preset's defaults
-      const bpm = activePresetJson.defaults?.bpm ?? 76;
-      document.getElementById('bpm-slider').value = bpm;
-      document.getElementById('bpm-display').textContent = Math.round(bpm);
-      const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.22) * 100);
-      document.getElementById('rev-slider').value = rev;
-      document.getElementById('rev-display').textContent = rev + '%';
-
-      renderPhaseRow();
-    }
+    currentPresetFile = file;
+    updateLayerLabelsFromPreset(activePresetJson);
+    renderPlaylistActive();
+    await bootEngine();
+    engine.applyPreset(activePresetJson);
+    const bpm = activePresetJson.defaults?.bpm ?? 76;
+    document.getElementById('bpm-slider').value = bpm;
+    document.getElementById('bpm-display').textContent = Math.round(bpm);
+    const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.22) * 100);
+    document.getElementById('rev-slider').value = rev;
+    document.getElementById('rev-display').textContent = rev + '%';
+    renderPhaseRow();
+    engine.play();
+    try {
+      mediaKeepalive.volume = 0.02;
+      mediaKeepalive.play().catch(() => {});
+    } catch (_) {}
+    const btnPlayEl = document.getElementById('btn-play');
+    const statusPillEl = document.getElementById('status-pill');
+    btnPlayEl.classList.add('playing');
+    btnPlayEl.innerHTML = '■';
+    statusPillEl.textContent = 'playing';
+    statusPillEl.classList.add('playing');
+    updateMediaSessionMetadata();
+    updateMediaSessionPlaybackState();
+    return true;
   } catch (err) {
     console.error('Failed to load preset', err);
+    return false;
   }
+}
+
+document.getElementById('btn-next-shanty').addEventListener('click', () => goToShantyDelta(1));
+document.getElementById('btn-prev-shanty').addEventListener('click', () => goToShantyDelta(-1));
+document.getElementById('playlist-list').addEventListener('click', async e => {
+  const item = e.target.closest('.playlist-item');
+  if (!item?.dataset?.file) return;
+  await applyShantyFile(item.dataset.file);
 });
 
-// ── Lyrics system ─────────────────────────────────────────────────────
-let activeLyricsData = null;
-let currentLyricLine = -1;
-const lyricsPanel = document.getElementById('lyrics-panel');
-const lyricsPrev = document.getElementById('lyrics-prev');
-const lyricsCurrent = document.getElementById('lyrics-current');
-const lyricsNext = document.getElementById('lyrics-next');
-const lyricsAttribution = document.getElementById('lyrics-attribution');
-
-async function loadLyricsForPreset(presetId) {
-  activeLyricsData = null;
-  currentLyricLine = -1;
-  const entry = presetManifestList.find(p => p.id === presetId);
-  if (!entry || !entry.lyrics) {
-    lyricsPanel.classList.add('hidden');
-    return;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && engine?.resumeAudioContext) {
+    engine.resumeAudioContext().catch(() => {});
   }
-  try {
-    const r = await fetch('presets/' + entry.lyrics);
-    if (!r.ok) throw new Error(r.status);
-    activeLyricsData = await r.json();
-    lyricsPanel.classList.remove('hidden');
-    lyricsPrev.textContent = '';
-    lyricsCurrent.textContent = activeLyricsData.title || '';
-    lyricsNext.textContent = 'Press play to begin';
-    lyricsAttribution.textContent = activeLyricsData.attribution || '';
-  } catch (e) {
-    lyricsPanel.classList.add('hidden');
+});
+window.addEventListener('pageshow', e => {
+  if (e.persisted && engine?.resumeAudioContext) {
+    engine.resumeAudioContext().catch(() => {});
   }
-}
-
-function updateLyricsFromBeat(phaseId, phaseProgress, phaseStart, phaseEnd) {
-  if (!activeLyricsData || !activeLyricsData.sections) return;
-  const section = activeLyricsData.sections.find(s => s.phaseId === phaseId);
-  if (!section || !section.lines || !section.lines.length) {
-    if (lyricsCurrent.textContent !== '') {
-      lyricsPrev.textContent = lyricsCurrent.textContent;
-      lyricsCurrent.textContent = '';
-      lyricsNext.textContent = '';
-    }
-    return;
-  }
-  const phaseDur = Math.max(1, phaseEnd - phaseStart);
-  const beatInPhase = phaseProgress * phaseDur;
-  let lineIdx = 0;
-  for (let i = section.lines.length - 1; i >= 0; i--) {
-    if (beatInPhase >= section.lines[i].beatOffset) { lineIdx = i; break; }
-  }
-  const lineKey = phaseId + '|' + lineIdx;
-  if (currentLyricLine === lineKey) return;
-  currentLyricLine = lineKey;
-  const prev = lineIdx > 0 ? section.lines[lineIdx - 1].text : '';
-  const curr = section.lines[lineIdx].text;
-  const next = lineIdx < section.lines.length - 1 ? section.lines[lineIdx + 1].text : '';
-  lyricsPrev.textContent = prev;
-  lyricsCurrent.textContent = curr;
-  lyricsNext.textContent = next;
-}
+});
+setupMediaSession();
 
 // ── Preset-driven layer labels ────────────────────────────────────────
 const DEFAULT_LAYER_LABELS = {};
@@ -1380,40 +1492,21 @@ function updateLayerLabelsFromPreset(preset) {
   });
 }
 
-// Wire lyrics into the beat event after engine boot
 const origBootEngine = bootEngine;
 bootEngine = async function() {
   await origBootEngine();
-  engine.on('beat', ({ phase, phaseProgress, phaseStart, phaseEnd }) => {
-    updateLyricsFromBeat(phase, phaseProgress, phaseStart, phaseEnd);
-  });
   if (activePresetJson) {
     updateLayerLabelsFromPreset(activePresetJson);
-    const pid = activePresetJson.id || presetManifestList[0]?.id;
-    if (pid) loadLyricsForPreset(pid);
   }
 };
 
-// Wire lyrics + labels into preset changes
-const origPresetChange = document.getElementById('preset-select').onchange;
-document.getElementById('preset-select').addEventListener('change', async () => {
-  const sel = document.getElementById('preset-select');
-  const entry = presetManifestList.find(p => p.file === sel.value);
-  if (!entry) return;
-  setTimeout(() => {
-    if (activePresetJson) {
-      updateLayerLabelsFromPreset(activePresetJson);
-      loadLyricsForPreset(entry.id);
-    }
-  }, 100);
-});
-
 initPresets().then(() => {
   renderPhaseRow();
+  renderPlaylist();
+  updateSkipButtonsState();
+  renderPlaylistActive();
   if (activePresetJson) {
     updateLayerLabelsFromPreset(activePresetJson);
-    const pid = activePresetJson.id || presetManifestList[0]?.id;
-    if (pid) loadLyricsForPreset(pid);
   }
 });
 </script>

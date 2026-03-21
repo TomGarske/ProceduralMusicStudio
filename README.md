@@ -33,11 +33,13 @@ Open `index.html` in a browser (or visit the GitHub Pages URL above).
 - **Space** — play / stop
 - **1–7** — jump to phase (Intro through Outro)
 - **Phase buttons** — click to jump; auto-starts playback
-- **Synthesize** — top-right control; enters post-loop evolving (novel) mode
-- **Layer mixer** — per-layer multiplier (0–1) on top of phase values; chord-driven layers show the phase’s chord progression
-- **BPM** — 50–120; affects arp rate, echo timing, and beat pulse
+- **⏮ / ⏭** — previous / next sea shanty (preset)
+- **Playlist** — pick any shanty from the list (same as the dropdown)
+- **Layer mixer** — per-layer multiplier (0–2×) on top of phase values; chord-driven layers show the phase’s chord progression
+- **BPM** — 40–200; affects arp rate, echo timing, and beat pulse
 - **Reverb** — wet/dry convolver mix
-- **Oscilloscope** — live waveform via AnalyserNode
+- **Waveform** — live output scope (AnalyserNode)
+- **Phone / lock screen** — **Media Session** (title, phase, prev/next) plus a quiet keep-alive track so many mobile browsers keep audio in the background when the screen locks. *iOS may still suspend Web Audio in some cases; use controls on the lock screen when available.*
 
 ---
 
@@ -80,9 +82,10 @@ This repository ships the **static web app** only (`index.html`, `music_engine_w
 git clone https://github.com/TomGarske/ProceduralMusicStudio.git
 cd ProceduralMusicStudio
 
-# Serve locally (Python)
-python3 -m http.server 8080
-# Open http://localhost:8080
+# Serve locally (Python) — pick one:
+#   • Double-click serve.bat in the project folder (Windows), or:
+python -m http.server 8080
+# Open http://localhost:8080  (use another port if this one is already in use)
 ```
 
 GitHub Pages deploys automatically on push to `main` via `.github/workflows/deploy.yml`.
