@@ -1427,7 +1427,8 @@ function updateMediaSessionMetadata() {
   if (!('mediaSession' in navigator)) return;
   try {
     const title = activePresetJson?.name || 'Sea Shanty Studio';
-    const artist = 'Sea Shanty Studio · Procedural';
+    const bpm = engine?.getState?.()?.bpm;
+    const artist = bpm ? `${Math.round(bpm)} BPM · Sea Shanty Studio` : 'Sea Shanty Studio';
     navigator.mediaSession.metadata = new MediaMetadata({
       title,
       artist,
@@ -1488,6 +1489,25 @@ function setupMediaSession() {
         statusPill.classList.remove('playing');
       }
       updateMediaSessionPlaybackState();
+    });
+    // ── BPM control via seek forward/backward (⏩/⏪ on lock screen) ──
+    navigator.mediaSession.setActionHandler('seekforward', () => {
+      if (!engine) return;
+      const s = engine.getState();
+      const newBpm = Math.min(200, Math.round(s.bpm + 5));
+      engine.setBPM(newBpm);
+      document.getElementById('bpm-slider').value = newBpm;
+      document.getElementById('bpm-display').textContent = newBpm;
+      updateMediaSessionMetadata();
+    });
+    navigator.mediaSession.setActionHandler('seekbackward', () => {
+      if (!engine) return;
+      const s = engine.getState();
+      const newBpm = Math.max(40, Math.round(s.bpm - 5));
+      engine.setBPM(newBpm);
+      document.getElementById('bpm-slider').value = newBpm;
+      document.getElementById('bpm-display').textContent = newBpm;
+      updateMediaSessionMetadata();
     });
   } catch (e) {
     console.warn('Media Session not fully available', e);

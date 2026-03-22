@@ -1038,6 +1038,12 @@ const ProceduralMusic = (() => {
     function schedulerLoop() {
       if (!playing || !actx) return;
       const now = actx.currentTime;
+      // If the scheduler fell behind (e.g. iOS backgrounded the tab and
+      // throttled timers), snap forward instead of trying to catch up —
+      // otherwise hundreds of notes fire at once causing a glitch burst.
+      if (nextTickAt < now - 0.2) {
+        nextTickAt = now;
+      }
       const until = now + SCHEDULER_LOOKAHEAD_SEC;
       let n = 0;
       while (nextTickAt < until && playing && n < SCHEDULER_MAX_TICKS_PER_WAKE) {
