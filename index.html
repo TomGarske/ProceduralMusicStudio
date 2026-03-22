@@ -629,7 +629,7 @@
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header>
     <h1>Sea Shanty Studio</h1>
-    <div id="status-pill">stopped</div>
+    <div id="status-pill">paused</div>
   </header>
 
   <!-- ── Transport ───────────────────────────────────────────────────────── -->
@@ -637,7 +637,7 @@
     <div id="transport">
       <div id="transport-play-group">
         <button type="button" id="btn-prev-shanty" title="Previous shanty" aria-label="Previous shanty">⏮</button>
-        <button id="btn-play" title="Play / Stop" aria-label="Play or stop">▶</button>
+        <button id="btn-play" title="Play / Pause" aria-label="Play or pause">▶</button>
         <button type="button" id="btn-next-shanty" title="Next shanty" aria-label="Next shanty">⏭</button>
         <button type="button" id="btn-acapella" title="Acapella mode — voices only" aria-label="Toggle acapella mode">A</button>
       </div>
@@ -915,7 +915,7 @@ async function bootEngine() {
   startScope();
 }
 
-// ── Play / Stop ───────────────────────────────────────────────────────────
+// ── Play / Pause ──────────────────────────────────────────────────────────
 const btnPlay = document.getElementById('btn-play');
 const statusPill = document.getElementById('status-pill');
 
@@ -927,7 +927,7 @@ btnPlay.addEventListener('click', async () => {
     try { mediaKeepalive.pause(); } catch (_) {}
     btnPlay.classList.remove('playing');
     btnPlay.innerHTML = '▶';
-    statusPill.textContent = 'stopped';
+    statusPill.textContent = 'paused';
     statusPill.classList.remove('playing');
     updateMediaSessionPlaybackState();
   } else {
@@ -937,7 +937,7 @@ btnPlay.addEventListener('click', async () => {
       mediaKeepalive.play().catch(() => {});
     } catch (_) {}
     btnPlay.classList.add('playing');
-    btnPlay.innerHTML = '■';
+    btnPlay.innerHTML = '⏸';
     statusPill.textContent = 'playing';
     statusPill.classList.add('playing');
     updateMediaSessionPlaybackState();
@@ -1039,7 +1039,7 @@ document.getElementById('phase-row').addEventListener('click', async e => {
   if (!engine.getState().transportActive) {
     engine.play();
     btnPlay.classList.add('playing');
-    btnPlay.innerHTML = '■';
+    btnPlay.innerHTML = '⏸';
     statusPill.textContent = 'playing';
     statusPill.classList.add('playing');
   }
@@ -1438,7 +1438,7 @@ function setupMediaSession() {
           mediaKeepalive.play().catch(() => {});
         } catch (_) {}
         btnPlay.classList.add('playing');
-        btnPlay.innerHTML = '■';
+        btnPlay.innerHTML = '⏸';
         statusPill.textContent = 'playing';
         statusPill.classList.add('playing');
       }
@@ -1451,7 +1451,7 @@ function setupMediaSession() {
         try { mediaKeepalive.pause(); } catch (_) {}
         btnPlay.classList.remove('playing');
         btnPlay.innerHTML = '▶';
-        statusPill.textContent = 'stopped';
+        statusPill.textContent = 'paused';
         statusPill.classList.remove('playing');
       }
       updateMediaSessionPlaybackState();
@@ -1469,7 +1469,7 @@ function setupMediaSession() {
         try { mediaKeepalive.pause(); } catch (_) {}
         btnPlay.classList.remove('playing');
         btnPlay.innerHTML = '▶';
-        statusPill.textContent = 'stopped';
+        statusPill.textContent = 'paused';
         statusPill.classList.remove('playing');
       }
       updateMediaSessionPlaybackState();
@@ -1521,7 +1521,7 @@ async function applyShantyFile(file) {
     const btnPlayEl = document.getElementById('btn-play');
     const statusPillEl = document.getElementById('status-pill');
     btnPlayEl.classList.add('playing');
-    btnPlayEl.innerHTML = '■';
+    btnPlayEl.innerHTML = '⏸';
     statusPillEl.textContent = 'playing';
     statusPillEl.classList.add('playing');
     updateMediaSessionMetadata();
