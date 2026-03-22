@@ -1438,6 +1438,15 @@ function updateMediaSessionMetadata() {
       artist: phase || "Sci-Fi Sea Shanty's",
       album: "Sci-Fi Sea Shanty's",
     });
+    // Pin the scrubber to current BPM (position = bpm - 40, range 0–160).
+    // playbackRate near zero prevents auto-advancing.
+    if (bpm) {
+      navigator.mediaSession.setPositionState({
+        duration: 160,
+        position: Math.max(0, Math.min(160, Math.round(bpm) - 40)),
+        playbackRate: 0.0001,
+      });
+    }
   } catch (_) {}
 }
 
@@ -1506,6 +1515,15 @@ function setupMediaSession() {
     navigator.mediaSession.setActionHandler('seekbackward', () => {
       if (!engine) return;
       const newBpm = Math.max(40, Math.round(engine.getState().bpm - 5));
+      engine.setBPM(newBpm);
+      document.getElementById('bpm-slider').value = newBpm;
+      document.getElementById('bpm-display').textContent = newBpm;
+      updateMediaSessionMetadata();
+    });
+    // ── BPM control via lock screen scrubber drag ──
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (!engine || details.seekTime == null) return;
+      const newBpm = Math.round(Math.max(40, Math.min(200, 40 + details.seekTime)));
       engine.setBPM(newBpm);
       document.getElementById('bpm-slider').value = newBpm;
       document.getElementById('bpm-display').textContent = newBpm;
