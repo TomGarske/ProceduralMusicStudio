@@ -324,6 +324,18 @@ const ProceduralMusic = (() => {
       const N = scale.N;
       const ARP = scale.ARP;
       actx = new (window.AudioContext || window.webkitAudioContext)();
+      // Auto-restart scheduler when iOS resumes a suspended AudioContext
+      actx.onstatechange = () => {
+        if (actx.state === 'running' && playing) {
+          const stale = (performance.now() - schedulerLastRunMs) > 500;
+          if (stale) {
+            if (schedulerIntervalId !== null) clearTimeout(schedulerIntervalId);
+            nextTickAt = actx.currentTime;
+            schedulerIntervalId = 0;
+            schedulerLoop();
+          }
+        }
+      };
       const master = actx.createGain(); master.gain.value = 0.42;
 
       // ── Dynamics compressor on master for glitch-free output ──
@@ -979,6 +991,8 @@ const ProceduralMusic = (() => {
     // timer throttling (timers drop to ~1s intervals or pause entirely).
     const SCHEDULER_LOOKAHEAD_SEC = 2.0;
     const SCHEDULER_MAX_TICKS_PER_WAKE = 512;
+    /** Wall-clock ms timestamp of last scheduler tick — used to detect dead timers. */
+    let schedulerLastRunMs = 0;
 
     function getShimmerBuffer() {
       const sr = actx.sampleRate;
@@ -1037,6 +1051,7 @@ const ProceduralMusic = (() => {
 
     function schedulerLoop() {
       if (!playing || !actx) return;
+      schedulerLastRunMs = performance.now();
       const now = actx.currentTime;
       // If the scheduler fell behind (e.g. iOS backgrounded the tab and
       // throttled timers), snap forward instead of trying to catch up —
@@ -1440,10 +1455,24 @@ const ProceduralMusic = (() => {
 
       getLayerAnalysers() { return { ...layerAnalysers }; },
 
-      /** Call after visibility returns (mobile unlock) so Web Audio can resume. */
+      /** Call after visibility returns (mobile unlock) so Web Audio can resume.
+       *  Also restarts the scheduler if iOS killed the setTimeout chain. */
       resumeAudioContext() {
-        if (actx && actx.state === 'suspended') return actx.resume();
-        return Promise.resolve();
+        const p = (actx && actx.state === 'suspended') ? actx.resume() : Promise.resolve();
+        return p.then(() => {
+          // If still playing but the scheduler died (iOS killed the timeout),
+          // restart it so audio continues from the current position.
+          // Detect a dead scheduler by checking if it hasn't run in >500ms.
+          const stale = (performance.now() - schedulerLastRunMs) > 500;
+          if (playing && actx && stale) {
+            if (schedulerIntervalId !== null) {
+              clearTimeout(schedulerIntervalId);
+            }
+            nextTickAt = actx.currentTime;
+            schedulerIntervalId = 0;
+            schedulerLoop();
+          }
+        });
       },
 
       getState() {
