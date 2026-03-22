@@ -1020,7 +1020,6 @@ document.getElementById('bpm-slider').addEventListener('input', e => {
   const v = parseInt(e.target.value);
   document.getElementById('bpm-display').textContent = v;
   if (engine) engine.setBPM(v);
-  updateBpmPositionState();
   updateMediaSessionMetadata();
 });
 
@@ -1436,20 +1435,6 @@ function updateMediaSessionMetadata() {
       artist,
       album: 'Sea shanties',
     });
-    updateBpmPositionState();
-  } catch (_) {}
-}
-
-function updateBpmPositionState() {
-  if (!('mediaSession' in navigator)) return;
-  try {
-    const bpm = engine?.getState?.()?.bpm ?? 120;
-    // Map BPM to a position on the scrubber: position = bpm - 40, duration = 160
-    navigator.mediaSession.setPositionState({
-      duration: 160,
-      position: Math.max(0, Math.min(160, Math.round(bpm) - 40)),
-      playbackRate: 1,
-    });
   } catch (_) {}
 }
 
@@ -1505,18 +1490,6 @@ function setupMediaSession() {
         statusPill.classList.remove('playing');
       }
       updateMediaSessionPlaybackState();
-    });
-    // ── BPM control via lock screen scrubber/slider ──
-    // Map the seek bar position (0–200) to BPM range (40–200).
-    const BPM_MIN = 40, BPM_MAX = 200, BPM_DURATION = BPM_MAX - BPM_MIN;
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-      if (!engine || details.seekTime == null) return;
-      const newBpm = Math.round(Math.max(BPM_MIN, Math.min(BPM_MAX, BPM_MIN + details.seekTime)));
-      engine.setBPM(newBpm);
-      document.getElementById('bpm-slider').value = newBpm;
-      document.getElementById('bpm-display').textContent = newBpm;
-      updateMediaSessionMetadata();
-      updateBpmPositionState();
     });
   } catch (e) {
     console.warn('Media Session not fully available', e);
