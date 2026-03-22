@@ -801,6 +801,26 @@ function syncArrangementVizFocus() {
 
 const mediaKeepalive = document.getElementById('media-keepalive');
 
+// ── iOS background audio helper ──────────────────────────────────────────
+// Pipes the engine's Web Audio output through the <audio> element so iOS
+// keeps the audio session alive when the page is backgrounded.
+function startKeepalive() {
+  try {
+    const stream = engine?.getMediaStream?.();
+    if (stream) {
+      mediaKeepalive.srcObject = stream;
+    }
+    mediaKeepalive.volume = 0.01;
+    mediaKeepalive.play().catch(() => {});
+  } catch (_) {}
+}
+function stopKeepalive() {
+  try {
+    mediaKeepalive.pause();
+    mediaKeepalive.srcObject = null;
+  } catch (_) {}
+}
+
 function updateChordLayerLabels() {
   const seq = engine?.getState?.()?.chordSeq;
   const inner = seq && seq.length
@@ -924,7 +944,7 @@ btnPlay.addEventListener('click', async () => {
   const state = engine.getState();
   if (state.transportActive) {
     engine.stop();
-    try { mediaKeepalive.pause(); } catch (_) {}
+    stopKeepalive();
     btnPlay.classList.remove('playing');
     btnPlay.innerHTML = '▶';
     statusPill.textContent = 'paused';
@@ -932,10 +952,7 @@ btnPlay.addEventListener('click', async () => {
     updateMediaSessionPlaybackState();
   } else {
     engine.play();
-    try {
-      mediaKeepalive.volume = 0.02;
-      mediaKeepalive.play().catch(() => {});
-    } catch (_) {}
+    startKeepalive();
     btnPlay.classList.add('playing');
     btnPlay.innerHTML = '⏸';
     statusPill.textContent = 'playing';
@@ -1038,6 +1055,7 @@ document.getElementById('phase-row').addEventListener('click', async e => {
   const selectedPhase = btn.dataset.phase;
   if (!engine.getState().transportActive) {
     engine.play();
+    startKeepalive();
     btnPlay.classList.add('playing');
     btnPlay.innerHTML = '⏸';
     statusPill.textContent = 'playing';
@@ -1433,10 +1451,7 @@ function setupMediaSession() {
       await bootEngine();
       if (!engine.getState().transportActive) {
         engine.play();
-        try {
-          mediaKeepalive.volume = 0.02;
-          mediaKeepalive.play().catch(() => {});
-        } catch (_) {}
+        startKeepalive();
         btnPlay.classList.add('playing');
         btnPlay.innerHTML = '⏸';
         statusPill.textContent = 'playing';
@@ -1448,7 +1463,7 @@ function setupMediaSession() {
       await bootEngine();
       if (engine.getState().transportActive) {
         engine.stop();
-        try { mediaKeepalive.pause(); } catch (_) {}
+        stopKeepalive();
         btnPlay.classList.remove('playing');
         btnPlay.innerHTML = '▶';
         statusPill.textContent = 'paused';
@@ -1466,7 +1481,7 @@ function setupMediaSession() {
       await bootEngine();
       if (engine.getState().transportActive) {
         engine.stop();
-        try { mediaKeepalive.pause(); } catch (_) {}
+        stopKeepalive();
         btnPlay.classList.remove('playing');
         btnPlay.innerHTML = '▶';
         statusPill.textContent = 'paused';
@@ -1514,10 +1529,7 @@ async function applyShantyFile(file) {
     document.getElementById('rev-display').textContent = rev + '%';
     renderPhaseRow();
     engine.play();
-    try {
-      mediaKeepalive.volume = 0.02;
-      mediaKeepalive.play().catch(() => {});
-    } catch (_) {}
+    startKeepalive();
     const btnPlayEl = document.getElementById('btn-play');
     const statusPillEl = document.getElementById('status-pill');
     btnPlayEl.classList.add('playing');
@@ -1541,14 +1553,17 @@ document.getElementById('playlist-list').addEventListener('click', async e => {
   await applyShantyFile(item.dataset.file);
 });
 
+// ── iOS background audio recovery ─────────────────────────────────────────
+// When returning from background, iOS may have suspended the AudioContext
+// and starved the scheduler. Resume both and re-attach the keepalive stream.
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && engine?.resumeAudioContext && engine.getState()?.playing) {
-    engine.resumeAudioContext().catch(() => {});
+  if (document.visibilityState === 'visible' && engine?.getState?.()?.playing) {
+    engine.resumeAudioContext?.().then(() => startKeepalive()).catch(() => {});
   }
 });
 window.addEventListener('pageshow', e => {
-  if (e.persisted && engine?.resumeAudioContext && engine.getState()?.playing) {
-    engine.resumeAudioContext().catch(() => {});
+  if (e.persisted && engine?.getState?.()?.playing) {
+    engine.resumeAudioContext?.().then(() => startKeepalive()).catch(() => {});
   }
 });
 setupMediaSession();

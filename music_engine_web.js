@@ -229,7 +229,7 @@ const ProceduralMusic = (() => {
     let arpFilterOverride = null; // null = auto per phase
     let volumeSetting = 1.0;
 
-    let actx=null, nd={}, startTime=0, pausedAt=0, playing=false;
+    let actx=null, nd={}, startTime=0, pausedAt=0, playing=false, streamDest=null;
     let step=0, pianoBarCount=0, currentPhase=null;
     /** Pending seek target set before actx.resume() completes (play+seek race). */
     let pendingSeekPhaseId = null;
@@ -344,6 +344,13 @@ const ProceduralMusic = (() => {
       master.connect(masterComp);
       masterComp.connect(actx.destination);
       masterComp.connect(analyser);
+
+      // iOS background audio: pipe output through a MediaStream so an <audio>
+      // element can keep the audio session alive when the page is backgrounded.
+      if (typeof actx.createMediaStreamDestination === 'function') {
+        streamDest = actx.createMediaStreamDestination();
+        masterComp.connect(streamDest);
+      }
 
       // Reverb — higher quality IR (longer, stereo decorrelated)
       const irLen = Math.floor(actx.sampleRate * 2.2);
@@ -968,8 +975,10 @@ const ProceduralMusic = (() => {
     }
 
     const SCHEDULER_INTERVAL_MS = 25;
-    const SCHEDULER_LOOKAHEAD_SEC = 0.5;
-    const SCHEDULER_MAX_TICKS_PER_WAKE = 256;
+    // 2s lookahead keeps ~2s of audio pre-scheduled, surviving iOS background
+    // timer throttling (timers drop to ~1s intervals or pause entirely).
+    const SCHEDULER_LOOKAHEAD_SEC = 2.0;
+    const SCHEDULER_MAX_TICKS_PER_WAKE = 512;
 
     function getShimmerBuffer() {
       const sr = actx.sampleRate;
@@ -1291,6 +1300,7 @@ const ProceduralMusic = (() => {
           nd = {};
           analyser = null;
           layerAnalysers = {};
+          streamDest = null;
         }
 
         // ── 3. Apply the new preset data (caches, phases, scale, etc.)
@@ -1416,6 +1426,9 @@ const ProceduralMusic = (() => {
         arpFilterOverride = hz === null ? null : Math.max(200, Math.min(6000, hz));
         if (nd.arpFilt) ramp(nd.arpFilt.frequency, arpFilterOverride ?? phaseFilterFreq(currentPhase?.id), 0.3);
       },
+
+      /** MediaStream from the audio graph — attach to an <audio> element for iOS background playback. */
+      getMediaStream() { return streamDest?.stream || null; },
 
       getAnalyser() { return analyser; },
 
