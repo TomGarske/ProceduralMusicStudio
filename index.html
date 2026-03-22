@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0d0d0d">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Sea Shanty Studio</title>
+  <title>Sci-Fi Sea Shanty's</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -628,7 +628,7 @@
 
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header>
-    <h1>Sea Shanty Studio</h1>
+    <h1>Sci-Fi Sea Shanty's</h1>
     <div id="status-pill">paused</div>
   </header>
 
@@ -708,7 +708,7 @@
 
   <footer>
     <a href="https://github.com/TomGarske/ProceduralMusicStudio" target="_blank">GitHub</a>
-    &nbsp;·&nbsp; 76 BPM · Sea Shanty · Web Audio API
+    &nbsp;·&nbsp; 76 BPM · Sci-Fi Sea Shanty's · Web Audio API
   </footer>
 
 </div>
@@ -886,10 +886,11 @@ async function bootEngine() {
     lastMediaMetaUpdate = now;
     if ('mediaSession' in navigator && activePresetJson) {
       try {
+        const bpm = engine?.getState?.()?.bpm;
         navigator.mediaSession.metadata = new MediaMetadata({
-          title: activePresetJson.name || 'Sea Shanty',
-          artist: `${label} · Sea Shanty Studio`,
-          album: 'Sea shanties',
+          title: bpm ? `${Math.round(bpm)} BPM · ${activePresetJson.name || "Sci-Fi Sea Shanty's"}` : (activePresetJson.name || "Sci-Fi Sea Shanty's"),
+          artist: label || 'Sci-Fi Sea Shanty\'s',
+          album: "Sci-Fi Sea Shanty's",
         });
       } catch (_) {}
     }
@@ -1427,13 +1428,15 @@ function updateSkipButtonsState() {
 function updateMediaSessionMetadata() {
   if (!('mediaSession' in navigator)) return;
   try {
-    const title = activePresetJson?.name || 'Sea Shanty Studio';
-    const bpm = engine?.getState?.()?.bpm;
-    const artist = bpm ? `${Math.round(bpm)} BPM · Sea Shanty Studio` : 'Sea Shanty Studio';
+    const state = engine?.getState?.();
+    const bpm = state?.bpm;
+    const phase = state?.phaseLabel || '';
+    const name = activePresetJson?.name || "Sci-Fi Sea Shanty's";
+    const title = bpm ? `${Math.round(bpm)} BPM · ${name}` : name;
     navigator.mediaSession.metadata = new MediaMetadata({
       title,
-      artist,
-      album: 'Sea shanties',
+      artist: phase || "Sci-Fi Sea Shanty's",
+      album: "Sci-Fi Sea Shanty's",
     });
   } catch (_) {}
 }
@@ -1490,6 +1493,23 @@ function setupMediaSession() {
         statusPill.classList.remove('playing');
       }
       updateMediaSessionPlaybackState();
+    });
+    // ── BPM control via lock screen seek buttons (⏪/⏩) ──
+    navigator.mediaSession.setActionHandler('seekforward', () => {
+      if (!engine) return;
+      const newBpm = Math.min(200, Math.round(engine.getState().bpm + 5));
+      engine.setBPM(newBpm);
+      document.getElementById('bpm-slider').value = newBpm;
+      document.getElementById('bpm-display').textContent = newBpm;
+      updateMediaSessionMetadata();
+    });
+    navigator.mediaSession.setActionHandler('seekbackward', () => {
+      if (!engine) return;
+      const newBpm = Math.max(40, Math.round(engine.getState().bpm - 5));
+      engine.setBPM(newBpm);
+      document.getElementById('bpm-slider').value = newBpm;
+      document.getElementById('bpm-display').textContent = newBpm;
+      updateMediaSessionMetadata();
     });
   } catch (e) {
     console.warn('Media Session not fully available', e);
