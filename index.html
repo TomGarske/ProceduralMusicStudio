@@ -1542,12 +1542,12 @@ document.getElementById('playlist-list').addEventListener('click', async e => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && engine?.resumeAudioContext) {
+  if (document.visibilityState === 'visible' && engine?.resumeAudioContext && engine.getState()?.playing) {
     engine.resumeAudioContext().catch(() => {});
   }
 });
 window.addEventListener('pageshow', e => {
-  if (e.persisted && engine?.resumeAudioContext) {
+  if (e.persisted && engine?.resumeAudioContext && engine.getState()?.playing) {
     engine.resumeAudioContext().catch(() => {});
   }
 });

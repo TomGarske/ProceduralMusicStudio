@@ -1241,6 +1241,11 @@ const ProceduralMusic = (() => {
       play() {
         if (playing) return;
         initAudio();
+        // Restore master gain (zeroed on stop) before resuming context
+        // so morphTo ramps layers up from silence correctly.
+        if (nd.master?.gain) {
+          nd.master.gain.setValueAtTime(volumeToGain(volumeSetting), actx.currentTime);
+        }
         actx.resume().then(() => {
           beginPlayback();
         });
@@ -1254,7 +1259,17 @@ const ProceduralMusic = (() => {
           clearTimeout(schedulerIntervalId);
           schedulerIntervalId = null;
         }
-        if (actx) actx.suspend();
+        if (actx) {
+          // Zero all layer gains immediately so resuming the context later
+          // doesn't produce a burst of sound from frozen oscillators / reverb tail.
+          const t = actx.currentTime;
+          for (const { node } of Object.values(LAYER_MAP)) {
+            const g = nd[node];
+            if (g?.gain) { g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(0, t); }
+          }
+          if (nd.master?.gain) { nd.master.gain.cancelScheduledValues(t); nd.master.gain.setValueAtTime(0, t); }
+          actx.suspend();
+        }
       },
 
       /** Replace song data from a preset object (schema v1).
