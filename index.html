@@ -485,6 +485,9 @@
     .layer-ctrl.inactive-phase {
       opacity: 0.68;
     }
+    .layer-ctrl.phase-inactive {
+      opacity: 0.45;
+    }
     .layer-ctrl.inactive-toggle {
       border-color: #3a2f2f;
       box-shadow: none;
@@ -565,40 +568,12 @@
       background: rgba(0, 212, 255, 0.12);
       box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
     }
-    .layer-edit-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--text-dim);
-      font-size: 9px;
-      font-weight: 600;
-      font-family: inherit;
-      padding: 2px 8px;
-      cursor: pointer;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
-    }
-    .layer-edit-btn:hover {
-      border-color: var(--amber);
-      color: var(--amber);
-    }
-    .layer-edit-btn.active {
-      border-color: var(--amber);
-      color: var(--amber);
-      background: rgba(255, 171, 0, 0.12);
-      box-shadow: 0 0 8px rgba(255, 171, 0, 0.15);
-    }
     .layer-ctrl.is-solo-muted {
       opacity: 0.55;
     }
     .layer-ctrl.is-soloed {
       box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.35);
     }
-    .layer-ctrl.is-edit-focus {
-      box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.45);
-    }
-
     /* ── Footer note ─────────────────────────────────────────────────────── */
     footer {
       text-align: center;
@@ -790,13 +765,6 @@ let engine = null;
 let scopeRaf = null;
 const layerActive = {};  // active/inactive state per layer
 let soloLayerId = null;  // null = all layers audible per mixer; else only this id is heard
-let arrangementFocusLayerId = null;  // set by Edit: solo + highlight card + arrangement shows only this layer
-
-function syncArrangementVizFocus() {
-  if (window.ArrangementLive && typeof ArrangementLive.setFocusLayer === 'function') {
-    ArrangementLive.setFocusLayer(arrangementFocusLayerId);
-  }
-}
 
 const mediaKeepalive = document.getElementById('media-keepalive');
 
@@ -1085,18 +1053,6 @@ function updateSoloStyles() {
     card.classList.toggle('is-solo-muted', soloLayerId !== null && soloLayerId !== id);
   });
 }
-function updateEditStyles() {
-  document.querySelectorAll('.layer-edit-btn').forEach(btn => {
-    const id = btn.dataset.layer;
-    btn.classList.toggle('active', arrangementFocusLayerId === id);
-  });
-  document.querySelectorAll('.layer-ctrl').forEach(card => {
-    const sl = card.querySelector('.layer-slider');
-    const id = sl?.dataset?.layer;
-    if (!id) return;
-    card.classList.toggle('is-edit-focus', arrangementFocusLayerId === id);
-  });
-}
 function syncLayerToEngine(layerId) {
   if (!engine) return;
   const slider = document.getElementById(`sl-${layerId}`);
@@ -1145,6 +1101,7 @@ function updateLayerDisplayFromState(state) {
     valEl.classList.toggle('muted', effectiveVal === 0);
     slider.classList.toggle('muted', effectiveVal === 0);
     card.classList.toggle('inactive-phase', !layerActive[layer.id]);
+    card.classList.toggle('phase-inactive', base === 0);
   }
 }
 
@@ -1161,7 +1118,6 @@ function buildLayerCard(layer) {
       <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end">
         <span class="layer-val ${defaultVal === 0 ? 'muted' : ''}" id="lv-${layer.id}">${(defaultVal / 100).toFixed(2)}</span>
         <button type="button" class="layer-solo-btn" data-layer="${layer.id}" title="Isolate this layer (solo)">S</button>
-        <button type="button" class="layer-edit-btn" data-layer="${layer.id}" title="Solo this layer; arrangement shows only this layer">Edit</button>
         <label class="active-wrap" title="Enable/disable this layer">
           <input type="checkbox" id="active-${layer.id}" data-layer="${layer.id}" checked>
           <span>Active</span>
@@ -1192,28 +1148,7 @@ function buildLayerCard(layer) {
   const soloBtn = card.querySelector('.layer-solo-btn');
   soloBtn.addEventListener('click', () => {
     soloLayerId = soloLayerId === layer.id ? null : layer.id;
-    if (arrangementFocusLayerId !== null && soloLayerId !== arrangementFocusLayerId) {
-      arrangementFocusLayerId = null;
-    }
     updateSoloStyles();
-    updateEditStyles();
-    syncArrangementVizFocus();
-    syncAllLayersToEngine();
-    updateLayerDisplayFromState(engine?.getState());
-  });
-
-  const editBtn = card.querySelector('.layer-edit-btn');
-  editBtn.addEventListener('click', () => {
-    if (arrangementFocusLayerId === layer.id) {
-      arrangementFocusLayerId = null;
-      soloLayerId = null;
-    } else {
-      arrangementFocusLayerId = layer.id;
-      soloLayerId = layer.id;
-    }
-    updateSoloStyles();
-    updateEditStyles();
-    syncArrangementVizFocus();
     syncAllLayersToEngine();
     updateLayerDisplayFromState(engine?.getState());
   });
@@ -1232,7 +1167,6 @@ LAYERS.forEach(layer => {
 });
 cacheLayerDom();
 updateSoloStyles();
-updateEditStyles();
 updateChordLayerLabels();
 
 if (window.ArrangementLive) {
@@ -1623,6 +1557,14 @@ function updateLayerLabelsFromPreset(preset) {
     const descEl = card.querySelector('.layer-desc');
     if (nameEl) nameEl.textContent = lbl;
     if (descEl) descEl.textContent = desc;
+  });
+  // Show/hide layers based on preset's layerIds
+  const activeLayerIds = new Set(preset?.layerIds || LAYERS.map(l => l.id));
+  LAYERS.forEach(layer => {
+    const cached = layerDomCache[layer.id];
+    if (cached?.card) {
+      cached.card.style.display = activeLayerIds.has(layer.id) ? '' : 'none';
+    }
   });
 }
 
