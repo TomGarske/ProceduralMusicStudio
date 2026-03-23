@@ -384,8 +384,7 @@
       "label": "Shanty Call",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm",
-        "Dm"
+        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -537,8 +536,7 @@
       "label": "Crew Response",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm",
-        "C"
+        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -690,10 +688,7 @@
       "label": "Full Crew",
       "durationBeats": 48,
       "chordSeq": [
-        "Dm",
-        "C",
-        "Dm",
-        "Am"
+        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -845,10 +840,7 @@
       "label": "Heave Ho!",
       "durationBeats": 48,
       "chordSeq": [
-        "Dm",
-        "C",
-        "F",
-        "C"
+        "Dm", "Dm", "Am", "Dm"
       ],
       "droneMode": true,
       "arpPattern": [
@@ -936,8 +928,7 @@
       "label": "Calm Sea",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm",
-        "Am"
+        "Dm", "Am", "Am", "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -1025,10 +1016,7 @@
       "label": "All Hands!",
       "durationBeats": 48,
       "chordSeq": [
-        "Dm",
-        "C",
-        "Bb",
-        "C"
+        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
       ],
       "droneMode": true,
       "arpPattern": [
@@ -1148,8 +1136,7 @@
       "label": "Into Port",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm",
-        "C"
+        "Am", "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
