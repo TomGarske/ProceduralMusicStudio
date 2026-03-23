@@ -56,6 +56,7 @@ const ProceduralMusic = (() => {
         droneMode: !!p.droneMode,
         lv: { ...p.lv },
       };
+      if (p.arpPattern) next.arpPattern = p.arpPattern;
       start = end;
       return next;
     });
@@ -97,11 +98,22 @@ const ProceduralMusic = (() => {
     }
     function buildScaleData() {
       const N = Object.fromEntries(Object.keys(BASE_N).map(k => [k, tn(k)]));
-      const ARP = arpPattern.map(name => {
+      const mapNote = (name, ctx) => {
+        if (name === '-') return 0; // hold — sustain previous note
         const hz = N[name];
-        if (hz == null) throw new Error(`arpPattern: unknown note key "${name}"`);
+        if (hz == null) throw new Error(`${ctx}: unknown note key "${name}"`);
         return hz;
-      });
+      };
+      const ARP = arpPattern.map(name => mapNote(name, 'arpPattern'));
+      // Build per-phase ARP arrays for phases that define their own arpPattern
+      const phaseARP = {};
+      if (activePhases) {
+        for (const ph of activePhases) {
+          if (ph.arpPattern) {
+            phaseARP[ph.id] = ph.arpPattern.map(name => mapNote(name, `phase ${ph.id} arpPattern`));
+          }
+        }
+      }
 
       // ── Chords: use preset-defined voicings if available, else hardcoded defaults
       let CHORDS;
@@ -137,7 +149,7 @@ const ProceduralMusic = (() => {
         droneChords = [{r:N.G1,f:N.D2},{r:N.Bb2*0.5,f:N.F3*0.5}];
       }
 
-      return { N, ARP, CHORDS, droneChords };
+      return { N, ARP, phaseARP, CHORDS, droneChords };
     }
 
     let cachedScaleData = null;
@@ -408,9 +420,22 @@ const ProceduralMusic = (() => {
       }
       const arpLfoHz = layerConfigs.arp.lfoHz || (arpIsVocal ? 2.5 : 4.8);
       const arpO=o('sawtooth',ARP[0]), arpO2=o('sawtooth',ARP[0]); arpO2.detune.value = arpIsVocal ? 8 : 14;
-      const arpVib=o('sine',arpLfoHz), arpVibG=g(arpIsVocal ? 2.0 : 4.0); arpVib.connect(arpVibG); arpVibG.connect(arpO.frequency);
+      // Vibrato with humanization gate — delays onset per note, scales with velocity
+      const arpVib=o('sine',arpLfoHz), arpVibG=g(arpIsVocal ? 2.0 : 4.0);
+      const arpVibGate = g(0); // gate node: tick() ramps this 0→1 per note
+      arpVib.connect(arpVibG); arpVibG.connect(arpVibGate); arpVibGate.connect(arpO.frequency);
       arpO.connect(arpG); arpO2.connect(arpG);
-      nd.arpGain=arpG; nd.arpFilt=arpF; nd.arpO=arpO; nd.arpO2=arpO2;
+      nd.arpGain=arpG; nd.arpFilt=arpF; nd.arpO=arpO; nd.arpO2=arpO2; nd.arpVibGate=arpVibGate;
+
+      // Bow noise — bandpass-filtered white noise for rosin/friction texture on attacks
+      const bowNoiseBuf = actx.createBuffer(1, actx.sampleRate * 0.5, actx.sampleRate);
+      const bowData = bowNoiseBuf.getChannelData(0);
+      for (let i = 0; i < bowData.length; i++) bowData[i] = Math.random() * 2 - 1;
+      const bowSrc = actx.createBufferSource(); bowSrc.buffer = bowNoiseBuf; bowSrc.loop = true; bowSrc.start();
+      const bowBP = actx.createBiquadFilter(); bowBP.type = 'bandpass'; bowBP.frequency.value = 2500; bowBP.Q.value = 1.5;
+      const bowNoiseGain = g(0);
+      bowSrc.connect(bowBP); bowBP.connect(bowNoiseGain); bowNoiseGain.connect(arpG);
+      nd.bowNoiseGain = bowNoiseGain;
 
       // Echo (delayed concertina copy for width)
       const dL=actx.createDelay(2); dL.delayTime.value=s16()*layerConfigs.echo.leftDelaySteps;
@@ -435,7 +460,13 @@ const ProceduralMusic = (() => {
       nd.subGain=subG; nd.subO1=subO1; nd.subO2=subO2; nd.subRootN=subRootN; nd.subOvtN=subOvtN;
 
       // Squeezebox drone pad (sawtooth + heavy LPF for bellows texture)
-      const padG=g(0); padG.connect(master); padG.connect(nd.rev);
+      // Route: padG → bellowsMod → master + reverb (bellows breathing amplitude cycle)
+      const padG=g(0);
+      const bellowsLfo = o('sine', layerConfigs.pad.bellowsHz || 0.18);
+      const bellowsDepth = g(layerConfigs.pad.bellowsDepth || 0.15);
+      const bellowsMod = actx.createGain(); bellowsMod.gain.value = 1.0;
+      bellowsLfo.connect(bellowsDepth); bellowsDepth.connect(bellowsMod.gain);
+      padG.connect(bellowsMod); bellowsMod.connect(master); bellowsMod.connect(nd.rev);
       nd.padOscs = [];
       const dv0 = (presetDroneVoicings && presetDroneVoicings[0]) || null;
       const padNotes = dv0
@@ -443,8 +474,14 @@ const ProceduralMusic = (() => {
         : [['D2',0],['A2',5],['D2',-3],['A2',3]];
       padNotes.forEach(([name,d]) => {
         const ov=o('sawtooth',N[name]||146.83,d);
-        const vib=o('sine',layerConfigs.pad.vibratoHz), vg=g(layerConfigs.pad.vibratoDepth); vib.connect(vg); vg.connect(ov.frequency);
+        // Humanize: per-voice vibrato rate variation
+        const vibHz = layerConfigs.pad.vibratoHz * (0.85 + Math.random() * 0.3);
+        const vib=o('sine',vibHz), vg=g(layerConfigs.pad.vibratoDepth); vib.connect(vg); vg.connect(ov.frequency);
         const lp=lpf(layerConfigs.pad.lpfHz,0.5), gn=g(layerConfigs.pad.voiceGain); ov.connect(lp); lp.connect(gn); gn.connect(padG);
+        // LPF modulation: bellows pressure affects brightness
+        const lpfLfo = o('sine', (layerConfigs.pad.bellowsHz || 0.18) * (0.9 + Math.random() * 0.2));
+        const lpfMod = g(layerConfigs.pad.lpfHz * 0.25); // modulate filter +-25%
+        lpfLfo.connect(lpfMod); lpfMod.connect(lp.frequency);
         nd.padOscs.push({ osc: ov, name });
       });
       nd.padGain=padG;
@@ -789,11 +826,17 @@ const ProceduralMusic = (() => {
       const buf = getThumpBufferBase();
       const src = actx.createBufferSource();
       src.buffer = buf;
+      // Humanize: velocity jitter +-12%, pitch variation +-1.5%, micro-timing
+      const velJitter = vel * (0.88 + Math.random() * 0.24);
       const tG = actx.createGain();
-      tG.gain.value = ((tv * 0.58) / Math.max(0.001, gRead)) * vel;
+      tG.gain.value = ((tv * 0.58) / Math.max(0.001, gRead)) * velJitter;
       src.connect(tG);
       tG.connect(nd.thumpGain);
-      src.start(when);
+      // Slight pitch variation per hit — simulates inconsistent hand strikes
+      src.playbackRate.value = 0.985 + Math.random() * 0.03;
+      // Micro-timing jitter: +-3ms for human feel
+      const timeJitter = (Math.random() - 0.5) * 0.006;
+      src.start(Math.max(when + timeJitter, actx.currentTime));
     }
 
     function getPianoPartialBuffer(f, ni, harm, amp, dec) {
@@ -840,6 +883,8 @@ const ProceduralMusic = (() => {
         return [h, amp, Math.max(0.12, dec)];
       });
       chord.notes.forEach((freq, ni) => {
+        // Humanize: per-voice gain jitter (+-15%) and timing scatter
+        const voiceGainJitter = 0.85 + Math.random() * 0.30;
         harmonicDefs.forEach(([harm, amp, dec]) => {
           const f = freq * harm;
           if (f > 8000) return;
@@ -847,11 +892,14 @@ const ProceduralMusic = (() => {
           const src = actx.createBufferSource();
           src.buffer = buf;
           const nG = actx.createGain();
-          nG.gain.value = pv * 0.26;
+          nG.gain.value = pv * 0.26 * voiceGainJitter;
           src.connect(nG);
           nG.connect(nd.pianoGain);
-          const voiceDelay = layerConfigs.piano.voiceDelaySec || 0.004;
-          src.start(when + ni * voiceDelay);
+          // Humanize: jitter voice delay +-40% and add small random offset
+          const voiceDelay = (layerConfigs.piano.voiceDelaySec || 0.004) * (0.6 + Math.random() * 0.8);
+          // Slight pitch wobble: detune +-3 cents per voice for bellows imperfection
+          src.detune.value = (Math.random() - 0.5) * 6;
+          src.start(when + ni * voiceDelay + Math.random() * 0.006);
         });
       });
       emit('chord', chord.name);
@@ -930,38 +978,54 @@ const ProceduralMusic = (() => {
 
         for (let vi = 0; vi < numVoices; vi++) {
           const detCents = (vi - (numVoices - 1) * 0.5) * detSpread / Math.max(1, numVoices - 1) + (Math.random() - 0.5) * 8;
-          const delay = ni * 0.04 + vi * (0.025 / Math.max(1, numVoices - 1)) + Math.random() * 0.02;
+          // Humanize: wider timing scatter for natural choir feel
+          const delay = ni * 0.04 * (0.8 + Math.random() * 0.4) + vi * (0.025 / Math.max(1, numVoices - 1)) + Math.random() * 0.035;
           const startAt = when + delay;
 
           const osc = actx.createOscillator();
           osc.type = 'sawtooth';
           osc.frequency.value = freq;
           osc.detune.value = detCents;
+          // Pitch drift: slow random wander +-4 cents over the note
+          const drift = actx.createOscillator();
+          const driftAmt = actx.createGain();
+          drift.frequency.value = 0.3 + Math.random() * 0.5; // very slow LFO
+          driftAmt.gain.value = 4 + Math.random() * 3; // +-4-7 cents
+          drift.connect(driftAmt); driftAmt.connect(osc.detune);
 
           const vib = actx.createOscillator();
           const vibAmt = actx.createGain();
-          vib.frequency.value = baseVibHz + ni * 0.4 + vi * 0.3;
-          vibAmt.gain.value = 3.5 + ni * 1.2;
+          // Humanize vibrato rate per voice
+          vib.frequency.value = baseVibHz + ni * 0.4 + vi * 0.3 + (Math.random() - 0.5) * 0.8;
+          vibAmt.gain.value = (3.5 + ni * 1.2) * (0.8 + Math.random() * 0.4);
           vib.connect(vibAmt); vibAmt.connect(osc.frequency);
 
           const f1 = actx.createBiquadFilter();
-          f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 25; f1.Q.value = vowel.q1;
+          f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 25 + (Math.random() - 0.5) * 40; f1.Q.value = vowel.q1;
           const f2 = actx.createBiquadFilter();
-          f2.type = 'bandpass'; f2.frequency.value = vowel.f2 + vi * 40; f2.Q.value = vowel.q2;
+          f2.type = 'bandpass'; f2.frequency.value = vowel.f2 + vi * 40 + (Math.random() - 0.5) * 60; f2.Q.value = vowel.q2;
+          // Formant drift: shift vowel shape over the note duration
+          const f1Target = vowel.f1 * (0.92 + Math.random() * 0.16);
+          const f2Target = vowel.f2 * (0.90 + Math.random() * 0.20);
+          f1.frequency.setTargetAtTime(f1Target, startAt + 0.3, dur * 0.4);
+          f2.frequency.setTargetAtTime(f2Target, startAt + 0.3, dur * 0.4);
           const fSum = actx.createGain(); fSum.gain.value = 1.0;
           osc.connect(f1); osc.connect(f2); f1.connect(fSum); f2.connect(fSum);
 
           const env = actx.createGain();
-          const peak = vv * (0.20 - ni * 0.025 - vi * (0.015 / numVoices));
+          // Humanize envelope: vary peak and attack per voice
+          const peakJitter = 0.85 + Math.random() * 0.3;
+          const peak = vv * (0.20 - ni * 0.025 - vi * (0.015 / numVoices)) * peakJitter;
+          const attackTime = (0.12 + ni * 0.025) * (0.7 + Math.random() * 0.6);
           env.gain.setValueAtTime(0.0, startAt);
-          env.gain.linearRampToValueAtTime(peak, startAt + 0.12 + ni * 0.025);
+          env.gain.linearRampToValueAtTime(peak, startAt + attackTime);
           env.gain.setTargetAtTime(peak * 0.55, startAt + 0.45, dur * 0.38);
           env.gain.setTargetAtTime(0.001, startAt + dur * 0.55, dur * 0.3);
 
           fSum.connect(env); env.connect(nd.voiceGain);
-          osc.start(startAt); vib.start(startAt);
+          osc.start(startAt); vib.start(startAt); drift.start(startAt);
           const endAt = startAt + dur + 0.5;
-          osc.stop(endAt); vib.stop(endAt);
+          osc.stop(endAt); vib.stop(endAt); drift.stop(endAt);
         }
       });
 
@@ -1081,8 +1145,10 @@ const ProceduralMusic = (() => {
       const el = transportAt(when);
       const ph = getPhase(el);
       const lv = ph.lv || {};
-      const { ARP, CHORDS, droneChords } = getScaleData();
-      const idx = step % 16;
+      const { ARP, phaseARP, CHORDS, droneChords } = getScaleData();
+      const phArp = phaseARP[ph.id] || ARP;
+      const idx = step % phArp.length;
+      const barIdx = step % 16; // bar position for thump/chord triggers (independent of arp length)
       const arpRotate = ph.randomMod?.arpRotate ?? 0;
 
       if (ph !== currentPhase) {
@@ -1095,7 +1161,7 @@ const ProceduralMusic = (() => {
       }
 
       emit('beat', {
-        step: idx,
+        step: barIdx,
         phase: ph.id,
         phaseLabel: ph.label,
         phaseProgress: getPhaseProgress(ph, el),
@@ -1103,27 +1169,54 @@ const ProceduralMusic = (() => {
         phaseEnd: ph.end,
       });
 
-      // Concertina retrigger — smooth envelope to avoid clicks
-      // Uses setValueAtTime at current gain before ramping to prevent discontinuity
-      const freq=ARP[(idx + arpRotate) % ARP.length], vel=VEL[idx], av=(lv.arp||0)*(layerMult.arp??1);
-      const arpAttack = layerConfigs.arp.attackSec || 0.015;
-      const arpDecayTau = s16() * (layerConfigs.arp.decayTauMul || 0.85);
-      nd.arpO.frequency.setValueAtTime(freq,when);
-      nd.arpO2.frequency.setValueAtTime(freq,when);
+      // Fiddle retrigger — humanized envelope with portamento and bow noise
+      const freq=phArp[(idx + arpRotate) % phArp.length], vel=VEL[barIdx % VEL.length], av=(lv.arp||0)*(layerMult.arp??1);
+      // Hold marker (freq===0): sustain previous note, skip re-trigger
+      if (freq > 0) {
+      // Humanize: jitter velocity +-10%, attack +-30%, decay +-15%
+      const hVel = vel * (0.9 + Math.random() * 0.2);
+      const arpAttack = (layerConfigs.arp.attackSec || 0.015) * (0.7 + Math.random() * 0.6);
+      const arpDecayTau = s16() * (layerConfigs.arp.decayTauMul || 0.85) * (0.85 + Math.random() * 0.3);
+      // Portamento — glide into pitch instead of snapping
+      const portamento = layerConfigs.arp.portamentoSec || 0.025;
+      nd.arpO.frequency.setTargetAtTime(freq, when, portamento);
+      nd.arpO2.frequency.setTargetAtTime(freq, when, portamento);
+      // Pitch micro-drift: +-2.5 cents for imperfect folk intonation
+      const intonationDrift = (Math.random() - 0.5) * 5;
+      nd.arpO.detune.setTargetAtTime(intonationDrift, when, 0.02);
+      // Dynamic detune between oscillators: 10-18 cents
+      nd.arpO2.detune.setTargetAtTime(10 + Math.random() * 8 + intonationDrift, when, 0.05);
       // HIGH-FIDELITY: Capture current arp gain to prevent discontinuity
       const curArpGain = nd.arpGain.gain.value;
       nd.arpGain.gain.cancelScheduledValues(when);
       // Ramp down from current value over 1ms before the new note attack
       nd.arpGain.gain.setValueAtTime(curArpGain, when);
       nd.arpGain.gain.linearRampToValueAtTime(0, when + 0.001);
-      nd.arpGain.gain.linearRampToValueAtTime(av*vel*0.30, when + 0.001 + arpAttack);
-      nd.arpGain.gain.setTargetAtTime(av*vel*0.08, when + 0.001 + arpAttack, arpDecayTau);
+      nd.arpGain.gain.linearRampToValueAtTime(av*hVel*0.30, when + 0.001 + arpAttack);
+      nd.arpGain.gain.setTargetAtTime(av*hVel*0.08, when + 0.001 + arpAttack, arpDecayTau);
+      // Bow noise burst — filtered noise on note attack for rosin texture
+      if (nd.bowNoiseGain) {
+        const bowMix = layerConfigs.arp.bowNoiseMix || 0.10;
+        nd.bowNoiseGain.gain.cancelScheduledValues(when);
+        nd.bowNoiseGain.gain.setValueAtTime(0, when);
+        nd.bowNoiseGain.gain.linearRampToValueAtTime(av*hVel*bowMix, when + 0.002);
+        nd.bowNoiseGain.gain.setTargetAtTime(0, when + 0.002, s16() * 0.3);
+      }
+      // Vibrato humanization — delayed onset, velocity-scaled depth
+      if (nd.arpVibGate) {
+        nd.arpVibGate.gain.cancelScheduledValues(when);
+        nd.arpVibGate.gain.setValueAtTime(0, when);
+        const vibDelay = 0.08 + Math.random() * 0.07;
+        const vibDepth = 0.6 + hVel * 0.4;
+        nd.arpVibGate.gain.linearRampToValueAtTime(vibDepth, when + vibDelay);
+      }
+      } // end hold marker check
 
-      if (idx===0 || idx===8) {
+      if (barIdx===0 || barIdx===8) {
         const targetThump = (lv.thump ?? 0) * (layerMult.thump ?? 1) * LAYER_MAP.thump.scale;
-        fireThump(when, idx===0 ? 1.0 : 0.82, targetThump);
+        fireThump(when, barIdx===0 ? 1.0 : 0.82, targetThump);
 
-        if (idx===0) {
+        if (barIdx===0) {
           const seq = ph.chordSeq;
           // Always resolve the chord — voices, bass, and other layers depend on it
           if (seq) {
@@ -1166,7 +1259,7 @@ const ProceduralMusic = (() => {
       }
 
       // Ship's bell / ring accent on configured beats
-      if (layerConfigs.shim.triggerSteps.includes(idx) && (lv.shim||0)*(layerMult.shim??1) > 0.02) {
+      if (layerConfigs.shim.triggerSteps.includes(barIdx) && (lv.shim||0)*(layerMult.shim??1) > 0.02) {
         const sv = (lv.shim||0)*(layerMult.shim??1);
         const shBuf = getShimmerBuffer();
         const shSrc = actx.createBufferSource();
@@ -1180,7 +1273,7 @@ const ProceduralMusic = (() => {
 
       // Crew chorus on configured trigger steps (call-and-response rhythm)
       const voiceTriggers = layerConfigs.voices.triggerSteps || [0, 8];
-      if (voiceTriggers.includes(idx)) {
+      if (voiceTriggers.includes(barIdx)) {
         const targetVoices = (lv.voices||0)*(layerMult.voices??1)*LAYER_MAP.voices.scale;
         if (lastPlayedChord && targetVoices > 0.02) {
           fireVoices(when, lastPlayedChord, targetVoices);
