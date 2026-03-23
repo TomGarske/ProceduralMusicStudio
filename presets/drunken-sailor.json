@@ -686,7 +686,7 @@
     {
       "id": "full_crew",
       "label": "Full Crew",
-      "durationBeats": 48,
+      "durationBeats": 64,
       "chordSeq": [
         "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
       ],
@@ -1014,7 +1014,7 @@
     {
       "id": "all_hands",
       "label": "All Hands!",
-      "durationBeats": 48,
+      "durationBeats": 64,
       "chordSeq": [
         "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
       ],

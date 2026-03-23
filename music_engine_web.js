@@ -42,10 +42,14 @@ const ProceduralMusic = (() => {
     return out;
   }
 
-  function timelinePhasesFromPreset(phases) {
+  // bpm: preset default BPM used to convert quarter-note beats → seconds.
+  // At 60 BPM this is a 1:1 pass-through (legacy behaviour).
+  function timelinePhasesFromPreset(phases, bpm) {
+    const beatsToSec = bpm ? (60 / bpm) : 1;
     let start = 0;
     return phases.map(p => {
-      const dur = p.durationBeats != null ? p.durationBeats : (p.end - p.start);
+      const rawDur = p.durationBeats != null ? p.durationBeats : (p.end - p.start);
+      const dur = rawDur * beatsToSec;
       const end = start + dur;
       const next = {
         id: p.id,
@@ -197,6 +201,7 @@ const ProceduralMusic = (() => {
     }
 
     let PHASES = [];
+    let lastPresetPhases = null; // raw phase objects from preset, for BPM-change rebuilds
 
     /** Phases removed in the UI — timeline is recompressed to [0, scriptedTotal). */
     const disabledPhaseIds = new Set();
@@ -1361,9 +1366,12 @@ const ProceduralMusic = (() => {
         }
       }
       LAYER_MAP.voices.scale = layerConfigs.voices.gainScale;
-      PHASES = timelinePhasesFromPreset(preset.phases);
       const d = preset.defaults || {};
       bpmTarget = d.bpm ?? DEFAULT_PRESET.defaults.bpm;
+      // Convert durationBeats (quarter-note beats) → seconds using the preset BPM
+      // so phase boundaries align with actual musical bars regardless of tempo.
+      lastPresetPhases = preset.phases;
+      PHASES = timelinePhasesFromPreset(preset.phases, bpmTarget);
       if (!playing) bpm = bpmTarget;
       keyId = d.key ?? DEFAULT_PRESET.defaults.key;
       if (d.reverb != null) reverbWet = d.reverb;
@@ -1554,8 +1562,14 @@ const ProceduralMusic = (() => {
       },
 
       setBPM(newBpm) {
+        const prev = bpmTarget;
         bpmTarget = Math.max(40, Math.min(200, newBpm));
         bpm = bpmTarget;
+        // Rebuild phase schedule so durations stay aligned with bars at new tempo
+        if (prev !== bpmTarget && lastPresetPhases) {
+          PHASES = timelinePhasesFromPreset(lastPresetPhases, bpmTarget);
+          rebuildPhaseSchedule();
+        }
       },
 
       setReverb(wet) {
