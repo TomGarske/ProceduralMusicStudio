@@ -329,7 +329,7 @@ const ProceduralMusic = (() => {
       sub:      { node:'subGain',   scale: 0.05 },   // 1 sine + 0.3× overtone → was 0.13, ÷2.6
       pad:      { node:'padGain',   scale: 0.20 },
       bass:     { node:'bassGain',  scale: 0.08 },   // 2 sines through LPF → was 0.22, ÷2.75
-      shim:     { node:'shimGain',  scale: 0.12 },
+      shim:     { node:'shimGain',  scale: 0.55 },
       drone:    { node:'droneGain', scale: 0.07 },   // 4 raw sawtooths → was 0.30, ÷4.3
       beatpulse:{ node:'pulseGain', scale: 0.20 },   // pitched pulse → was 0.55, ÷2.75
       voices:   { node:'voiceGain', scale: layerConfigs.voices.gainScale },
@@ -889,6 +889,9 @@ const ProceduralMusic = (() => {
       const pv = nd.pianoGain.gain.value * (layerMult.piano ?? 1);
       const gate = targetGain != null ? targetGain : pv;
       if (gate < 0.02) return;
+      // Use the higher of current node value or target gain so chords are audible
+      // even on the first tick of a phase (before the gain node has finished ramping).
+      const effectiveLevel = Math.max(pv, gate);
       const harmonicList = layerConfigs.piano.harmonics || [1, 2, 3];
       const harmonicDefs = harmonicList.map((h, idx) => {
         // Progressive amplitude and decay reduction for higher harmonics
@@ -906,7 +909,7 @@ const ProceduralMusic = (() => {
           const src = actx.createBufferSource();
           src.buffer = buf;
           const nG = actx.createGain();
-          nG.gain.value = pv * 0.26 * voiceGainJitter;
+          nG.gain.value = effectiveLevel * 0.26 * voiceGainJitter;
           src.connect(nG);
           nG.connect(nd.pianoGain);
           // Humanize: jitter voice delay +-40% and add small random offset
@@ -1248,7 +1251,7 @@ const ProceduralMusic = (() => {
           // Always resolve the chord — voices, bass, and other layers depend on it
           if (seq) {
             lastPlayedChord = CHORDS[seq[pianoBarCount % seq.length]];
-            // Bass follows the chord root regardless of piano level
+            // Beat 1: bass plays chord root
             if (lastPlayedChord) {
               nd.bassO.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.10);
               nd.bassO2.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.12);
@@ -1259,6 +1262,12 @@ const ProceduralMusic = (() => {
             firePiano(when, lastPlayedChord, targetPiano);
           }
           pianoBarCount++;
+        } else if (barIdx===8 && lastPlayedChord) {
+          // Beat 3: bass walks to the fifth (notes[1]) — root-fifth is the
+          // classic sea-shanty bass pattern (D→A, C→G, Am→E, etc.)
+          const fifth = lastPlayedChord.notes[1] ?? lastPlayedChord.notes[0];
+          nd.bassO.frequency.setTargetAtTime(fifth, when, 0.08);
+          nd.bassO2.frequency.setTargetAtTime(fifth, when, 0.10);
         }
 
         // Drone/pulse state machine
@@ -1286,15 +1295,13 @@ const ProceduralMusic = (() => {
       }
 
       // Ship's bell / ring accent on configured beats
+      // Route directly through shimGain (morphTo controls level) — no per-hit
+      // scaling so the signal isn't double-attenuated to near-inaudible.
       if (layerConfigs.shim.triggerSteps.includes(barIdx) && (lv.shim||0)*(layerMult.shim??1) > 0.02) {
-        const sv = (lv.shim||0)*(layerMult.shim??1);
         const shBuf = getShimmerBuffer();
         const shSrc = actx.createBufferSource();
         shSrc.buffer = shBuf;
-        const shG2 = actx.createGain();
-        shG2.gain.value = sv * 0.14;
-        shSrc.connect(shG2);
-        shG2.connect(nd.shimGain);
+        shSrc.connect(nd.shimGain);
         shSrc.start(when);
       }
 

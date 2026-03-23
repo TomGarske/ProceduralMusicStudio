@@ -146,13 +146,13 @@
   ],
   "layerMix": {
     "arp": 0.35,
-    "echo": 0.1,
+    "echo": 0.45,
     "thump": 0.65,
     "piano": 0.5,
     "sub": 0.18,
     "pad": 0.2,
     "bass": 0.25,
-    "shim": 0.12,
+    "shim": 0.55,
     "drone": 0.22,
     "beatpulse": 0.3,
     "voices": 0.55
@@ -384,7 +384,14 @@
       "label": "Shanty Call",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
+        "Dm",
+        "Dm",
+        "C",
+        "C",
+        "Dm",
+        "Dm",
+        "Am",
+        "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -536,7 +543,14 @@
       "label": "Crew Response",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
+        "Dm",
+        "Dm",
+        "C",
+        "C",
+        "Dm",
+        "Dm",
+        "Am",
+        "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -671,7 +685,7 @@
       ],
       "lv": {
         "arp": 0.28,
-        "echo": 0.08,
+        "echo": 0.35,
         "thump": 0.55,
         "piano": 0.4,
         "sub": 0.14,
@@ -688,7 +702,14 @@
       "label": "Full Crew",
       "durationBeats": 64,
       "chordSeq": [
-        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
+        "Dm",
+        "Dm",
+        "C",
+        "C",
+        "Dm",
+        "Dm",
+        "Am",
+        "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -823,13 +844,13 @@
       ],
       "lv": {
         "arp": 0.31,
-        "echo": 0.09,
+        "echo": 0.4,
         "thump": 0.61,
         "piano": 0.45,
         "sub": 0.16,
         "pad": 0.18,
         "bass": 0.22,
-        "shim": 0.11,
+        "shim": 0.4,
         "drone": 0,
         "beatpulse": 0.27,
         "voices": 0.52
@@ -840,7 +861,10 @@
       "label": "Heave Ho!",
       "durationBeats": 48,
       "chordSeq": [
-        "Dm", "Dm", "Am", "Dm"
+        "Dm",
+        "Dm",
+        "Am",
+        "Dm"
       ],
       "droneMode": true,
       "arpPattern": [
@@ -911,13 +935,13 @@
       ],
       "lv": {
         "arp": 0.35,
-        "echo": 0.1,
+        "echo": 0.45,
         "thump": 0.68,
         "piano": 0.5,
         "sub": 0.18,
         "pad": 0.2,
         "bass": 0.25,
-        "shim": 0.12,
+        "shim": 0.55,
         "drone": 0.22,
         "beatpulse": 0.3,
         "voices": 0.58
@@ -928,7 +952,10 @@
       "label": "Calm Sea",
       "durationBeats": 32,
       "chordSeq": [
-        "Dm", "Am", "Am", "Dm"
+        "Dm",
+        "Am",
+        "Am",
+        "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -999,7 +1026,7 @@
       ],
       "lv": {
         "arp": 0.31,
-        "echo": 0.09,
+        "echo": 0.28,
         "thump": 0.61,
         "piano": 0.45,
         "sub": 0.16,
@@ -1016,7 +1043,14 @@
       "label": "All Hands!",
       "durationBeats": 64,
       "chordSeq": [
-        "Dm", "Dm", "C", "C", "Dm", "Dm", "Am", "Dm"
+        "Dm",
+        "Dm",
+        "C",
+        "C",
+        "Dm",
+        "Dm",
+        "Am",
+        "Dm"
       ],
       "droneMode": true,
       "arpPattern": [
@@ -1119,13 +1153,13 @@
       ],
       "lv": {
         "arp": 0.28,
-        "echo": 0.08,
+        "echo": 0.45,
         "thump": 0.55,
         "piano": 0.4,
         "sub": 0.14,
         "pad": 0.16,
         "bass": 0.2,
-        "shim": 0.1,
+        "shim": 0.6,
         "drone": 0.18,
         "beatpulse": 0.24,
         "voices": 0.46
@@ -1136,7 +1170,8 @@
       "label": "Into Port",
       "durationBeats": 32,
       "chordSeq": [
-        "Am", "Dm"
+        "Am",
+        "Dm"
       ],
       "droneMode": false,
       "arpPattern": [
@@ -1175,7 +1210,7 @@
       ],
       "lv": {
         "arp": 0.24,
-        "echo": 0.07,
+        "echo": 0.22,
         "thump": 0.48,
         "piano": 0.35,
         "sub": 0.13,
