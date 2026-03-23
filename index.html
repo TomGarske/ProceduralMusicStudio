@@ -1026,8 +1026,9 @@ function cacheLayerDom() {
     const slider = document.getElementById(`sl-${layer.id}`);
     const valEl = document.getElementById(`lv-${layer.id}`);
     const card = slider?.closest('.layer-ctrl');
+    const activeLbl = document.getElementById(`active-${layer.id}`);
     if (slider && valEl && card) {
-      layerDomCache[layer.id] = { slider, valEl, card };
+      layerDomCache[layer.id] = { slider, valEl, card, activeLbl };
     }
   });
 }
@@ -1038,15 +1039,21 @@ function updateLayerDisplayFromState(state) {
     const layer = LAYERS[i];
     const cached = layerDomCache[layer.id];
     if (!cached) continue;
-    const { slider, valEl, card } = cached;
+    const { slider, valEl, card, activeLbl } = cached;
     const base = phaseLevels[layer.id] ?? 0;
     const effectiveVal = getEffectiveLayerValue(layer.id, base);
+    const on = layerActive[layer.id] !== false;
     slider.value = Math.round(base * 100);
     valEl.textContent = base.toFixed(2);
     valEl.classList.toggle('muted', effectiveVal === 0);
     slider.classList.toggle('muted', effectiveVal === 0);
-    card.classList.toggle('inactive-phase', !layerActive[layer.id]);
+    card.classList.toggle('inactive-phase', !on);
     card.classList.toggle('phase-inactive', base === 0);
+    if (activeLbl) {
+      activeLbl.textContent = on ? 'Active' : 'Inactive';
+      activeLbl.classList.toggle('is-active', on);
+      activeLbl.classList.toggle('is-inactive', !on);
+    }
   }
 }
 
