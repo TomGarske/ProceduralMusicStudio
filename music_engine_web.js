@@ -455,8 +455,10 @@ const ProceduralMusic = (() => {
       const subRootN = layerConfigs.sub.rootNote || 'D2';
       const subOvtN = layerConfigs.sub.overtoneNote || 'A2';
       const subG=g(0); subG.connect(master);
-      const subO1=o('sine',N[subRootN]||73.42); subO1.connect(subG);
-      const sh=g(layerConfigs.sub.overtoneMix); const subO2=o('sine',N[subOvtN]||110); subO2.connect(sh); sh.connect(subG);
+      // Triangle adds odd harmonics (3rd at 3×, 5th at 5×) making the deep bass
+      // audible on smaller speakers that can't reproduce the pure sine fundamental.
+      const subO1=o('triangle',N[subRootN]||73.42); subO1.connect(subG);
+      const sh=g(layerConfigs.sub.overtoneMix); const subO2=o('triangle',N[subOvtN]||110); subO2.connect(sh); sh.connect(subG);
       nd.subGain=subG; nd.subO1=subO1; nd.subO2=subO2; nd.subRootN=subRootN; nd.subOvtN=subOvtN;
 
       // Squeezebox drone pad (sawtooth + heavy LPF for bellows texture)
@@ -568,23 +570,30 @@ const ProceduralMusic = (() => {
       if (name === 'sub') return 0.95;
       return 0.82;
     }
+    // Fast taus for user-initiated seeks — layers snap in quickly
+    function morphLayerTauFast(name) {
+      if (name === 'echo') return 0.25;
+      if (name === 'pad')  return 0.20;
+      return 0.10;
+    }
 
     /**
      * Cross-fade all layer gains + filter to the target phase.
      * @param {object} ph   phase object
      * @param {number} [at] scheduled audio time (pass from tick's `when` in the
      *   lookahead scheduler; omit for immediate morphs like seekToPhase / play).
+     * @param {boolean} [fast] use fast taus for user-initiated seeks
      */
-    function morphTo(ph, at) {
+    function morphTo(ph, at, fast=false) {
       const lv = ph.lv || {};
-      ramp(nd.arpFilt.frequency, arpFilterOverride ?? phaseFilterFreq(ph.id), 2.35, at);
+      ramp(nd.arpFilt.frequency, arpFilterOverride ?? phaseFilterFreq(ph.id), fast ? 0.3 : 2.35, at);
       for (const [name, {node, scale}] of Object.entries(LAYER_MAP)) {
         const phaseVal = lv[name] ?? 0;
         const mult = layerMult[name] ?? 1;
-        const tau = morphLayerTau(name);
+        const tau = fast ? morphLayerTauFast(name) : morphLayerTau(name);
         ramp(nd[node]?.gain, phaseVal * mult * scale, tau, at);
       }
-      if (!ph.droneMode) ramp(nd.droneGain.gain, 0, 0.6, at);
+      if (!ph.droneMode) ramp(nd.droneGain.gain, fast ? 0.1 : 0.6, at);
     }
 
     function retuneContinuousVoices(when) {
@@ -966,9 +975,13 @@ const ProceduralMusic = (() => {
       const detSpread = vc.detuneSpread ?? 15;
       const breathLvl = vc.breathLevel ?? 0.035;
 
+      // Vowel formants with realistic frequencies and sharp resonance peaks.
+      // "AH" (open, like a crew chant): F1≈800 F2≈1200 F3≈2500
+      // "OH" (rounder, calls): F1≈500 F2≈900 F3≈2200
+      // High Q (10–14) gives distinct vowel character vs. a plain sawtooth buzz.
       const vowels = [
-        { f1: baseFormant,       f2: baseFormant * 1.55, q1: 5, q2: 4 },
-        { f1: baseFormant * 0.7, f2: baseFormant * 1.2,  q1: 6, q2: 5 },
+        { f1: 800,  f2: 1200, f3: 2500, q1: 12, q2: 10, q3: 8 },
+        { f1: 500,  f2: 900,  f3: 2200, q1: 12, q2: 10, q3: 8 },
       ];
 
       const notes = chord.notes.slice(0, Math.min(4, chord.notes.length));
@@ -1000,17 +1013,26 @@ const ProceduralMusic = (() => {
           vibAmt.gain.value = (3.5 + ni * 1.2) * (0.8 + Math.random() * 0.4);
           vib.connect(vibAmt); vibAmt.connect(osc.frequency);
 
+          // Pre-shape: gentle highpass removes subsonic buzz from raw sawtooth
+          const hpPre = actx.createBiquadFilter();
+          hpPre.type = 'highpass'; hpPre.frequency.value = 120; hpPre.Q.value = 0.7;
+          osc.connect(hpPre);
           const f1 = actx.createBiquadFilter();
-          f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 25 + (Math.random() - 0.5) * 40; f1.Q.value = vowel.q1;
+          f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 20 + (Math.random() - 0.5) * 30; f1.Q.value = vowel.q1;
           const f2 = actx.createBiquadFilter();
-          f2.type = 'bandpass'; f2.frequency.value = vowel.f2 + vi * 40 + (Math.random() - 0.5) * 60; f2.Q.value = vowel.q2;
-          // Formant drift: shift vowel shape over the note duration
-          const f1Target = vowel.f1 * (0.92 + Math.random() * 0.16);
-          const f2Target = vowel.f2 * (0.90 + Math.random() * 0.20);
+          f2.type = 'bandpass'; f2.frequency.value = vowel.f2 + vi * 30 + (Math.random() - 0.5) * 50; f2.Q.value = vowel.q2;
+          const f3 = actx.createBiquadFilter();
+          f3.type = 'bandpass'; f3.frequency.value = vowel.f3 + vi * 40 + (Math.random() - 0.5) * 80; f3.Q.value = vowel.q3;
+          // Formant drift: natural vowel migration over the note
+          const f1Target = vowel.f1 * (0.93 + Math.random() * 0.14);
+          const f2Target = vowel.f2 * (0.92 + Math.random() * 0.16);
+          const f3Target = vowel.f3 * (0.90 + Math.random() * 0.20);
           f1.frequency.setTargetAtTime(f1Target, startAt + 0.3, dur * 0.4);
           f2.frequency.setTargetAtTime(f2Target, startAt + 0.3, dur * 0.4);
+          f3.frequency.setTargetAtTime(f3Target, startAt + 0.3, dur * 0.4);
           const fSum = actx.createGain(); fSum.gain.value = 1.0;
-          osc.connect(f1); osc.connect(f2); f1.connect(fSum); f2.connect(fSum);
+          hpPre.connect(f1); hpPre.connect(f2); hpPre.connect(f3);
+          f1.connect(fSum); f2.connect(fSum); f3.connect(fSum);
 
           const env = actx.createGain();
           // Humanize envelope: vary peak and attack per voice
@@ -1438,9 +1460,17 @@ const ProceduralMusic = (() => {
             pausedAt = activePhases[i].start;
             currentPhase = null;
             if (playing && actx) {
-              startTime = actx.currentTime;
-              nextTickAt = actx.currentTime + 0.01;
-              morphTo(activePhases[i]);
+              // Immediately silence all layer gains so pre-scheduled old-phase
+              // audio (up to 2s lookahead) doesn't bleed into the new phase
+              for (const {node} of Object.values(LAYER_MAP)) {
+                if (nd[node]?.gain) ramp(nd[node].gain, 0, 0.04);
+              }
+              ramp(nd.droneGain.gain, 0, 0.04);
+              // Short gap for fade-out, then start new phase cleanly on the beat
+              const gapSec = 0.08;
+              startTime = actx.currentTime + gapSec;
+              nextTickAt = actx.currentTime + gapSec;
+              morphTo(activePhases[i], undefined, true);
             } else {
               pendingSeekPhaseId = id;
             }
@@ -1505,7 +1535,7 @@ const ProceduralMusic = (() => {
         if (!map) return;
         const ph = currentPhase || getPhase(elapsed());
         const baseVal = ph?.lv?.[name] ?? 0;
-        ramp(nd[map.node]?.gain, baseVal * value * map.scale, 0.3);
+        ramp(nd[map.node]?.gain, baseVal * value * map.scale, 0.04);
       },
 
       setKey(nextKeyId) {
