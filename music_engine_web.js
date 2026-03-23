@@ -1496,42 +1496,6 @@ const ProceduralMusic = (() => {
         }
       },
 
-      /** Remove a phase from the loop (at least one scripted phase must remain). Timeline is recompressed. */
-      removePhase(id) {
-        if (!PHASES.some(p => p.id === id)) return false;
-        const wouldRemain = PHASES.filter(p => !disabledPhaseIds.has(p.id) && p.id !== id).length;
-        if (wouldRemain < 1) return false;
-        disabledPhaseIds.add(id);
-        rebuildPhaseSchedule();
-        clampPausedTime();
-        currentPhase = null;
-        resetPhaseMarkerState();
-        const ph = getPhase(elapsed());
-        if (actx) morphTo(ph);
-        emit('phase', { id: ph.id, label: ph.label });
-        flushEvents();
-        return true;
-      },
-
-      /** Restore a previously removed phase. */
-      restorePhase(id) {
-        if (!disabledPhaseIds.has(id)) return false;
-        disabledPhaseIds.delete(id);
-        rebuildPhaseSchedule();
-        clampPausedTime();
-        currentPhase = null;
-        resetPhaseMarkerState();
-        const ph = getPhase(elapsed());
-        if (actx) morphTo(ph);
-        emit('phase', { id: ph.id, label: ph.label });
-        flushEvents();
-        return true;
-      },
-
-      getRemovedPhaseIds() {
-        return PHASES.filter(p => disabledPhaseIds.has(p.id)).map(p => ({ id: p.id, label: p.label }));
-      },
-
       setVolume(v) {
         volumeSetting = Math.max(0, Math.min(2, v));
         if (nd.master && actx) {

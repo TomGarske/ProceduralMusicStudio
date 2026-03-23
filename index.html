@@ -249,46 +249,9 @@
       border-radius: var(--radius) 0 0 var(--radius);
       border-right: none;
     }
-    .phase-item-head .phase-remove {
-      flex: 0 0 0;
-      align-self: stretch;
-      border: 1px solid var(--border);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      background: var(--bg3);
-      color: var(--text-dim);
-      font-size: 16px;
-      line-height: 1;
-      cursor: pointer;
-      padding: 0;
-      font-family: inherit;
-      opacity: 0;
-      width: 0;
-      min-width: 0;
-      overflow: hidden;
-      border-width: 0;
-      pointer-events: none;
-      transition: opacity 0.12s ease, color 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .phase-item:hover .phase-item-head .phase-remove {
-      flex: 0 0 24px;
-      opacity: 1;
-      width: 24px;
-      min-width: 24px;
-      border-width: 1px;
-      pointer-events: auto;
-    }
-    .phase-item:not(:hover) .phase-item-head .phase-btn {
+    .phase-item-head .phase-btn {
       border-radius: var(--radius);
       border-right: 1px solid var(--border);
-    }
-    .phase-item:hover .phase-item-head .phase-btn {
-      border-radius: var(--radius) 0 0 var(--radius);
-      border-right: none;
-    }
-    .phase-item-head .phase-remove:hover {
-      color: var(--red);
-      border-color: rgba(255, 23, 68, 0.45);
-      background: rgba(255, 23, 68, 0.08);
     }
     .phase-btn {
       padding: 6px 14px;
@@ -528,20 +491,24 @@
       letter-spacing: 0.08em;
       margin-right: 4px;
     }
-    .active-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+    .layer-active-lbl {
       font-size: 9px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-    }
-    .active-wrap input {
-      accent-color: var(--amber);
-      width: 11px;
-      height: 11px;
       cursor: pointer;
+      user-select: none;
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .layer-active-lbl.is-active {
+      color: var(--amber);
+      border-color: rgba(255,183,77,0.3);
+    }
+    .layer-active-lbl.is-inactive {
+      color: var(--text-dim);
+      border-color: var(--border);
     }
     .layer-solo-btn {
       background: none;
@@ -729,26 +696,15 @@ function renderPhaseRow() {
   const row = document.getElementById('phase-row');
   if (!row) return;
   const list = engine?.getPhases?.() ?? ALL_SCRIPTED_PHASES;
-  const canRemove = list.length > 1;
   row.innerHTML = '';
   list.forEach(p => {
     const item = document.createElement('div');
     item.className = 'phase-item';
     item.dataset.phase = p.id;
-    if (canRemove) {
-      item.innerHTML = `
-        <div class="phase-item-head">
-          <button type="button" class="phase-btn" data-phase="${p.id}">${p.label}</button>
-          <button type="button" class="phase-remove" data-phase="${p.id}" title="Remove phase from song" aria-label="Remove ${p.label}">×</button>
-        </div>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="${p.id}"></div></div>
-      `;
-    } else {
-      item.innerHTML = `
-        <button type="button" class="phase-btn" data-phase="${p.id}">${p.label}</button>
-        <div class="phase-progress"><div class="phase-progress-fill" data-progress="${p.id}"></div></div>
-      `;
-    }
+    item.innerHTML = `
+      <button type="button" class="phase-btn" data-phase="${p.id}">${p.label}</button>
+      <div class="phase-progress"><div class="phase-progress-fill" data-progress="${p.id}"></div></div>
+    `;
     row.appendChild(item);
   });
   const placeholder = document.createElement('div');
@@ -1005,19 +961,8 @@ document.getElementById('rev-slider').addEventListener('input', e => {
   if (engine) engine.setReverb(v / 100);
 });
 
-// ── Phase row: select phase, remove (×), restore strip ───────────────────
+// ── Phase row: select phase ───────────────────────────────────────────────
 document.getElementById('phase-row').addEventListener('click', async e => {
-  const rm = e.target.closest('.phase-remove');
-  if (rm) {
-    e.preventDefault();
-    e.stopPropagation();
-    const id = rm.dataset.phase;
-    await bootEngine();
-    if (engine.removePhase(id)) {
-      renderPhaseRow();
-    }
-    return;
-  }
   const btn = e.target.closest('.phase-btn');
   if (!btn || btn.disabled) return;
   await bootEngine();
@@ -1118,21 +1063,20 @@ function buildLayerCard(layer) {
       <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end">
         <span class="layer-val ${defaultVal === 0 ? 'muted' : ''}" id="lv-${layer.id}">${(defaultVal / 100).toFixed(2)}</span>
         <button type="button" class="layer-solo-btn" data-layer="${layer.id}" title="Isolate this layer (solo)">S</button>
-        <label class="active-wrap" title="Enable/disable this layer">
-          <input type="checkbox" id="active-${layer.id}" data-layer="${layer.id}" checked>
-          <span>Active</span>
-        </label>
       </div>
     </div>
     <input type="range" class="layer-slider" id="sl-${layer.id}"
            min="0" max="${LAYER_SLIDER_MAX}" value="${defaultVal}" step="1" data-layer="${layer.id}">
     <div class="layer-desc">${layer.desc}</div>
     ${chordBlock}
+    <div style="display:flex;justify-content:flex-end">
+      <span class="layer-active-lbl is-active" id="active-${layer.id}" data-layer="${layer.id}" title="Toggle layer">Active</span>
+    </div>
   `;
 
   const slider = card.querySelector(`#sl-${layer.id}`);
   const valEl  = card.querySelector(`#lv-${layer.id}`);
-  const activeChk = card.querySelector(`#active-${layer.id}`);
+  const activeLbl = card.querySelector(`#active-${layer.id}`);
   layerActive[layer.id] = true;
   slider.classList.toggle('muted', parseInt(slider.value) === 0);
 
@@ -1153,9 +1097,13 @@ function buildLayerCard(layer) {
     updateLayerDisplayFromState(engine?.getState());
   });
 
-  activeChk.addEventListener('change', () => {
-    layerActive[layer.id] = activeChk.checked;
-    card.classList.toggle('inactive-toggle', !activeChk.checked);
+  activeLbl.addEventListener('click', () => {
+    layerActive[layer.id] = !layerActive[layer.id];
+    const on = layerActive[layer.id];
+    activeLbl.textContent = on ? 'Active' : 'Inactive';
+    activeLbl.classList.toggle('is-active', on);
+    activeLbl.classList.toggle('is-inactive', !on);
+    card.classList.toggle('inactive-toggle', !on);
     syncLayerToEngine(layer.id);
     updateLayerDisplayFromState(engine?.getState());
   });
