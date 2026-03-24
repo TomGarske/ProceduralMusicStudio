@@ -118,13 +118,13 @@
   ],
   "layerMix": {
     "arp": 0.35,
-    "echo": 0.2,
+    "echo": 0.45,
     "thump": 0.38,
     "piano": 0.5,
     "sub": 0.22,
     "pad": 0.4,
     "bass": 0.22,
-    "shim": 0.1,
+    "shim": 0.55,
     "drone": 0.3,
     "beatpulse": 0.22,
     "voices": 0.68
@@ -319,7 +319,7 @@
     {
       "id": "phase3",
       "label": "Westward Bound",
-      "durationBeats": 64,
+      "durationBeats": 76,
       "chordSeq": [
         "Fm",
         "Cm",
@@ -373,7 +373,7 @@
     {
       "id": "phase4",
       "label": "Wide Missouri",
-      "durationBeats": 64,
+      "durationBeats": 66,
       "chordSeq": [
         "Fm",
         "Bbm",
@@ -428,7 +428,7 @@
     {
       "id": "phase5",
       "label": "Quiet Waters",
-      "durationBeats": 48,
+      "durationBeats": 56,
       "chordSeq": [
         "Fm",
         "Cm",
@@ -469,7 +469,7 @@
     {
       "id": "phase6",
       "label": "Rolling Thunder",
-      "durationBeats": 64,
+      "durationBeats": 80,
       "chordSeq": [
         "Fm",
         "Cm",
@@ -524,7 +524,7 @@
     {
       "id": "phase7",
       "label": "Distant Shore",
-      "durationBeats": 48,
+      "durationBeats": 40,
       "chordSeq": [
         "Fm",
         "Bbm",

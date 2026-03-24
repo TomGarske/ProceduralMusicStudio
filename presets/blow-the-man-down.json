@@ -121,13 +121,13 @@
   ],
   "layerMix": {
     "arp": 0.42,
-    "echo": 0.12,
+    "echo": 0.45,
     "thump": 0.58,
     "piano": 0.45,
     "sub": 0.2,
     "pad": 0.28,
     "bass": 0.28,
-    "shim": 0.15,
+    "shim": 0.55,
     "drone": 0.25,
     "beatpulse": 0.32,
     "voices": 0.6
@@ -233,7 +233,7 @@
     {
       "id": "phase1",
       "label": "Solo Verse",
-      "durationBeats": 24,
+      "durationBeats": 32,
       "chordSeq": [
         "Cm",
         "Gm",
@@ -268,7 +268,7 @@
     {
       "id": "phase2",
       "label": "Crew Pull",
-      "durationBeats": 24,
+      "durationBeats": 32,
       "chordSeq": [
         "Cm",
         "Fm",
@@ -385,7 +385,7 @@
     {
       "id": "phase5",
       "label": "Steady As She Goes",
-      "durationBeats": 24,
+      "durationBeats": 32,
       "chordSeq": [
         "Cm",
         "Gm",
@@ -459,7 +459,7 @@
     {
       "id": "phase7",
       "label": "Harbor Bound",
-      "durationBeats": 24,
+      "durationBeats": 32,
       "chordSeq": [
         "Cm",
         "Gm",

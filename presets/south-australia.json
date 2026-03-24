@@ -129,13 +129,13 @@
   ],
   "layerMix": {
     "arp": 0.42,
-    "echo": 0.12,
+    "echo": 0.45,
     "thump": 0.6,
     "piano": 0.48,
     "sub": 0.2,
     "pad": 0.28,
     "bass": 0.28,
-    "shim": 0.14,
+    "shim": 0.55,
     "drone": 0.24,
     "beatpulse": 0.35,
     "voices": 0.6

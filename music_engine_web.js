@@ -247,7 +247,7 @@ const ProceduralMusic = (() => {
     let volumeSetting = 1.0;
 
     let actx=null, nd={}, startTime=0, pausedAt=0, playing=false, streamDest=null;
-    let step=0, pianoBarCount=0, currentPhase=null;
+    let step=0, pianoBarCount=0, crewSyllableIdx=0, currentPhase=null;
     /** Pending seek target set before actx.resume() completes (play+seek race). */
     let pendingSeekPhaseId = null;
     /** Next 16th-note event time (AudioContext), used by lookahead scheduler. */
@@ -260,6 +260,7 @@ const ProceduralMusic = (() => {
     function resetSequencerCounters() {
       step = 0;
       pianoBarCount = 0;
+      crewSyllableIdx = 0;
       lastPlayedChord = null;
       droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn(layerConfigs.sub.rootNote || 'D2') };
     }
@@ -496,9 +497,13 @@ const ProceduralMusic = (() => {
       // Bass line
       const bassRootN = (presetDroneVoicings && presetDroneVoicings[0]?.root) || 'D2';
       const bassG=g(0); bassG.connect(master); bassG.connect(nd.rev);
-      const bO=o('sine',N[bassRootN]||73.42), bO2=o('sine',N[bassRootN]||73.42); bO2.detune.value=layerConfigs.bass.detuneCents;
-      const bL=lpf(layerConfigs.bass.lpfHz,0.7), bH=hpf(layerConfigs.bass.hpfHz); bO.connect(bL); bO2.connect(bL); bL.connect(bH); bH.connect(bassG);
-      nd.bassGain=bassG; nd.bassO=bO; nd.bassO2=bO2;
+      // Triangle adds odd harmonics for warmth; second sine gives body via detuning
+      const bO=o('triangle',N[bassRootN]||73.42), bO2=o('sine',N[bassRootN]||73.42); bO2.detune.value=layerConfigs.bass.detuneCents;
+      const bL=lpf(layerConfigs.bass.lpfHz,0.7), bH=hpf(layerConfigs.bass.hpfHz);
+      // Envelope gain for per-note pluck articulation (starts silent)
+      const bassEnvG=actx.createGain(); bassEnvG.gain.value=0;
+      bO.connect(bL); bO2.connect(bL); bL.connect(bH); bH.connect(bassEnvG); bassEnvG.connect(bassG);
+      nd.bassGain=bassG; nd.bassO=bO; nd.bassO2=bO2; nd.bassEnvG=bassEnvG;
 
       // Ship's bell / ring accent
       const shimG=g(0); shimG.connect(master); shimG.connect(nd.rev); nd.shimGain=shimG;
@@ -853,6 +858,21 @@ const ProceduralMusic = (() => {
       src.start(Math.max(when + timeJitter, actx.currentTime));
     }
 
+    function fireBass(when, freq) {
+      if (!nd.bassEnvG) return;
+      // Snap frequency immediately (2ms glide avoids click, sounds like a pluck not a slide)
+      nd.bassO.frequency.cancelScheduledValues(when);
+      nd.bassO.frequency.setTargetAtTime(freq, when, 0.002);
+      nd.bassO2.frequency.cancelScheduledValues(when);
+      nd.bassO2.frequency.setTargetAtTime(freq, when, 0.003);
+      // Pluck envelope: sharp attack then string-like decay
+      const env = nd.bassEnvG.gain;
+      env.cancelScheduledValues(when);
+      env.setValueAtTime(0, when);
+      env.linearRampToValueAtTime(1.0 + Math.random() * 0.15, when + 0.010); // 10ms attack, slight velocity jitter
+      env.setTargetAtTime(0.001, when + 0.012, 0.28 + Math.random() * 0.06); // decay ~280-340ms tau
+    }
+
     function getPianoPartialBuffer(f, ni, harm, amp, dec) {
       const sr = actx.sampleRate;
       const key = `${f.toFixed(3)}|${ni}|${harm}|${dec}|${sr}`;
@@ -983,20 +1003,35 @@ const ProceduralMusic = (() => {
       const detSpread = vc.detuneSpread ?? 15;
       const breathLvl = vc.breathLevel ?? 0.035;
 
-      // Vowel formants with realistic frequencies and sharp resonance peaks.
-      // "AH" (open, like a crew chant): F1≈800 F2≈1200 F3≈2500
-      // "OH" (rounder, calls): F1≈500 F2≈900 F3≈2200
-      // High Q (10–14) gives distinct vowel character vs. a plain sawtooth buzz.
-      const vowels = [
-        { f1: 800,  f2: 1200, f3: 2500, q1: 12, q2: 10, q3: 8 },
-        { f1: 500,  f2: 900,  f3: 2200, q1: 12, q2: 10, q3: 8 },
+      // Sea-shanty crew call syllables — each entry has start (s) and end (e) formants so
+      // the voice glides through the vowel shape, approximating real word sounds.
+      // burst: relative noise level at attack (H-consonant strength; near 0 = hum/closed).
+      // The crew cycles through this sequence so each trigger is a distinct word call.
+      const CREW_SYLLABLES = [
+        // "HO" — round punchy call, strong downbeat
+        { f1s:450,  f2s:850,  f3s:2100, f1e:430,  f2e:810,  f3e:2000, q1:12, q2:10, q3:7,  burst:0.09 },
+        // "HAY" — bright diphthong EH→EE, classic shanty response
+        { f1s:600,  f2s:1900, f3s:2700, f1e:320,  f2e:2300, f3e:3000, q1:11, q2:11, q3:8,  burst:0.08 },
+        // "HAUL" — open AH settling into a rounder vowel
+        { f1s:800,  f2s:1200, f3s:2500, f1e:650,  f2e:1050, f3e:2300, q1:12, q2:10, q3:8,  burst:0.07 },
+        // "AWAY" — AH gliding toward EY
+        { f1s:780,  f2s:1200, f3s:2500, f1e:480,  f2e:1800, f3e:2800, q1:11, q2:10, q3:7,  burst:0.05 },
+        // "HEAVE" — EH gliding to EE
+        { f1s:580,  f2s:1850, f3s:2700, f1e:300,  f2e:2350, f3e:3000, q1:12, q2:11, q3:8,  burst:0.08 },
+        // "HMM" — nasal hum (closed mouth, softer phases)
+        { f1s:260,  f2s:1000, f3s:2200, f1e:260,  f2e:1000, f3e:2200, q1:15, q2:11, q3:7,  burst:0.01 },
+        // "OH" — round sustained call
+        { f1s:500,  f2s:900,  f3s:2200, f1e:480,  f2e:870,  f3e:2100, q1:12, q2:10, q3:8,  burst:0.05 },
+        // "HMM" again — hum on every other off-beat keeps it varied
+        { f1s:260,  f2s:1000, f3s:2200, f1e:260,  f2e:1000, f3e:2200, q1:15, q2:11, q3:7,  burst:0.01 },
       ];
+      // All voices on this trigger say the same syllable — crew chanting together
+      const syllable = CREW_SYLLABLES[crewSyllableIdx % CREW_SYLLABLES.length];
+      crewSyllableIdx++;
 
       const notes = chord.notes.slice(0, Math.min(4, chord.notes.length));
 
       notes.forEach((freq, ni) => {
-        const vowel = vowels[ni % vowels.length];
-
         for (let vi = 0; vi < numVoices; vi++) {
           const detCents = (vi - (numVoices - 1) * 0.5) * detSpread / Math.max(1, numVoices - 1) + (Math.random() - 0.5) * 8;
           // Humanize: wider timing scatter for natural choir feel
@@ -1010,13 +1045,12 @@ const ProceduralMusic = (() => {
           // Pitch drift: slow random wander +-4 cents over the note
           const drift = actx.createOscillator();
           const driftAmt = actx.createGain();
-          drift.frequency.value = 0.3 + Math.random() * 0.5; // very slow LFO
-          driftAmt.gain.value = 4 + Math.random() * 3; // +-4-7 cents
+          drift.frequency.value = 0.3 + Math.random() * 0.5;
+          driftAmt.gain.value = 4 + Math.random() * 3;
           drift.connect(driftAmt); driftAmt.connect(osc.detune);
 
           const vib = actx.createOscillator();
           const vibAmt = actx.createGain();
-          // Humanize vibrato rate per voice
           vib.frequency.value = baseVibHz + ni * 0.4 + vi * 0.3 + (Math.random() - 0.5) * 0.8;
           vibAmt.gain.value = (3.5 + ni * 1.2) * (0.8 + Math.random() * 0.4);
           vib.connect(vibAmt); vibAmt.connect(osc.frequency);
@@ -1025,25 +1059,25 @@ const ProceduralMusic = (() => {
           const hpPre = actx.createBiquadFilter();
           hpPre.type = 'highpass'; hpPre.frequency.value = 120; hpPre.Q.value = 0.7;
           osc.connect(hpPre);
+
+          // Three-formant vocal tract model using syllable's start positions,
+          // then animate toward end positions to create the vowel glide/diphthong
           const f1 = actx.createBiquadFilter();
-          f1.type = 'bandpass'; f1.frequency.value = vowel.f1 + vi * 20 + (Math.random() - 0.5) * 30; f1.Q.value = vowel.q1;
+          f1.type = 'bandpass'; f1.frequency.value = syllable.f1s + vi * 20 + (Math.random() - 0.5) * 30; f1.Q.value = syllable.q1;
           const f2 = actx.createBiquadFilter();
-          f2.type = 'bandpass'; f2.frequency.value = vowel.f2 + vi * 30 + (Math.random() - 0.5) * 50; f2.Q.value = vowel.q2;
+          f2.type = 'bandpass'; f2.frequency.value = syllable.f2s + vi * 30 + (Math.random() - 0.5) * 50; f2.Q.value = syllable.q2;
           const f3 = actx.createBiquadFilter();
-          f3.type = 'bandpass'; f3.frequency.value = vowel.f3 + vi * 40 + (Math.random() - 0.5) * 80; f3.Q.value = vowel.q3;
-          // Formant drift: natural vowel migration over the note
-          const f1Target = vowel.f1 * (0.93 + Math.random() * 0.14);
-          const f2Target = vowel.f2 * (0.92 + Math.random() * 0.16);
-          const f3Target = vowel.f3 * (0.90 + Math.random() * 0.20);
-          f1.frequency.setTargetAtTime(f1Target, startAt + 0.3, dur * 0.4);
-          f2.frequency.setTargetAtTime(f2Target, startAt + 0.3, dur * 0.4);
-          f3.frequency.setTargetAtTime(f3Target, startAt + 0.3, dur * 0.4);
+          f3.type = 'bandpass'; f3.frequency.value = syllable.f3s + vi * 40 + (Math.random() - 0.5) * 80; f3.Q.value = syllable.q3;
+          // Glide toward end-of-syllable formant positions — creates vowel movement
+          f1.frequency.setTargetAtTime(syllable.f1e + vi * 20, startAt + 0.25, dur * 0.35);
+          f2.frequency.setTargetAtTime(syllable.f2e + vi * 30, startAt + 0.25, dur * 0.35);
+          f3.frequency.setTargetAtTime(syllable.f3e + vi * 40, startAt + 0.25, dur * 0.35);
+
           const fSum = actx.createGain(); fSum.gain.value = 1.0;
           hpPre.connect(f1); hpPre.connect(f2); hpPre.connect(f3);
           f1.connect(fSum); f2.connect(fSum); f3.connect(fSum);
 
           const env = actx.createGain();
-          // Humanize envelope: vary peak and attack per voice
           const peakJitter = 0.85 + Math.random() * 0.3;
           const peak = vv * (0.20 - ni * 0.025 - vi * (0.015 / numVoices)) * peakJitter;
           const attackTime = (0.12 + ni * 0.025) * (0.7 + Math.random() * 0.6);
@@ -1059,6 +1093,7 @@ const ProceduralMusic = (() => {
         }
       });
 
+      // Consonant/breath burst — sharp H-attack for call syllables, nearly absent for hums
       const noiseDur = dur * 0.5;
       const noiseBuf = getBreathNoiseBuffer();
       const noiseSrc = actx.createBufferSource();
@@ -1066,11 +1101,16 @@ const ProceduralMusic = (() => {
       const maxOffset = Math.max(0, noiseBuf.duration - noiseDur - 0.2);
       const noiseOffset = Math.random() * maxOffset;
       const noiseBpf = actx.createBiquadFilter();
-      noiseBpf.type = 'bandpass'; noiseBpf.frequency.value = 1600; noiseBpf.Q.value = 1.8;
+      // H-consonant burst is brighter (~3kHz); hum breath stays at 1600Hz
+      noiseBpf.type = 'bandpass';
+      noiseBpf.frequency.value = syllable.burst > 0.04 ? 2800 : 1600;
+      noiseBpf.Q.value = syllable.burst > 0.04 ? 1.2 : 1.8;
       const noiseEnv = actx.createGain();
+      const burstPeak = vv * breathLvl * (syllable.burst / 0.035); // scale relative to default
+      const burstDecay = syllable.burst > 0.04 ? 0.06 : 0.25; // H-burst is short and snappy
       noiseEnv.gain.setValueAtTime(0, when);
-      noiseEnv.gain.linearRampToValueAtTime(vv * breathLvl, when + 0.18);
-      noiseEnv.gain.setTargetAtTime(0.001, when + 0.5, noiseDur * 0.25);
+      noiseEnv.gain.linearRampToValueAtTime(burstPeak, when + 0.015);
+      noiseEnv.gain.setTargetAtTime(0.001, when + 0.015, burstDecay);
       noiseSrc.connect(noiseBpf); noiseBpf.connect(noiseEnv); noiseEnv.connect(nd.voiceGain);
       noiseSrc.start(when, noiseOffset, noiseDur + 0.1);
     }
@@ -1253,8 +1293,7 @@ const ProceduralMusic = (() => {
             lastPlayedChord = CHORDS[seq[pianoBarCount % seq.length]];
             // Beat 1: bass plays chord root
             if (lastPlayedChord) {
-              nd.bassO.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.10);
-              nd.bassO2.frequency.setTargetAtTime(lastPlayedChord.notes[0],when,0.12);
+              fireBass(when, lastPlayedChord.notes[0]);
             }
           }
           const targetPiano = (lv.piano||0)*(layerMult.piano??1)*LAYER_MAP.piano.scale;
@@ -1266,8 +1305,7 @@ const ProceduralMusic = (() => {
           // Beat 3: bass walks to the fifth (notes[1]) — root-fifth is the
           // classic sea-shanty bass pattern (D→A, C→G, Am→E, etc.)
           const fifth = lastPlayedChord.notes[1] ?? lastPlayedChord.notes[0];
-          nd.bassO.frequency.setTargetAtTime(fifth, when, 0.08);
-          nd.bassO2.frequency.setTargetAtTime(fifth, when, 0.10);
+          fireBass(when, fifth);
         }
 
         // Drone/pulse state machine
