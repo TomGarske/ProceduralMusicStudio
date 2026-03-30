@@ -3,264 +3,227 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Synthesis POC — Compare</title>
+  <title>Voice Synthesis POC - Pink Trombone</title>
   <script src="script/component-noui.js" type="module"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #20354d 0%, #101824 52%, #0a1018 100%);
+      color: #e6edf7;
       padding: 24px;
     }
-    h1 { text-align: center; color: #8ecae6; margin-bottom: 8px; font-size: 1.6rem; }
-    .subtitle { text-align: center; color: #888; margin-bottom: 24px; font-size: 0.9rem; }
-    .columns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+    .app {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    h1 {
+      text-align: center;
+      color: #9ed7ff;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+    }
+    .subtitle {
+      text-align: center;
+      color: #9fb0c4;
+      line-height: 1.5;
+      max-width: 760px;
+      margin: 0 auto;
+    }
     .card {
-      background: #16213e;
-      border: 1px solid #0f3460;
-      border-radius: 12px;
-      padding: 20px;
+      background: rgba(18, 28, 40, 0.92);
+      border: 1px solid rgba(116, 170, 214, 0.24);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+      display: grid;
+      gap: 18px;
+    }
+    .section-title {
+      color: #e7c878;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .controls {
+      display: grid;
+      gap: 12px;
+    }
+    label {
       display: flex;
-      flex-direction: column;
-      gap: 14px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: #bfd0df;
+      font-size: 0.92rem;
     }
-    .card h2 { color: #e9c46a; font-size: 1.15rem; }
-    .card .desc { color: #999; font-size: 0.82rem; line-height: 1.5; }
-    .controls { display: flex; flex-direction: column; gap: 10px; }
-    label { font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; align-items: center; }
-    label span { color: #8ecae6; font-variant-numeric: tabular-nums; min-width: 50px; text-align: right; }
-    input[type="range"] { width: 100%; accent-color: #e9c46a; }
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    label span {
+      min-width: 60px;
+      text-align: right;
+      color: #9ed7ff;
+      font-variant-numeric: tabular-nums;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #e7c878;
+    }
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+    .button-row,
+    .note-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
     button {
-      background: #0f3460;
-      color: #8ecae6;
-      border: 1px solid #1a508b;
-      border-radius: 6px;
-      padding: 8px 16px;
+      background: #16304b;
+      color: #9ed7ff;
+      border: 1px solid #285781;
+      border-radius: 8px;
+      padding: 8px 14px;
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: background 0.15s;
+      font-size: 0.9rem;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
     }
-    button:hover { background: #1a508b; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-    button.active { background: #264653; border-color: #e9c46a; color: #e9c46a; }
-    .play-all-row { text-align: center; margin: 20px 0; }
-    .play-all-row button { font-size: 1rem; padding: 12px 32px; background: #264653; border-color: #e9c46a; color: #e9c46a; }
-    .status { font-size: 0.75rem; color: #666; min-height: 18px; }
-    .vowel-row { display: flex; gap: 4px; flex-wrap: wrap; }
-    .vowel-row button { padding: 6px 10px; font-size: 0.8rem; min-width: 44px; }
-    .note-row { display: flex; gap: 4px; flex-wrap: wrap; }
-    .note-row button { padding: 5px 8px; font-size: 0.75rem; }
-    .section-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
-    select {
-      background: #0f3460; color: #8ecae6; border: 1px solid #1a508b;
-      border-radius: 4px; padding: 4px 8px; font-size: 0.8rem;
+    button:hover {
+      background: #20476d;
+      border-color: #4e87ba;
     }
-    .shanty-demo { margin-top: 8px; }
+    button:active { transform: scale(0.98); }
+    .button-row button.active {
+      background: #2d5b47;
+      border-color: #e7c878;
+      color: #f3dc9c;
+    }
+    .note-row button {
+      min-width: 62px;
+      padding: 7px 10px;
+      font-size: 0.84rem;
+    }
+    .status {
+      min-height: 20px;
+      color: #8ea2b8;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
-
-<!-- Pink Trombone web component (hidden — no UI, just audio engine) -->
 <pink-trombone style="display:none"></pink-trombone>
 
-<h1>Voice Synthesis POC — Sea Shanty Crew Vocals</h1>
-<p class="subtitle">Compare three phoneme/voice libraries for crew chanting. Each card plays the same D minor phrase.</p>
+<div class="app">
+  <h1>Pink Trombone Voice POC</h1>
+  <p class="subtitle">
+    Crew-vocal experiments for the sea shanty project using Pink Trombone as the single synthesis path.
+    This page focuses on vowel shaping, note triggering, and a short shanty phrase.
+  </p>
 
-<div class="play-all-row">
-  <button id="btnPlayAll" onclick="playAllShanty()">▶ Play Shanty Phrase — All Three</button>
-  <button onclick="stopAll()">■ Stop All</button>
-</div>
-
-<div class="columns">
-
-  <!-- ═══════════════════════════════════════════════ CARD 1: Pink Trombone ═══ -->
-  <div class="card" id="cardPT">
-    <h2>1. Pink Trombone</h2>
-    <p class="desc">Physical vocal tract model — simulates glottis, tongue, nasal cavity. Most organic/realistic for sustained vowels and crew calls.</p>
+  <div class="card">
+    <div class="section-title">Pink Trombone Controls</div>
 
     <div class="controls">
       <label>Pitch (Hz) <span id="ptPitchVal">146</span></label>
-      <input type="range" id="ptPitch" min="80" max="400" value="146" step="1"
-             oninput="ptSetPitch(this.value)">
+      <input type="range" id="ptPitch" min="80" max="400" value="146" step="1" oninput="ptSetPitch(this.value)">
+
       <label>Tenseness <span id="ptTenseVal">0.6</span></label>
-      <input type="range" id="ptTense" min="0" max="1" value="0.6" step="0.01"
-             oninput="ptSetTenseness(this.value)">
+      <input type="range" id="ptTense" min="0" max="1" value="0.6" step="0.01" oninput="ptSetTenseness(this.value)">
+
       <label>Vibrato <span id="ptVibVal">0.5</span></label>
-      <input type="range" id="ptVib" min="0" max="1" value="0.5" step="0.01"
-             oninput="ptSetVibrato(this.value)">
+      <input type="range" id="ptVib" min="0" max="1" value="0.5" step="0.01" oninput="ptSetVibrato(this.value)">
     </div>
 
-    <p class="section-label">Vowels</p>
-    <div class="vowel-row">
-      <button onclick="ptVowel('OH',12.6,2.3)">OH</button>
-      <button onclick="ptVowel('AH',14.93,2.78)">AH</button>
-      <button onclick="ptVowel('EH',19.4,3.43)">EH</button>
-      <button onclick="ptVowel('EE',27.2,2.2)">EE</button>
-      <button onclick="ptVowel('OO',22.8,2.05)">OO</button>
-      <button onclick="ptVowel('UH',17.8,2.46)">UH</button>
+    <div class="grid">
+      <div class="section-title">Vowels</div>
+      <div class="button-row">
+        <button onclick="ptVowel('OH', 12.6, 2.3)">OH</button>
+        <button onclick="ptVowel('AH', 14.93, 2.78)">AH</button>
+        <button onclick="ptVowel('EH', 19.4, 3.43)">EH</button>
+        <button onclick="ptVowel('EE', 27.2, 2.2)">EE</button>
+        <button onclick="ptVowel('OO', 22.8, 2.05)">OO</button>
+        <button onclick="ptVowel('UH', 17.8, 2.46)">UH</button>
+      </div>
     </div>
 
-    <p class="section-label">Notes</p>
-    <div class="note-row" id="ptNotes"></div>
-
-    <div class="shanty-demo">
-      <button onclick="ptShantyPhrase()">▶ Shanty Phrase</button>
-      <button onclick="ptStop()">■ Stop</button>
+    <div class="grid">
+      <div class="section-title">Notes</div>
+      <div class="note-row" id="ptNotes"></div>
     </div>
-    <p class="status" id="ptStatus">Ready — click any vowel to start</p>
+
+    <div class="grid">
+      <div class="section-title">Phrase</div>
+      <div class="button-row">
+        <button onclick="ptShantyPhrase()">Play Shanty Phrase</button>
+        <button onclick="ptStop()">Stop</button>
+      </div>
+    </div>
+
+    <p class="status" id="ptStatus">Loading Pink Trombone…</p>
   </div>
-
-  <!-- ═══════════════════════════════════════════════ CARD 2: meSpeak ════════ -->
-  <div class="card" id="cardMS">
-    <h2>2. meSpeak.js</h2>
-    <p class="desc">eSpeak formant synthesizer ported to JS. Direct phoneme control via IPA. Robotic but supports actual words/consonants.</p>
-
-    <div class="controls">
-      <label>Pitch <span id="msPitchVal">50</span></label>
-      <input type="range" id="msPitch" min="10" max="99" value="50" step="1"
-             oninput="document.getElementById('msPitchVal').textContent=this.value">
-      <label>Speed <span id="msSpeedVal">130</span></label>
-      <input type="range" id="msSpeed" min="80" max="300" value="130" step="5"
-             oninput="document.getElementById('msSpeedVal').textContent=this.value">
-      <label>Voice
-        <select id="msVoice" onchange="msLoadVoice(this.value)">
-          <option value="en/en" selected>English (default)</option>
-          <option value="en/en-us">English (US)</option>
-          <option value="en/en-sc">English (Scottish)</option>
-          <option value="en/en-n">English (Northern)</option>
-        </select>
-      </label>
-    </div>
-
-    <p class="section-label">Syllables</p>
-    <div class="vowel-row">
-      <button onclick="msSpeak('HO')">HO</button>
-      <button onclick="msSpeak('HAY')">HAY</button>
-      <button onclick="msSpeak('HAUL')">HAUL</button>
-      <button onclick="msSpeak('HEAVE')">HEAVE</button>
-      <button onclick="msSpeak('AWAY')">AWAY</button>
-      <button onclick="msSpeak('OH')">OH</button>
-    </div>
-
-    <p class="section-label">Phonemes (IPA)</p>
-    <div class="vowel-row">
-      <button onclick="msSpeakPhoneme('[[h0I]]')">hɔɪ</button>
-      <button onclick="msSpeakPhoneme('[[heI]]')">heɪ</button>
-      <button onclick="msSpeakPhoneme('[[h00l]]')">hɔːl</button>
-      <button onclick="msSpeakPhoneme('[[oU]]')">oʊ</button>
-      <button onclick="msSpeakPhoneme('[[Ahh]]')">ɑː</button>
-    </div>
-
-    <div class="shanty-demo">
-      <button onclick="msShantyPhrase()">▶ Shanty Phrase</button>
-      <button onclick="msStop()">■ Stop</button>
-    </div>
-    <p class="status" id="msStatus">Loading meSpeak engine…</p>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════ CARD 3: meSing ════════ -->
-  <div class="card" id="cardSing">
-    <h2>3. meSing (meSpeak + Vocoder)</h2>
-    <p class="desc">meSpeak output pitch-shifted via Web Audio vocoder. Can sing actual words at musical pitches — robotic but melodic.</p>
-
-    <div class="controls">
-      <label>Vocoder Bands <span id="singBandsVal">16</span></label>
-      <input type="range" id="singBands" min="8" max="48" value="16" step="4"
-             oninput="document.getElementById('singBandsVal').textContent=this.value">
-      <label>Wet/Dry <span id="singWetVal">0.8</span></label>
-      <input type="range" id="singWet" min="0" max="1" value="0.8" step="0.05"
-             oninput="document.getElementById('singWetVal').textContent=this.value">
-    </div>
-
-    <p class="section-label">Sing Notes (D minor)</p>
-    <div class="note-row" id="singNotes"></div>
-
-    <p class="section-label">Syllable</p>
-    <div class="vowel-row">
-      <button onclick="singSetWord('HO')" class="active" id="singWordHO">HO</button>
-      <button onclick="singSetWord('HAY')" id="singWordHAY">HAY</button>
-      <button onclick="singSetWord('HEAVE')" id="singWordHEAVE">HEAVE</button>
-      <button onclick="singSetWord('AWAY')" id="singWordAWAY">AWAY</button>
-    </div>
-
-    <div class="shanty-demo">
-      <button onclick="singShantyPhrase()">▶ Shanty Phrase</button>
-      <button onclick="singStop()">■ Stop</button>
-    </div>
-    <p class="status" id="singStatus">Loading meSpeak engine…</p>
-  </div>
-
 </div>
 
-<!-- meSpeak standalone browser build (creates global meSpeak object) -->
-<script src="https://cdn.jsdelivr.net/gh/btopro/mespeak@master/mespeak.full.js"></script>
-
 <script>
-// ══════════════════════════════════════════════════════════════════════════════
-// Shared constants
-// ══════════════════════════════════════════════════════════════════════════════
 const NOTES_DM = {
-  'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00,
-  'A3': 220.00, 'Bb3': 233.08, 'C4': 261.63, 'D4': 293.66,
-  'E4': 329.63, 'F4': 349.23
+  D3: 146.83,
+  E3: 164.81,
+  F3: 174.61,
+  G3: 196.0,
+  A3: 220.0,
+  Bb3: 233.08,
+  C4: 261.63,
+  D4: 293.66,
+  E4: 329.63,
+  F4: 349.23,
 };
-// A short shanty phrase: "HO — HAY — HAUL A-WAY — HO"
+
 const SHANTY_PHRASE = [
-  { note: 'D3', syllable: 'HO',   dur: 0.6 },
-  { note: 'F3', syllable: 'HAY',  dur: 0.5 },
-  { note: 'A3', syllable: 'HAUL', dur: 0.5 },
-  { note: 'G3', syllable: 'A',    dur: 0.25 },
-  { note: 'F3', syllable: 'WAY',  dur: 0.6 },
-  { note: 'D3', syllable: 'HO',   dur: 0.8 },
+  { note: 'D3', syllable: 'OH', dur: 0.6 },
+  { note: 'F3', syllable: 'EH', dur: 0.5 },
+  { note: 'A3', syllable: 'AH', dur: 0.5 },
+  { note: 'G3', syllable: 'AH', dur: 0.25 },
+  { note: 'F3', syllable: 'EE', dur: 0.6 },
+  { note: 'D3', syllable: 'OH', dur: 0.8 },
 ];
 
 let actx = null;
+let ptElement = null;
+let ptReady = false;
+let ptTimeout = null;
+
+const PT_VOWELS = {
+  OH: { idx: 12.6, dia: 2.3 },
+  AH: { idx: 14.93, dia: 2.78 },
+  EH: { idx: 19.4, dia: 3.43 },
+  EE: { idx: 27.2, dia: 2.2 },
+  OO: { idx: 22.8, dia: 2.05 },
+  UH: { idx: 17.8, dia: 2.46 },
+};
+
 function ensureAudioCtx() {
   if (!actx) actx = new AudioContext();
   if (actx.state === 'suspended') actx.resume();
   return actx;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// 1. PINK TROMBONE
-// ══════════════════════════════════════════════════════════════════════════════
-let ptElement = null;
-let ptReady = false;
-let ptTimeout = null;
-
-// Vowel presets from Pink Trombone phoneme table
-const PT_VOWELS = {
-  'OH': { idx: 12.6, dia: 2.3 },
-  'AH': { idx: 14.93, dia: 2.78 },
-  'EH': { idx: 19.4, dia: 3.43 },
-  'EE': { idx: 27.2, dia: 2.2 },
-  'OO': { idx: 22.8, dia: 2.05 },
-  'UH': { idx: 17.8, dia: 2.46 },
-};
-
 async function ptInit() {
-  // The <pink-trombone> web component fires 'load' in its constructor,
-  // so we may miss it if we listen after DOMContentLoaded. Instead,
-  // wait for the custom element to be defined, then set up audio directly.
   await customElements.whenDefined('pink-trombone');
-
   ptElement = document.querySelector('pink-trombone');
   if (!ptElement) {
-    document.getElementById('ptStatus').textContent = 'Error: <pink-trombone> element not found';
+    document.getElementById('ptStatus').textContent = 'Error: pink-trombone element not found';
     return;
   }
 
   try {
     const ctx = ensureAudioCtx();
-    const pt = await ptElement.setAudioContext(ctx);
+    await ptElement.setAudioContext(ctx);
     ptElement.connect(ctx.destination);
     ptReady = true;
-    document.getElementById('ptStatus').textContent = 'Ready — click any vowel to start';
+    document.getElementById('ptStatus').textContent = 'Ready';
   } catch (e) {
     document.getElementById('ptStatus').textContent = 'Error: ' + e.message;
-    console.error('PT init error:', e);
+    console.error('Pink Trombone init error:', e);
   }
 }
 
@@ -289,7 +252,10 @@ function ptSetVibrato(v) {
 }
 
 function ptVowel(name, idx, dia) {
-  if (!ptReady) { ptInit(); return; }
+  if (!ptReady) {
+    ptInit();
+    return;
+  }
   ensureAudioCtx();
   const t = ptElement.audioContext.currentTime;
   ptElement.parameters.tongue.index.linearRampToValueAtTime(idx, t + 0.12);
@@ -325,20 +291,19 @@ async function ptShantyPhrase() {
   let time = ctx.currentTime + 0.05;
   for (const step of SHANTY_PHRASE) {
     const hz = NOTES_DM[step.note];
-    const vowel = PT_VOWELS[step.syllable] || PT_VOWELS['OH'];
+    const vowel = PT_VOWELS[step.syllable] || PT_VOWELS.OH;
 
     ptElement.parameters.frequency.linearRampToValueAtTime(hz, time + 0.03);
     ptElement.parameters.tongue.index.linearRampToValueAtTime(vowel.idx, time + 0.08);
     ptElement.parameters.tongue.diameter.linearRampToValueAtTime(vowel.dia, time + 0.08);
 
-    // Brief intensity dip between syllables for articulation
     if (time > ctx.currentTime + 0.1) {
       ptElement.parameters.intensity.setValueAtTime(0.2, time - 0.04);
       ptElement.parameters.intensity.linearRampToValueAtTime(1, time + 0.04);
     }
     time += step.dur;
   }
-  // Fade out at end
+
   ptElement.parameters.intensity.linearRampToValueAtTime(0, time + 0.4);
   const totalMs = (time - ctx.currentTime + 0.6) * 1000;
   clearTimeout(ptTimeout);
@@ -357,10 +322,9 @@ function ptStop() {
   document.getElementById('ptStatus').textContent = 'Stopped';
 }
 
-// Build note buttons for Pink Trombone
 {
   const container = document.getElementById('ptNotes');
-  for (const [name, hz] of Object.entries(NOTES_DM)) {
+  for (const name of Object.keys(NOTES_DM)) {
     const btn = document.createElement('button');
     btn.textContent = name;
     btn.onclick = () => ptPlayNote(name);
@@ -368,322 +332,9 @@ function ptStop() {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// 2. meSpeak
-// ══════════════════════════════════════════════════════════════════════════════
-let msReady = false;
-let msCurrentAudio = null;
-
-async function msInit() {
-  try {
-    const BASE = 'https://cdn.jsdelivr.net/gh/btopro/mespeak@master';
-
-    // meSpeak standalone build uses URL-string loading (async XHR internally)
-    meSpeak.loadConfig(BASE + '/mespeak_config.json');
-
-    // loadVoice is async — use callback to know when ready
-    meSpeak.loadVoice(BASE + '/voices/en/en.json', function(success) {
-      if (success) {
-        msReady = true;
-        document.getElementById('msStatus').textContent = 'Ready';
-        document.getElementById('singStatus').textContent = 'Ready';
-      } else {
-        document.getElementById('msStatus').textContent = 'Error: voice failed to load';
-      }
-    });
-  } catch (e) {
-    document.getElementById('msStatus').textContent = 'Error loading meSpeak: ' + e.message;
-    console.error('meSpeak init error:', e);
-  }
-}
-
-function msLoadVoice(voicePath) {
-  if (!meSpeak) return;
-  const BASE = 'https://cdn.jsdelivr.net/gh/btopro/mespeak@master';
-  document.getElementById('msStatus').textContent = 'Loading voice…';
-  meSpeak.loadVoice(BASE + '/voices/' + voicePath + '.json', function(success) {
-    document.getElementById('msStatus').textContent = success
-      ? 'Voice loaded: ' + voicePath
-      : 'Error loading voice: ' + voicePath;
-  });
-}
-
-function msSpeak(word) {
-  if (!msReady) return;
-  const pitch = parseInt(document.getElementById('msPitch').value);
-  const speed = parseInt(document.getElementById('msSpeed').value);
-  document.getElementById('msStatus').textContent = 'Speaking: ' + word;
-
-  meSpeak.speak(word, {
-    pitch: pitch,
-    speed: speed,
-    wordgap: 0,
-    amplitude: 100,
-  });
-  setTimeout(() => {
-    document.getElementById('msStatus').textContent = 'Ready';
-  }, 800);
-}
-
-function msSpeakPhoneme(phoneme) {
-  if (!msReady) return;
-  const pitch = parseInt(document.getElementById('msPitch').value);
-  const speed = parseInt(document.getElementById('msSpeed').value);
-  document.getElementById('msStatus').textContent = 'Phoneme: ' + phoneme;
-
-  meSpeak.speak(phoneme, {
-    pitch: pitch,
-    speed: speed,
-    rawdata: false,
-  });
-  setTimeout(() => {
-    document.getElementById('msStatus').textContent = 'Ready';
-  }, 800);
-}
-
-async function msShantyPhrase() {
-  if (!msReady) return;
-  document.getElementById('msStatus').textContent = 'Playing shanty phrase…';
-  const pitch = parseInt(document.getElementById('msPitch').value);
-  const speed = parseInt(document.getElementById('msSpeed').value);
-
-  for (let i = 0; i < SHANTY_PHRASE.length; i++) {
-    const step = SHANTY_PHRASE[i];
-    // meSpeak pitch is 0-99 (50=default). Map note Hz to rough pitch offset.
-    const basePitch = NOTES_DM['D3'];
-    const noteHz = NOTES_DM[step.note];
-    const semitones = 12 * Math.log2(noteHz / basePitch);
-    const adjPitch = Math.max(10, Math.min(99, pitch + Math.round(semitones * 2)));
-
-    meSpeak.speak(step.syllable, {
-      pitch: adjPitch,
-      speed: speed,
-      amplitude: 100,
-    });
-    await new Promise(r => setTimeout(r, step.dur * 1000));
-  }
-  document.getElementById('msStatus').textContent = 'Ready';
-}
-
-function msStop() {
-  if (typeof meSpeak !== 'undefined' && meSpeak.stop) meSpeak.stop();
-  document.getElementById('msStatus').textContent = 'Stopped';
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 3. meSing (meSpeak + Vocoder pitch shifting)
-// ══════════════════════════════════════════════════════════════════════════════
-let singWord = 'HO';
-let singStopFn = null;
-
-function singSetWord(w) {
-  singWord = w;
-  document.querySelectorAll('#cardSing .vowel-row button').forEach(b => {
-    b.classList.toggle('active', b.id === 'singWord' + w);
-  });
-}
-
-// Vocoder-based pitch shifting: generate meSpeak audio, then resynthesize at target pitch
-function singNote(noteName) {
-  if (!msReady) return;
-  ensureAudioCtx();
-  const targetHz = NOTES_DM[noteName];
-  document.getElementById('singStatus').textContent = `Singing: ${singWord} @ ${noteName}`;
-  singPlayVocoded(singWord, targetHz, 0.8);
-}
-
-function singPlayVocoded(word, targetHz, duration) {
-  if (!msReady) return;
-  const ctx = ensureAudioCtx();
-  const numBands = parseInt(document.getElementById('singBands').value);
-  const wet = parseFloat(document.getElementById('singWet').value);
-
-  // Generate meSpeak audio as raw data
-  const rawData = meSpeak.speak(word, {
-    pitch: 50,
-    speed: 130,
-    rawdata: 'buffer',
-  });
-  if (!rawData) {
-    document.getElementById('singStatus').textContent = 'Error: no audio data';
-    return;
-  }
-
-  // Decode the WAV buffer — rawData may be ArrayBuffer or Uint8Array
-  const wavBuffer = rawData instanceof ArrayBuffer ? rawData : rawData.buffer.slice(0);
-  ctx.decodeAudioData(wavBuffer.slice(0)).then(audioBuffer => {
-    // Create carrier oscillator at target pitch
-    const carrier = ctx.createOscillator();
-    carrier.type = 'sawtooth';
-    carrier.frequency.value = targetHz;
-
-    // Add slight vibrato for realism
-    const vibLfo = ctx.createOscillator();
-    vibLfo.frequency.value = 4.5;
-    const vibGain = ctx.createGain();
-    vibGain.gain.value = targetHz * 0.008;
-    vibLfo.connect(vibGain);
-    vibGain.connect(carrier.frequency);
-
-    // Source buffer (modulator)
-    const source = ctx.createBufferSource();
-    source.buffer = audioBuffer;
-
-    // Vocoder: parallel bandpass filter pairs
-    const masterGain = ctx.createGain();
-    masterGain.gain.value = 0;
-    masterGain.connect(ctx.destination);
-
-    const minFreq = 100;
-    const maxFreq = 6000;
-
-    for (let i = 0; i < numBands; i++) {
-      const centerHz = minFreq * Math.pow(maxFreq / minFreq, i / (numBands - 1));
-      const Q = 4 + (numBands / 8);
-
-      // Analysis (modulator) band
-      const analysisBP = ctx.createBiquadFilter();
-      analysisBP.type = 'bandpass';
-      analysisBP.frequency.value = centerHz;
-      analysisBP.Q.value = Q;
-
-      // Envelope follower: rectify + smooth
-      const rectifier = ctx.createWaveShaper();
-      const curve = new Float32Array(256);
-      for (let j = 0; j < 256; j++) {
-        const x = (j / 255) * 2 - 1;
-        curve[j] = Math.abs(x);
-      }
-      rectifier.curve = curve;
-
-      const smoother = ctx.createBiquadFilter();
-      smoother.type = 'lowpass';
-      smoother.frequency.value = 20;
-
-      // Synthesis (carrier) band
-      const synthBP = ctx.createBiquadFilter();
-      synthBP.type = 'bandpass';
-      synthBP.frequency.value = centerHz;
-      synthBP.Q.value = Q;
-
-      // VCA: carrier band * envelope
-      const vca = ctx.createGain();
-      vca.gain.value = 0;
-
-      // Wire analysis chain
-      source.connect(analysisBP);
-      analysisBP.connect(rectifier);
-      rectifier.connect(smoother);
-      smoother.connect(vca.gain);
-
-      // Wire synthesis chain
-      carrier.connect(synthBP);
-      synthBP.connect(vca);
-      vca.connect(masterGain);
-    }
-
-    // Also mix in some dry meSpeak signal if wet < 1
-    if (wet < 1.0) {
-      const dryGain = ctx.createGain();
-      dryGain.gain.value = (1 - wet) * 0.5;
-      source.connect(dryGain);
-      dryGain.connect(masterGain);
-    }
-
-    // Envelope
-    const now = ctx.currentTime;
-    masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(1.5, now + 0.05);
-    const endTime = now + Math.max(duration, audioBuffer.duration) + 0.1;
-    masterGain.gain.setTargetAtTime(0, endTime - 0.2, 0.08);
-
-    source.start(now);
-    carrier.start(now);
-    vibLfo.start(now);
-
-    const stopTime = endTime + 0.3;
-    source.stop(stopTime);
-    carrier.stop(stopTime);
-    vibLfo.stop(stopTime);
-
-    singStopFn = () => {
-      try {
-        masterGain.gain.cancelScheduledValues(ctx.currentTime);
-        masterGain.gain.setValueAtTime(0, ctx.currentTime);
-        source.stop(); carrier.stop(); vibLfo.stop();
-      } catch (e) {}
-    };
-
-    setTimeout(() => {
-      document.getElementById('singStatus').textContent = 'Ready';
-    }, (stopTime - now) * 1000);
-  }).catch(e => {
-    document.getElementById('singStatus').textContent = 'Decode error: ' + e.message;
-    console.error('Vocoder decode error:', e);
-  });
-}
-
-async function singShantyPhrase() {
-  if (!msReady) return;
-  document.getElementById('singStatus').textContent = 'Singing shanty phrase…';
-
-  for (const step of SHANTY_PHRASE) {
-    const hz = NOTES_DM[step.note];
-    singPlayVocoded(step.syllable, hz, step.dur);
-    await new Promise(r => setTimeout(r, step.dur * 1000 + 80));
-  }
-  setTimeout(() => {
-    document.getElementById('singStatus').textContent = 'Ready';
-  }, 800);
-}
-
-function singStop() {
-  if (singStopFn) singStopFn();
-  document.getElementById('singStatus').textContent = 'Stopped';
-}
-
-// Build note buttons for meSing
-{
-  const container = document.getElementById('singNotes');
-  for (const [name] of Object.entries(NOTES_DM)) {
-    const btn = document.createElement('button');
-    btn.textContent = name;
-    btn.onclick = () => singNote(name);
-    container.appendChild(btn);
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Play All / Stop All
-// ══════════════════════════════════════════════════════════════════════════════
-async function playAllShanty() {
-  ensureAudioCtx();
-  // Stagger starts slightly so you can hear each
-  ptShantyPhrase();
-  setTimeout(() => msShantyPhrase(), 200);
-  setTimeout(() => singShantyPhrase(), 400);
-}
-
-function stopAll() {
-  ptStop();
-  msStop();
-  singStop();
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Init
-// ══════════════════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   ptInit();
-  // meSpeak init waits for script load
-  const msWait = setInterval(() => {
-    if (typeof meSpeak !== 'undefined' && meSpeak.loadConfig) {
-      clearInterval(msWait);
-      msInit();
-    }
-  }, 100);
 });
 </script>
-
 </body>
 </html>

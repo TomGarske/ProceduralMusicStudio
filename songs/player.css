@@ -1,0 +1,49 @@
+:root {
+  --bg: #05080c;
+  --bg-accent: #0d1820;
+  --text: #eef7fb;
+  --text-dim: #7f98a6;
+  --cyan: #00d4ff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(0, 212, 255, 0.12), transparent 36%),
+    linear-gradient(180deg, var(--bg-accent), var(--bg));
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+}
+
+.song-shell {
+  width: min(100%, 760px);
+  text-align: center;
+}
+
+#song-title {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 5.5rem);
+  line-height: 1.02;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+body.is-error #song-title {
+  color: #ff8a80;
+}

@@ -8,6 +8,9 @@
   const ACCENT = '#ffab00';
   const BG = '#121212';
   const GRID = 'rgba(255,255,255,0.06)';
+  const MARKER_COLOR = 'rgba(0, 212, 255, 0.9)';
+  const MARKER_GLOW = 'rgba(0, 212, 255, 0.45)';
+  const MARKER_TEXT = 'rgba(0, 212, 255, 0.98)';
   const PAD_TOP = 4;
   const ROW_H = 5;
   const EPS = 0.001;
@@ -21,6 +24,7 @@
   let col = 0;
   let raf = null;
   let buf = null;
+  let scrollMarkers = [];
   let lastFrameTime = 0;
   let frameMs = 1000 / 60;
   let timeSpanEl = null;
@@ -182,6 +186,10 @@
         history[li][col] = v;
       }
       col = (col + 1) % historyW;
+      for (let i = 0; i < scrollMarkers.length; i++) {
+        scrollMarkers[i].x -= 1;
+      }
+      scrollMarkers = scrollMarkers.filter(m => m.x > -80);
     }
 
     ctx.fillStyle = BG;
@@ -225,6 +233,24 @@
       ctx.lineTo(W, y);
       ctx.stroke();
     }
+
+    ctx.font = '9px JetBrains Mono, ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    scrollMarkers.forEach(m => {
+      const x = m.x;
+      const nearEdge = Math.abs(x - (W - 1)) < 3;
+      ctx.strokeStyle = nearEdge ? MARKER_GLOW : MARKER_COLOR;
+      ctx.lineWidth = nearEdge ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, PAD_TOP);
+      ctx.lineTo(x + 0.5, H);
+      ctx.stroke();
+      ctx.lineWidth = 1;
+      const short = m.label.length > 16 ? m.label.slice(0, 14) + '...' : m.label;
+      const tx = Math.min(Math.max(2, x + 3), W - 78);
+      ctx.fillStyle = MARKER_TEXT;
+      ctx.fillText(short, tx, 11);
+    });
   }
 
   function init(ids) {
@@ -245,5 +271,13 @@
     resize();
   }
 
-  window.ArrangementLive = { init, resize, setFocusLayer };
+  function onPhaseMarker(label) {
+    if (label == null || label === '') return;
+    const wrap = canvas && canvas.parentElement;
+    const w = Math.max(200, wrap ? wrap.clientWidth : 400);
+    const stagger = Math.min(24, scrollMarkers.length * 3);
+    scrollMarkers.push({ x: w - 1 - stagger, label: String(label) });
+  }
+
+  window.ArrangementLive = { init, resize, setFocusLayer, onPhaseMarker };
 })();

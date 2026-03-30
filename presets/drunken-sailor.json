@@ -4,9 +4,8 @@
   "name": "Drunken Sailor",
   "description": "Traditional sea shanty in D minor. Bodhran stomps, concertina drone, crew chorus in call-and-response. Public domain folk song.",
   "defaults": {
-    "bpm": 76,
-    "key": "Dm",
-    "reverb": 0.22
+    "bpm": 120,
+    "key": "Dm"
   },
   "keyOffsets": {
     "Dm": 0,
@@ -21,13 +20,13 @@
     "D1": 36.71,
     "E1": 41.2,
     "F1": 43.65,
-    "G1": 49.0,
+    "G1": 49,
     "A1": 55,
     "C2": 65.41,
     "D2": 73.42,
     "E2": 82.41,
     "F2": 87.31,
-    "G2": 98.0,
+    "G2": 98,
     "A2": 110,
     "Bb2": 116.54,
     "B2": 123.47,
@@ -133,29 +132,25 @@
   ],
   "layerIds": [
     "arp",
-    "echo",
     "thump",
     "piano",
-    "sub",
     "pad",
     "bass",
-    "shim",
     "drone",
-    "beatpulse",
-    "voices"
+    "voiceBass",
+    "voiceBaritone",
+    "voiceTenor"
   ],
   "layerMix": {
     "arp": 0.35,
-    "echo": 0.45,
     "thump": 0.65,
     "piano": 0.5,
-    "sub": 0.18,
     "pad": 0.2,
     "bass": 0.25,
-    "shim": 0.55,
     "drone": 0.22,
-    "beatpulse": 0.3,
-    "voices": 0.55
+    "voiceBass": 0.22,
+    "voiceBaritone": 0.193,
+    "voiceTenor": 0.138
   },
   "layerConfigs": {
     "arp": {
@@ -164,11 +159,6 @@
       "attackSec": 0.015,
       "decayTauMul": 0.85,
       "gainScale": 0.35
-    },
-    "echo": {
-      "leftDelaySteps": 4,
-      "rightDelaySteps": 6,
-      "gainScale": 0.1
     },
     "thump": {
       "durationSec": 0.55,
@@ -188,12 +178,6 @@
       "voiceDelaySec": 0.008,
       "gainScale": 0.5
     },
-    "sub": {
-      "rootNote": "D2",
-      "overtoneNote": "A2",
-      "overtoneMix": 0.3,
-      "gainScale": 0.18
-    },
     "pad": {
       "vibratoHz": 4,
       "vibratoDepth": 1.5,
@@ -207,26 +191,11 @@
       "detuneCents": -8,
       "gainScale": 0.25
     },
-    "shim": {
-      "triggerSteps": [
-        0,
-        8
-      ],
-      "durationSec": 0.12,
-      "octaveMul": 1,
-      "gainScale": 0.12
-    },
     "drone": {
       "holdBeats": 16,
       "pulseBeats": 16,
       "lpfHz": 220,
       "gainScale": 0.22
-    },
-    "beatpulse": {
-      "durationSec": 0.45,
-      "pitchGlide": 2,
-      "ampDecay": 4.5,
-      "gainScale": 0.3
     },
     "voices": {
       "releaseSec": 2.8,
@@ -235,8 +204,7 @@
       "triggerSteps": [
         0,
         8
-      ],
-      "gainScale": 0.55
+      ]
     }
   },
   "arpPattern": [
@@ -526,16 +494,14 @@
       ],
       "lv": {
         "arp": 0.24,
-        "echo": 0,
         "thump": 0.48,
         "piano": 0,
-        "sub": 0.13,
         "pad": 0,
         "bass": 0.18,
-        "shim": 0,
         "drone": 0,
-        "beatpulse": 0.21,
-        "voices": 0
+        "voiceBass": 0,
+        "voiceBaritone": 0,
+        "voiceTenor": 0
       }
     },
     {
@@ -685,16 +651,14 @@
       ],
       "lv": {
         "arp": 0.28,
-        "echo": 0.35,
         "thump": 0.55,
         "piano": 0.4,
-        "sub": 0.14,
         "pad": 0,
         "bass": 0.2,
-        "shim": 0,
         "drone": 0,
-        "beatpulse": 0.24,
-        "voices": 0.46
+        "voiceBass": 0.46,
+        "voiceBaritone": 0.46,
+        "voiceTenor": 0.46
       }
     },
     {
@@ -844,16 +808,14 @@
       ],
       "lv": {
         "arp": 0.31,
-        "echo": 0.4,
         "thump": 0.61,
         "piano": 0.45,
-        "sub": 0.16,
         "pad": 0.18,
         "bass": 0.22,
-        "shim": 0.4,
         "drone": 0,
-        "beatpulse": 0.27,
-        "voices": 0.52
+        "voiceBass": 0.52,
+        "voiceBaritone": 0.52,
+        "voiceTenor": 0.52
       }
     },
     {
@@ -935,16 +897,14 @@
       ],
       "lv": {
         "arp": 0.35,
-        "echo": 0.45,
         "thump": 0.68,
         "piano": 0.5,
-        "sub": 0.18,
         "pad": 0.2,
         "bass": 0.25,
-        "shim": 0.55,
         "drone": 0.22,
-        "beatpulse": 0.3,
-        "voices": 0.58
+        "voiceBass": 0.58,
+        "voiceBaritone": 0.58,
+        "voiceTenor": 0.58
       }
     },
     {
@@ -959,7 +919,7 @@
       ],
       "droneMode": false,
       "arpPattern": [
-        "A1",
+        "A2",
         "-",
         "-",
         "-",
@@ -967,23 +927,15 @@
         "-",
         "-",
         "-",
-        "D1",
+        "D2",
         "-",
         "-",
         "-",
-        "F1",
+        "F2",
         "-",
         "-",
         "-",
-        "A1",
-        "-",
-        "-",
-        "-",
-        "-",
-        "-",
-        "-",
-        "-",
-        "G1",
+        "A2",
         "-",
         "-",
         "-",
@@ -991,7 +943,7 @@
         "-",
         "-",
         "-",
-        "A1",
+        "G2",
         "-",
         "-",
         "-",
@@ -999,15 +951,7 @@
         "-",
         "-",
         "-",
-        "G1",
-        "-",
-        "-",
-        "-",
-        "E1",
-        "-",
-        "-",
-        "-",
-        "D1",
+        "A2",
         "-",
         "-",
         "-",
@@ -1015,7 +959,23 @@
         "-",
         "-",
         "-",
-        "D1",
+        "G2",
+        "-",
+        "-",
+        "-",
+        "E2",
+        "-",
+        "-",
+        "-",
+        "D2",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "D2",
         "-",
         "-",
         "-",
@@ -1026,16 +986,14 @@
       ],
       "lv": {
         "arp": 0.31,
-        "echo": 0.28,
         "thump": 0.61,
         "piano": 0.45,
-        "sub": 0.16,
         "pad": 0.18,
         "bass": 0.22,
-        "shim": 0,
         "drone": 0,
-        "beatpulse": 0.27,
-        "voices": 0.52
+        "voiceBass": 0.52,
+        "voiceBaritone": 0.52,
+        "voiceTenor": 0.52
       }
     },
     {
@@ -1153,16 +1111,14 @@
       ],
       "lv": {
         "arp": 0.28,
-        "echo": 0.45,
         "thump": 0.55,
         "piano": 0.4,
-        "sub": 0.14,
         "pad": 0.16,
         "bass": 0.2,
-        "shim": 0.6,
         "drone": 0.18,
-        "beatpulse": 0.24,
-        "voices": 0.46
+        "voiceBass": 0.46,
+        "voiceBaritone": 0.46,
+        "voiceTenor": 0.46
       }
     },
     {
@@ -1175,7 +1131,7 @@
       ],
       "droneMode": false,
       "arpPattern": [
-        "A1",
+        "A2",
         "-",
         "-",
         "-",
@@ -1183,15 +1139,15 @@
         "-",
         "-",
         "-",
-        "G1",
+        "G2",
         "-",
         "-",
         "-",
-        "E1",
+        "E2",
         "-",
         "-",
         "-",
-        "D1",
+        "D2",
         "-",
         "-",
         "-",
@@ -1199,7 +1155,7 @@
         "-",
         "-",
         "-",
-        "D1",
+        "D2",
         "-",
         "-",
         "-",
@@ -1210,16 +1166,14 @@
       ],
       "lv": {
         "arp": 0.24,
-        "echo": 0.22,
         "thump": 0.48,
         "piano": 0.35,
-        "sub": 0.13,
         "pad": 0.14,
         "bass": 0.18,
-        "shim": 0,
         "drone": 0,
-        "beatpulse": 0.21,
-        "voices": 0.4
+        "voiceBass": 0.4,
+        "voiceBaritone": 0.4,
+        "voiceTenor": 0.4
       }
     }
   ]

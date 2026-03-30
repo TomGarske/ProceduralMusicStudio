@@ -138,34 +138,6 @@
       cursor: not-allowed;
       pointer-events: none;
     }
-    #btn-acapella {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid var(--border);
-      background: var(--bg3);
-      color: var(--text-mid);
-      font-size: 15px;
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
-      flex-shrink: 0;
-    }
-    #btn-acapella:hover {
-      border-color: var(--cyan-dim);
-      color: var(--cyan);
-      background: rgba(0,212,255,0.08);
-    }
-    #btn-acapella:active { transform: scale(0.93); }
-    #btn-acapella.active {
-      border-color: var(--amber);
-      color: var(--amber);
-      background: rgba(255, 171, 0, 0.12);
-      box-shadow: 0 0 8px rgba(255, 171, 0, 0.15);
-    }
     #btn-play {
       width: 44px;
       height: 44px;
@@ -225,94 +197,22 @@
     input[type=range].layer-slider::-webkit-slider-thumb { background: var(--layer-color); box-shadow: 0 0 4px rgba(255,171,0,0.22); }
     input[type=range].layer-slider.muted::-webkit-slider-thumb { background: var(--text-dim); box-shadow: none; }
 
-    /* ── Phase timeline ──────────────────────────────────────────────────── */
-    #phase-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .phase-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 96px;
-    }
-    .phase-item-head {
-      display: flex;
-      align-items: stretch;
-      gap: 0;
-      min-width: 0;
-    }
-    .phase-item-head .phase-btn {
-      flex: 1;
-      min-width: 0;
-      border-radius: var(--radius) 0 0 var(--radius);
-      border-right: none;
-    }
-    .phase-item-head .phase-btn {
-      border-radius: var(--radius);
-      border-right: 1px solid var(--border);
-    }
-    .phase-btn {
-      padding: 6px 14px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-mid);
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.04em;
-    }
-    .phase-btn:hover { border-color: var(--cyan-dim); color: var(--cyan); }
-    .phase-btn.active {
-      border-color: var(--cyan);
-      background: rgba(0,212,255,0.1);
-      color: var(--cyan);
-      box-shadow: 0 0 10px rgba(0,212,255,0.15);
-    }
-    .phase-progress {
-      height: 3px;
-      border-radius: 999px;
-      background: var(--border);
-      overflow: hidden;
-    }
-    .phase-progress-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--cyan);
-      transition: width 0.12s linear;
-    }
     /* ── Playlist ───────────────────────────────────────────────────────── */
     .playlist-list {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      max-height: 280px;
-      overflow-y: auto;
       padding-right: 4px;
       margin: 0 -4px 0 0;
     }
-    .playlist-list::-webkit-scrollbar { width: 6px; }
-    .playlist-list::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
-    }
     .playlist-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      display: grid;
+      gap: 6px;
       width: 100%;
-      text-align: left;
       padding: 10px 12px;
       border-radius: var(--radius);
       border: 1px solid transparent;
       background: var(--bg3);
-      color: var(--text);
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
     }
     .playlist-item:hover {
@@ -323,6 +223,20 @@
       border-color: var(--cyan);
       background: rgba(0, 212, 255, 0.1);
       box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15);
+    }
+    .playlist-item-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
     }
     .playlist-item-index {
       flex: 0 0 1.5em;
@@ -348,6 +262,20 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+    .playlist-item-url {
+      display: inline-block;
+      margin-left: calc(1.5em + 10px);
+      font-size: 10px;
+      line-height: 1.35;
+      color: var(--cyan-dim);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .playlist-item-url:hover {
+      color: var(--cyan);
+      text-decoration: underline;
+    }
+    .playlist-item.active .playlist-item-url { color: var(--cyan); }
     /* ── Phase readout + Synthesize ───────────────────────────────────────── */
     #info-row {
       display: flex;
@@ -365,12 +293,6 @@
     }
     .info-chip .info-key { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
     .info-chip .info-val { color: var(--cyan); font-size: 14px; font-weight: 600; min-width: 60px; }
-    .phase-btn-placeholder {
-      opacity: 0.55;
-      cursor: not-allowed;
-      border-style: dashed !important;
-    }
-
     /* ── Oscilloscope + Arrangement (label style; heights split) ───────────── */
     #scope-wrap,
     #arrangement-wrap {
@@ -447,9 +369,6 @@
     }
     .layer-ctrl.inactive-phase {
       opacity: 0.68;
-    }
-    .layer-ctrl.phase-inactive {
-      opacity: 0.45;
     }
     .layer-ctrl.inactive-toggle {
       border-color: #3a2f2f;
@@ -581,22 +500,16 @@
         <button type="button" id="btn-prev-shanty" title="Previous shanty" aria-label="Previous shanty">⏮</button>
         <button id="btn-play" title="Play / Pause" aria-label="Play or pause">▶</button>
         <button type="button" id="btn-next-shanty" title="Next shanty" aria-label="Next shanty">⏭</button>
-        <button type="button" id="btn-acapella" title="Acapella mode — voices only" aria-label="Toggle acapella mode">A</button>
       </div>
 
       <div class="ctrl" id="bpm-ctrl">
-        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">76</span></div>
-        <input type="range" id="bpm-slider" min="40" max="200" value="76" step="1">
+        <div class="ctrl-label"><span>BPM</span><span id="bpm-display">120</span></div>
+        <input type="range" id="bpm-slider" min="40" max="200" value="120" step="1">
       </div>
 
       <div class="ctrl" id="vol-ctrl">
         <div class="ctrl-label"><span>Volume</span><span id="vol-display">100%</span></div>
         <input type="range" id="vol-slider" min="0" max="200" value="100" step="1">
-      </div>
-
-      <div class="ctrl" id="rev-ctrl">
-        <div class="ctrl-label"><span>Reverb</span><span id="rev-display">22%</span></div>
-        <input type="range" id="rev-slider" min="0" max="80" value="22" step="1">
       </div>
 
       <div id="info-row">
@@ -613,12 +526,6 @@
   <div class="panel" id="playlist-panel">
     <div class="panel-title">Playlist</div>
     <div id="playlist-list" class="playlist-list" role="list" aria-label="Sea shanty playlist"></div>
-  </div>
-
-  <!-- ── Phase Timeline ──────────────────────────────────────────────────── -->
-  <div class="panel">
-    <div class="panel-title">Shanty Phases</div>
-    <div id="phase-row"></div>
   </div>
 
   <!-- ── Oscilloscope ────────────────────────────────────────────────────── -->
@@ -650,7 +557,7 @@
 
   <footer>
     <a href="https://github.com/TomGarske/ProceduralMusicStudio" target="_blank">GitHub</a>
-    &nbsp;·&nbsp; 76 BPM · Sci-Fi Sea Shanty's · Web Audio API
+    &nbsp;·&nbsp; 120 BPM · Sci-Fi Sea Shanty's · Web Audio API
   </footer>
 
 </div>
@@ -661,57 +568,19 @@
 // ── Layer definitions (order = rhythm → low end → harmony → melody → texture) ─
 const LAYERS = [
   { id:'thump',     label:'Fist Thump',     desc:'Knuckle-on-barrel strike on beats 1 & 3', default:50 },
-  { id:'sub',       label:'Hull Rumble',    desc:'Low drone foundation', default:50 },
-  { id:'bass',      label:'Bass Line',      desc:'Root-following bass', default:50 },
+  { id:'bass',      label:'Bass Line',      desc:'Root-following bass with a pitched attack accent', default:50 },
   { id:'piano',     label:'Concertina Chords', desc:'Chord stabs on the downbeat', default:50 },
-  { id:'pad',       label:'Squeezebox Drone', desc:'Sustained bellows drone with vibrato', default:50 },
-  { id:'drone',     label:'Hurdy Drone',    desc:'Held root & fifth (hauling phases)', default:50 },
-  { id:'arp',       label:'Fiddle Melody',  desc:'Reedy melodic pattern', default:50 },
-  { id:'echo',      label:'Fiddle Echo',    desc:'Delayed fiddle copy for width', default:50 },
-  { id:'shim',      label:'Ship\'s Bell',   desc:'Bell ring accent on downbeats', default:50 },
-  { id:'voices',    label:'Crew Chorus',    desc:'Chanting crew with vowel formants', default:50 },
+  { id:'pad',       label:'Cello Harmony',  desc:'Sustained bowed chord tones that follow the bar', default:50 },
+  { id:'drone',     label:'Arco Bass',      desc:'Low supporting root-and-fifth accompaniment', default:50 },
+  { id:'arp',       label:'Cello Melody',   desc:'Bowed cello line in playable range', default:50 },
+  { id:'voiceBass', label:'Crew Bass',      desc:'Lowest chant part, held in a bass tessitura', default:50 },
+  { id:'voiceBaritone', label:'Crew Baritone', desc:'Middle chant part in a steady baritone range', default:50 },
+  { id:'voiceTenor', label:'Crew Tenor',    desc:'Upper chant part kept in a low tenor register', default:50 },
 ];
 /** Layers that follow the phase chord progression (shown in the mixer). */
-const CHORD_LAYER_IDS = ['piano', 'bass', 'voices'];
-
-/** Fallback phase labels if engine is not ready yet */
-const ALL_SCRIPTED_PHASES = [
-  { id: 'shanty_call', label: 'Shanty Call' },
-  { id: 'shanty_response', label: 'Crew Response' },
-  { id: 'full_crew', label: 'Full Crew' },
-  { id: 'heave_ho', label: 'Heave Ho!' },
-  { id: 'calm_sea', label: 'Calm Sea' },
-  { id: 'all_hands', label: 'All Hands!' },
-  { id: 'port', label: 'Into Port' },
-];
+const CHORD_LAYER_IDS = ['piano', 'bass', 'voiceBass', 'voiceBaritone', 'voiceTenor'];
 let presetManifestList = [];
 let activePresetJson = null;
-let progressEls = {};
-function refreshProgressEls() {
-  progressEls = Object.fromEntries(
-    Array.from(document.querySelectorAll('.phase-progress-fill')).map(el => [el.dataset.progress, el])
-  );
-}
-function renderPhaseRow() {
-  const row = document.getElementById('phase-row');
-  if (!row) return;
-  const list = engine?.getPhases?.() ?? ALL_SCRIPTED_PHASES;
-  row.innerHTML = '';
-  list.forEach(p => {
-    const item = document.createElement('div');
-    item.className = 'phase-item';
-    item.dataset.phase = p.id;
-    item.innerHTML = `
-      <button type="button" class="phase-btn" data-phase="${p.id}">${p.label}</button>
-      <div class="phase-progress"><div class="phase-progress-fill" data-progress="${p.id}"></div></div>
-    `;
-    row.appendChild(item);
-  });
-  const placeholder = document.createElement('div');
-  placeholder.className = 'phase-item';
-  // Placeholder removed — no longer needed without novel mode
-  refreshProgressEls();
-}
 /** Layer slider 0–200 → multiplier 0–2× phase level (must match engine `setLayer` max). */
 const LAYER_SLIDER_MAX = 200;
 const LAYER_MULT_MAX = 2;
@@ -772,15 +641,7 @@ async function bootEngine() {
   engine.setPhaseLoop(null);
 
   // Wire events
-  // Cache DOM refs once — avoid querySelectorAll on every phase change
   const phaseValEl = document.getElementById('phase-val');
-  let cachedPhaseBtns = Array.from(document.querySelectorAll('.phase-btn'));
-  const origRenderPhaseRow = renderPhaseRow;
-  renderPhaseRow = function() {
-    origRenderPhaseRow();
-    cachedPhaseBtns = Array.from(document.querySelectorAll('.phase-btn'));
-  };
-
   let phaseRafPending = false;
   let lastPhaseEvent = null;
   engine.on('phase', (data) => {
@@ -790,11 +651,9 @@ async function bootEngine() {
       requestAnimationFrame(() => {
         phaseRafPending = false;
         if (!lastPhaseEvent) return;
-        const { id, label } = lastPhaseEvent;
+        const { label } = lastPhaseEvent;
         phaseValEl.textContent = label;
-        for (let i = 0; i < cachedPhaseBtns.length; i++) {
-          cachedPhaseBtns[i].classList.toggle('active', cachedPhaseBtns[i].dataset.phase === id);
-        }
+        window.ArrangementLive?.onPhaseMarker?.(label);
         updateLayerDisplayFromState(engine.getState());
         updateChordLayerLabels();
       });
@@ -819,39 +678,15 @@ async function bootEngine() {
     }
   });
 
-  let beatRafPending = false;
-  let lastBeatData = null;
-  engine.on('beat', (data) => {
-    lastBeatData = data;
-    if (!beatRafPending) {
-      beatRafPending = true;
-      requestAnimationFrame(() => {
-        beatRafPending = false;
-        if (!lastBeatData) return;
-        const { phase, phaseProgress } = lastBeatData;
-        const keys = Object.keys(progressEls);
-        for (let i = 0; i < keys.length; i++) {
-          progressEls[keys[i]].style.width = keys[i] === phase ? `${Math.round((phaseProgress || 0) * 100)}%` : '0%';
-        }
-      });
-    }
-  });
-
   // Sync sliders to the loaded preset's defaults, then push to engine
-  const presetBpm = activePresetJson?.defaults?.bpm ?? 76;
-  const presetRev = Math.round((activePresetJson?.defaults?.reverb ?? 0.22) * 100);
+  const presetBpm = activePresetJson?.defaults?.bpm ?? 120;
   document.getElementById('bpm-slider').value = presetBpm;
   document.getElementById('bpm-display').textContent = Math.round(presetBpm);
-  document.getElementById('rev-slider').value = presetRev;
-  document.getElementById('rev-display').textContent = presetRev + '%';
   engine.setVolume(parseFloat(document.getElementById('vol-slider').value) / 100);
-  engine.setReverb(presetRev / 100);
   engine.setBPM(presetBpm);
   updateLayerDisplayFromState(engine.getState());
   syncAllLayersToEngine();
   updateChordLayerLabels();
-
-  renderPhaseRow();
   updateMediaSessionPlaybackState();
   updateMediaSessionMetadata();
 
@@ -886,54 +721,6 @@ btnPlay.addEventListener('click', async () => {
   }
 });
 
-// ── Acapella mode ────────────────────────────────────────────────────────────
-// Mutes all instrument layers, keeps voices + fist thump for rhythm.
-// Boosts reverb for that raw crew-singing-below-deck feel.
-let acapellaMode = false;
-let acapellaSavedMult = {};   // saved layer multipliers before acapella
-let acapellaSavedReverb = 0;
-const ACAPELLA_VOICE_LAYERS = new Set(['voices', 'thump']);
-
-const btnAcapella = document.getElementById('btn-acapella');
-btnAcapella.addEventListener('click', async () => {
-  if (!engine) await bootEngine();
-  acapellaMode = !acapellaMode;
-  btnAcapella.classList.toggle('active', acapellaMode);
-  btnAcapella.title = acapellaMode ? 'Acapella ON — click to restore full mix' : 'Acapella mode — voices only';
-
-  if (acapellaMode) {
-    // Save current state
-    const state = engine.getState();
-    acapellaSavedReverb = state.reverb;
-    acapellaSavedMult = { ...state.layers };
-
-    // Mute everything except voice layers; boost voices
-    LAYERS.forEach(layer => {
-      if (ACAPELLA_VOICE_LAYERS.has(layer.id)) {
-        engine.setLayer(layer.id, layer.id === 'voices' ? 1.8 : 1.2);
-      } else {
-        engine.setLayer(layer.id, 0);
-      }
-    });
-    // Extra reverb for raw room sound
-    engine.setReverb(Math.min(0.65, acapellaSavedReverb + 0.25));
-    const rev = Math.round(Math.min(0.65, acapellaSavedReverb + 0.25) * 100);
-    document.getElementById('rev-slider').value = rev;
-    document.getElementById('rev-display').textContent = rev + '%';
-  } else {
-    // Restore saved multipliers
-    for (const [id, mult] of Object.entries(acapellaSavedMult)) {
-      engine.setLayer(id, mult);
-    }
-    engine.setReverb(acapellaSavedReverb);
-    const rev = Math.round(acapellaSavedReverb * 100);
-    document.getElementById('rev-slider').value = rev;
-    document.getElementById('rev-display').textContent = rev + '%';
-    // Re-sync sliders to engine state
-    syncAllLayersToEngine();
-  }
-});
-
 // ── Prevent scroll-wheel from changing slider values (causes audio glitches) ──
 document.querySelectorAll('input[type=range]').forEach(slider => {
   slider.addEventListener('wheel', e => { e.preventDefault(); }, { passive: false });
@@ -953,29 +740,6 @@ document.getElementById('vol-slider').addEventListener('input', e => {
   volDisplay.textContent = v > 100 ? `${v}% Boost` : `${v}%`;
   volDisplay.classList.toggle('boost', v > 100);
   if (engine) engine.setVolume(v / 100);
-});
-
-document.getElementById('rev-slider').addEventListener('input', e => {
-  const v = parseInt(e.target.value);
-  document.getElementById('rev-display').textContent = v + '%';
-  if (engine) engine.setReverb(v / 100);
-});
-
-// ── Phase row: select phase ───────────────────────────────────────────────
-document.getElementById('phase-row').addEventListener('click', async e => {
-  const btn = e.target.closest('.phase-btn');
-  if (!btn || btn.disabled) return;
-  await bootEngine();
-  const selectedPhase = btn.dataset.phase;
-  if (!engine.getState().transportActive) {
-    engine.play();
-    startKeepalive();
-    btnPlay.classList.add('playing');
-    btnPlay.innerHTML = '⏸';
-    statusPill.textContent = 'playing';
-    statusPill.classList.add('playing');
-  }
-  engine.seekToPhase(selectedPhase);
 });
 
 // ── Layer mixer (flat list, hierarchy order) ───────────────────────────
@@ -1048,7 +812,6 @@ function updateLayerDisplayFromState(state) {
     valEl.classList.toggle('muted', effectiveVal === 0);
     slider.classList.toggle('muted', effectiveVal === 0);
     card.classList.toggle('inactive-phase', !on);
-    card.classList.toggle('phase-inactive', base === 0);
     if (activeLbl) {
       activeLbl.textContent = on ? 'Active' : 'Inactive';
       activeLbl.classList.toggle('is-active', on);
@@ -1245,19 +1008,12 @@ function startScope() {
 // Start idle scope immediately
 drawScope();
 
-// ── Keyboard shortcuts ────────────────────────────────────────────────────
+// ── Keyboard shortcut ─────────────────────────────────────────────────────
 document.addEventListener('keydown', async e => {
   if (e.target.tagName === 'INPUT') return;
   if (e.code === 'Space') {
     e.preventDefault();
     btnPlay.click();
-  }
-  // Number keys 1–9 → Nth active scripted phase
-  const idx = parseInt(e.key, 10) - 1;
-  if (idx >= 0 && idx < 9) {
-    await bootEngine();
-    const phases = engine.getPhases();
-    if (idx < phases.length) engine.seekToPhase(phases[idx].id);
   }
 });
 
@@ -1284,18 +1040,21 @@ function renderPlaylist() {
   if (!list) return;
   list.innerHTML = '';
   presetManifestList.forEach((p, i) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'playlist-item';
-    btn.setAttribute('role', 'listitem');
-    btn.dataset.file = p.file;
-    btn.innerHTML = `
-      <span class="playlist-item-index">${String(i + 1).padStart(2, '0')}</span>
-      <div class="playlist-item-body">
-        <div class="playlist-item-title">${p.name}</div>
-      </div>
+    const item = document.createElement('div');
+    const songUrl = `/songs/${encodeURIComponent(p.id)}/`;
+    item.className = 'playlist-item';
+    item.setAttribute('role', 'listitem');
+    item.dataset.file = p.file;
+    item.innerHTML = `
+      <button type="button" class="playlist-item-main" data-file="${p.file}">
+        <span class="playlist-item-index">${String(i + 1).padStart(2, '0')}</span>
+        <div class="playlist-item-body">
+          <div class="playlist-item-title">${p.name}</div>
+        </div>
+      </button>
+      <a class="playlist-item-url" href="${songUrl}">${songUrl}</a>
     `;
-    list.appendChild(btn);
+    list.appendChild(item);
   });
 }
 
@@ -1446,16 +1205,9 @@ async function applyShantyFile(file) {
     renderPlaylistActive();
     await bootEngine();
     engine.applyPreset(activePresetJson);
-    // Reset acapella mode on preset switch
-    acapellaMode = false;
-    btnAcapella.classList.remove('active');
-    const bpm = activePresetJson.defaults?.bpm ?? 76;
+    const bpm = activePresetJson.defaults?.bpm ?? 120;
     document.getElementById('bpm-slider').value = bpm;
     document.getElementById('bpm-display').textContent = Math.round(bpm);
-    const rev = Math.round((activePresetJson.defaults?.reverb ?? 0.22) * 100);
-    document.getElementById('rev-slider').value = rev;
-    document.getElementById('rev-display').textContent = rev + '%';
-    renderPhaseRow();
     engine.play();
     startKeepalive();
     const btnPlayEl = document.getElementById('btn-play');
@@ -1476,7 +1228,7 @@ async function applyShantyFile(file) {
 document.getElementById('btn-next-shanty').addEventListener('click', () => goToShantyDelta(1));
 document.getElementById('btn-prev-shanty').addEventListener('click', () => goToShantyDelta(-1));
 document.getElementById('playlist-list').addEventListener('click', async e => {
-  const item = e.target.closest('.playlist-item');
+  const item = e.target.closest('.playlist-item-main');
   if (!item?.dataset?.file) return;
   await applyShantyFile(item.dataset.file);
 });
@@ -1513,12 +1265,10 @@ function updateLayerLabelsFromPreset(preset) {
     if (nameEl) nameEl.textContent = lbl;
     if (descEl) descEl.textContent = desc;
   });
-  // Show/hide layers based on preset's layerIds
-  const activeLayerIds = new Set(preset?.layerIds || LAYERS.map(l => l.id));
   LAYERS.forEach(layer => {
     const cached = layerDomCache[layer.id];
     if (cached?.card) {
-      cached.card.style.display = activeLayerIds.has(layer.id) ? '' : 'none';
+      cached.card.style.display = '';
     }
   });
 }
@@ -1532,7 +1282,6 @@ bootEngine = async function() {
 };
 
 initPresets().then(() => {
-  renderPhaseRow();
   renderPlaylist();
   updateSkipButtonsState();
   renderPlaylistActive();

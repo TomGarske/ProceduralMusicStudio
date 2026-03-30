@@ -1,47 +1,52 @@
 # Procedural Music Studio
 
-Standalone procedural music system for focus/coding sessions. Generates a looping G natural minor soundtrack entirely in the browser with no samples — pure Web Audio API synthesis.
+Browser-based procedural sea shanty studio built with the Web Audio API. It generates and mixes the soundtrack entirely in the browser with synthesized instruments and voices instead of samples.
 
-Live site: **[https://tomgarske.github.io/ProceduralMusicStudio/](https://tomgarske.github.io/ProceduralMusicStudio/)**
+Live site: [https://tomgarske.github.io/ProceduralMusicStudio/](https://tomgarske.github.io/ProceduralMusicStudio/)
 
----
+## What It Does
 
-## What it does
+The app plays through sea-shanty arrangements made from preset song data. Each preset defines:
 
-Seven song phases (Intro → Build 1 → Verse → Chorus 1 → Break → Chorus 2 → Outro) cycle automatically in a ~2-minute loop. Each phase shapes 11 synthesis layers:
+- tempo and key defaults
+- chord voicings and note tables
+- a sequence of named song phases
+- per-phase layer levels and timing
 
-| Layer | Description |
-|---|---|
-| **Arpeggio** | Triangle-wave melodic pattern, 16-step sequencer |
-| **Echo / Arp 2** | Delayed arp copy with BPM-synced feedback |
-| **Kick / Thump** | Pitch-swept sine kick drum |
-| **Piano** | Multi-partial chord stabs (Gm / Eb / Cm / Bb) |
-| **Sub Bass** | Low-frequency sine foundation |
-| **String Pad** | Four detuned sines with vibrato |
-| **Bass** | Root-note bass line following chord |
-| **Shimmer** | High-freq sparkle (Chorus phases only) |
-| **Drone** | Held root + rhythmic pulse (Chorus phases only) |
-| **Beat Pulse** | Rhythmic sidechain-style pulse |
-| **Ethereal Voices** | Airy choir swells on phrase turns |
+The current UI exposes these synthesis layers:
 
----
+- `Fist Thump`
+- `Bass Line`
+- `Concertina Chords`
+- `Cello Harmony`
+- `Arco Bass`
+- `Cello Melody`
+- `Crew Bass`
+- `Crew Baritone`
+- `Crew Tenor`
 
-## Website usage
+## Main UI
 
-Open `index.html` in a browser (or visit the GitHub Pages URL above).
+Open `index.html` in a browser, or serve the repo locally.
 
-- **Space** — play / stop
-- **1–7** — jump to phase (Intro through Outro)
-- **Phase buttons** — click to jump; auto-starts playback
-- **⏮ / ⏭** — previous / next sea shanty (preset)
-- **Playlist** — pick any shanty from the list (same as the dropdown)
-- **Layer mixer** — per-layer multiplier (0–2×) on top of phase values; chord-driven layers show the phase’s chord progression
-- **BPM** — 40–200; affects arp rate, echo timing, and beat pulse
-- **Reverb** — wet/dry convolver mix
-- **Waveform** — live output scope (AnalyserNode)
-- **Phone / lock screen** — **Media Session** (title, phase, prev/next) plus a quiet keep-alive track so many mobile browsers keep audio in the background when the screen locks. *iOS may still suspend Web Audio in some cases; use controls on the lock screen when available.*
+- `Space`: play or pause
+- `⏮ / ⏭`: switch presets
+- `Playlist`: select any included shanty
+- `BPM`: adjust tempo from 40 to 200
+- `Volume`: set output level, including boost above 100%
+- `Layer mixer`: set per-layer multipliers on top of each phase's base mix
+- `Waveform`: realtime output scope
+- `Arrangement`: live per-layer activity strip
 
----
+The app also supports Media Session controls for play, pause, previous, next, and BPM changes from compatible lock-screen or headset controls.
+
+## Project Structure
+
+- `index.html`: the full static UI and client-side app wiring
+- `music_engine_web.js`: the procedural synth engine and scheduler
+- `arrangement_live.js`: layer activity visualization
+- `presets/`: preset song definitions and manifest
+- `poc/voice-synth-compare.html`: Pink Trombone voice experiment
 
 ## JavaScript API
 
@@ -50,58 +55,37 @@ const engine = ProceduralMusic.create();
 
 engine.play();
 engine.stop();
-engine.seekToPhase('chorus1');   // 'intro'|'build1'|'verse1'|'chorus1'|'break'|'chorus2'|'outro'
-engine.setVolume(0.8);           // 0–1
-engine.setBPM(90);               // 50–120
-engine.setReverb(0.15);          // 0–0.6 wet (default ~15% in UI)
-engine.setLayer('arp', 0.5);     // layer name, 0–2× multiplier on phase level
+engine.applyPreset(presetJson);
+engine.setVolume(0.8);      // 0-2
+engine.setLayer('arp', 1);  // 0-2 multiplier on top of phase level
+engine.setBPM(90);          // 40-200
 
-// Events
-engine.on('phase', ({ id, label }) => console.log('Phase:', label));
-engine.on('chord', name => console.log('Chord:', name));
-engine.on('beat',  beat => console.log('Beat:', beat));
+engine.on('phase', ({ label }) => console.log(label));
+engine.on('chord', name => console.log(name));
+engine.on('beat', beat => console.log(beat));
 
-// Oscilloscope
-const analyser = engine.getAnalyser();   // Web Audio AnalyserNode
-const buf = new Float32Array(analyser.fftSize);
-analyser.getFloatTimeDomainData(buf);
-
-// Full state snapshot
+const analyser = engine.getAnalyser();
 const state = engine.getState();
-// { playing, phase, phaseLabel, chordSeq, bpm, volume, reverb, layers, phaseLevels }
 ```
-
----
 
 ## Development
 
-This repository ships the **static web app** only (`index.html`, `music_engine_web.js`, and related assets). There is no Godot add-on or other game-engine integration.
+This repo is a static site. There is no backend or build step required.
 
 ```bash
-# Clone
 git clone https://github.com/TomGarske/ProceduralMusicStudio.git
 cd ProceduralMusicStudio
-
-# Serve locally (Python) — pick one:
-#   • Double-click serve.bat in the project folder (Windows), or:
 python -m http.server 8080
-# Open http://localhost:8080  (use another port if this one is already in use)
 ```
 
-GitHub Pages deploys automatically on push to `main` via `.github/workflows/deploy.yml`.
+Then open [http://localhost:8080](http://localhost:8080).
 
----
+GitHub Pages deploys automatically from `main` via `.github/workflows/deploy.yml`.
 
-## Architecture notes
+## Notes
 
-- **No samples** — everything is oscillators, envelopes, and filters
-- **BPM-independent groove** — arp rate can be slaved to BPM while kick/chord/bass stay locked
-- **Layer multiplier system** — user sliders (0–2×) multiply phase `lv` values so phase transitions remain musical
-- **Song phases** — each phase can be removed with **×** (shown on hover; at least one scripted phase must stay). The loop timeline is recompressed. `engine.removePhase(id)`, `engine.restorePhase(id)`, `engine.getRemovedPhaseIds()`
-- **Arrangement view** — `arrangement_live.js`: **one** ring buffer per layer across the **full** strip width (same RMS stream everywhere). **Time runs left → right:** **older** (amber, `x < pastW`) **left** of the center line, **newer** toward the **right**; the **latest** sample is at the **right edge** (`distFromRight = 0`). The grey half is the **lead-in** to the live edge (ahead of the left side in time). **Audio starts immediately** with play; `setArrangementLookaheadSec(futureHalfSec)` matches **phase name** markers (`futureW × frameMs`) so labels cross the center at real transitions. **Phase** labels: **`phaseMarker`** + lookahead. `ArrangementLive.setFocusLayer`.
-- **Reverb** — synthetic impulse response via convolver (1.6s room IR baked into Float32Array)
-- **Web Audio graph**: oscillators → individual gain → chorus compressor → reverb send → echo delay → master gain → analyser tap + destination
+- Audio is generated with oscillators, filters, envelopes, and noise.
+- Presets are schema-driven JSON files, so new shanties can be added without changing the engine core.
+- The voice POC currently focuses on Pink Trombone rather than meSpeak or vocoder experiments.
 
----
-
-MIT License · [Tom Garske](https://github.com/TomGarske)
+MIT License

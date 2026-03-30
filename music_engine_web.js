@@ -7,15 +7,12 @@
 //   const engine = ProceduralMusic.create({ preset }); // preset optional — defaults to bundled JSON
 //   engine.play()
 //   engine.stop()
-//   engine.seekToPhase(id)          // active scripted phase id
-//   engine.removePhase(id)          // remove from loop (≥1 phase must remain); timeline recompressed
-//   engine.restorePhase(id)         // bring back a removed phase
-//   engine.getRemovedPhaseIds()     // [{ id, label }, ...]
+//   engine.applyPreset(preset)      // replace the active preset definition
+//   engine.getPreset()              // { id, name }
 //   engine.getNextPhaseLevels()     // next phase lv map
-//   engine.setVolume(0-2)            // 1.0 = unity, >1 = boost
-//   engine.setLayer(name, 0-1)      // layer name from LAYER_IDS
-//   engine.setBPM(bpm)              // 40-160, default 76 (sea shanty pace)
-//   engine.setReverb(0-0.80)        // wet amount, default per preset
+//   engine.setVolume(0-2)           // 1.0 = unity, >1 = boost
+//   engine.setLayer(name, 0-2)      // layer name from LAYER_IDS
+//   engine.setBPM(bpm)              // 40-200, default 120
 //   engine.setKey(id)               // e.g. 'Gm', 'Am', 'Dm'
 //   engine.setPhaseLoop(id|null)    // lock playback to a phase id
 //   engine.setArpFilter(hz)         // arp LPF cutoff, default auto per phase
@@ -27,7 +24,7 @@
 //   engine.off(event, callback)
 
 const ProceduralMusic = (() => {
-  const DEFAULT_PRESET = JSON.parse("{\"schemaVersion\":1,\"id\":\"drunken-sailor\",\"name\":\"Drunken Sailor\",\"description\":\"Traditional sea shanty in D minor. Bodhran stomps, concertina drone, crew chorus in call-and-response. Public domain folk song.\",\"defaults\":{\"bpm\":76,\"key\":\"Dm\",\"reverb\":0.22},\"keyOffsets\":{\"Dm\":0,\"Em\":2,\"Fm\":3,\"Gm\":5,\"Am\":7,\"Bbm\":8,\"Cm\":10},\"baseNotesHz\":{\"A1\":55,\"D2\":73.42,\"E2\":82.41,\"A2\":110,\"Bb2\":116.54,\"C3\":130.81,\"D3\":146.83,\"E3\":164.81,\"F3\":174.61,\"G3\":196,\"A3\":220,\"Bb3\":233.08,\"C4\":261.63,\"D4\":293.66,\"E4\":329.63,\"F4\":349.23,\"G4\":392,\"A4\":440},\"chordVoicings\":{\"Dm\":{\"label\":\"Dm\",\"notes\":[\"D3\",\"A3\",\"D4\",\"F4\"]},\"C\":{\"label\":\"C\",\"notes\":[\"C3\",\"G3\",\"C4\",\"E4\"]},\"Am\":{\"label\":\"Am\",\"notes\":[\"A2\",\"E3\",\"A3\",\"C4\"]},\"F\":{\"label\":\"F\",\"notes\":[\"F3\",\"A3\",\"C4\",\"F4\"]},\"Gm\":{\"label\":\"Gm\",\"notes\":[\"G3\",\"D4\",\"G4\"]},\"Bb\":{\"label\":\"Bb\",\"notes\":[\"Bb3\",\"D4\",\"F4\"]}},\"droneVoicings\":[{\"root\":\"D2\",\"fifth\":\"A2\"},{\"root\":\"C3\",\"fifth\":\"G3\"}],\"velocities\":[0.92,0.28,0.52,0.24,0.88,0.3,0.48,0.22,0.85,0.26,0.5,0.22,0.82,0.28,0.46,0.2],\"layerIds\":[\"arp\",\"echo\",\"thump\",\"piano\",\"sub\",\"pad\",\"bass\",\"shim\",\"drone\",\"beatpulse\",\"voices\"],\"layerMix\":{\"arp\":0.28,\"echo\":0.1,\"thump\":0.8,\"piano\":0.65,\"sub\":0.15,\"pad\":0.2,\"bass\":0.3,\"shim\":0.12,\"drone\":0.32,\"beatpulse\":0.45,\"voices\":0.55},\"layerConfigs\":{\"arp\":{\"stepsPerBar\":16,\"lfoHz\":4.8,\"attackSec\":0.015,\"decayTauMul\":0.85,\"gainScale\":0.28},\"echo\":{\"leftDelaySteps\":4,\"rightDelaySteps\":6,\"gainScale\":0.10},\"thump\":{\"durationSec\":0.55,\"startHz\":100,\"endHz\":42,\"pitchDecay\":5,\"ampDecay\":4,\"gainScale\":0.80},\"piano\":{\"harmonics\":[1,2,3],\"durationSec\":2,\"voiceDelaySec\":0.008,\"gainScale\":0.65},\"sub\":{\"rootNote\":\"D2\",\"overtoneNote\":\"A2\",\"overtoneMix\":0.3,\"gainScale\":0.15},\"pad\":{\"vibratoHz\":4,\"vibratoDepth\":1.5,\"lpfHz\":480,\"voiceGain\":0.12,\"gainScale\":0.2},\"bass\":{\"lpfHz\":300,\"hpfHz\":38,\"detuneCents\":-8,\"gainScale\":0.3},\"shim\":{\"triggerSteps\":[0,8],\"durationSec\":0.12,\"octaveMul\":1,\"gainScale\":0.12},\"drone\":{\"holdBeats\":16,\"pulseBeats\":16,\"lpfHz\":220,\"gainScale\":0.32},\"beatpulse\":{\"durationSec\":0.45,\"pitchGlide\":2,\"ampDecay\":4.5,\"gainScale\":0.45},\"voices\":{\"releaseSec\":2.8,\"vibratoHz\":3.8,\"formantHz\":720,\"triggerSteps\":[0,8],\"gainScale\":0.55}},\"arpPattern\":[\"D3\",\"D3\",\"F3\",\"G3\",\"A3\",\"A3\",\"G3\",\"F3\",\"D3\",\"F3\",\"A3\",\"D4\",\"A3\",\"G3\",\"F3\",\"D3\"],\"phaseFilterHz\":{\"shanty_call\":480,\"shanty_response\":620,\"full_crew\":780,\"heave_ho\":980,\"calm_sea\":400,\"all_hands\":1100,\"port\":360},\"phases\":[{\"id\":\"shanty_call\",\"label\":\"Shanty Call\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"Dm\"],\"droneMode\":false,\"lv\":{\"arp\":0.55,\"echo\":0,\"thump\":0.5,\"piano\":0,\"sub\":0.18,\"pad\":0,\"bass\":0.28,\"shim\":0,\"drone\":0,\"beatpulse\":0.35,\"voices\":0}},{\"id\":\"shanty_response\",\"label\":\"Crew Response\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"C\"],\"droneMode\":false,\"lv\":{\"arp\":0.5,\"echo\":0.12,\"thump\":0.6,\"piano\":0.42,\"sub\":0.25,\"pad\":0,\"bass\":0.38,\"shim\":0,\"drone\":0,\"beatpulse\":0.45,\"voices\":0.38}},{\"id\":\"full_crew\",\"label\":\"Full Crew\",\"durationBeats\":48,\"chordSeq\":[\"Dm\",\"C\",\"Dm\",\"Am\"],\"droneMode\":false,\"lv\":{\"arp\":0.45,\"echo\":0.18,\"thump\":0.68,\"piano\":0.5,\"sub\":0.32,\"pad\":0.28,\"bass\":0.48,\"shim\":0.08,\"drone\":0,\"beatpulse\":0.52,\"voices\":0.52}},{\"id\":\"heave_ho\",\"label\":\"Heave Ho!\",\"durationBeats\":48,\"chordSeq\":[\"Dm\",\"C\",\"F\",\"C\"],\"droneMode\":true,\"lv\":{\"arp\":0.4,\"echo\":0.25,\"thump\":0.82,\"piano\":0.58,\"sub\":0.4,\"pad\":0.4,\"bass\":0.55,\"shim\":0.15,\"drone\":0.62,\"beatpulse\":0.68,\"voices\":0.68}},{\"id\":\"calm_sea\",\"label\":\"Calm Sea\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"Am\"],\"droneMode\":false,\"lv\":{\"arp\":0.48,\"echo\":0.06,\"thump\":0.38,\"piano\":0.28,\"sub\":0.15,\"pad\":0.1,\"bass\":0.22,\"shim\":0,\"drone\":0,\"beatpulse\":0.28,\"voices\":0.18}},{\"id\":\"all_hands\",\"label\":\"All Hands!\",\"durationBeats\":48,\"chordSeq\":[\"Dm\",\"C\",\"Bb\",\"C\"],\"droneMode\":true,\"lv\":{\"arp\":0.42,\"echo\":0.3,\"thump\":0.88,\"piano\":0.65,\"sub\":0.45,\"pad\":0.45,\"bass\":0.6,\"shim\":0.2,\"drone\":0.7,\"beatpulse\":0.75,\"voices\":0.75}},{\"id\":\"port\",\"label\":\"Into Port\",\"durationBeats\":32,\"chordSeq\":[\"Dm\",\"C\"],\"droneMode\":false,\"lv\":{\"arp\":0.38,\"echo\":0.08,\"thump\":0.32,\"piano\":0.22,\"sub\":0.1,\"pad\":0.06,\"bass\":0.16,\"shim\":0,\"drone\":0,\"beatpulse\":0.18,\"voices\":0.1}}]}");
+  const DEFAULT_PRESET = JSON.parse("{\n  \"schemaVersion\": 1,\n  \"id\": \"drunken-sailor\",\n  \"name\": \"Drunken Sailor\",\n  \"description\": \"Traditional sea shanty in D minor. Bodhran stomps, concertina drone, crew chorus in call-and-response. Public domain folk song.\",\n  \"defaults\": {\n    \"bpm\": 120,\n    \"key\": \"Dm\"\n  },\n  \"keyOffsets\": {\n    \"Dm\": 0,\n    \"Em\": 2,\n    \"Fm\": 3,\n    \"Gm\": 5,\n    \"Am\": 7,\n    \"Bbm\": 8,\n    \"Cm\": 10\n  },\n  \"baseNotesHz\": {\n    \"D1\": 36.71,\n    \"E1\": 41.2,\n    \"F1\": 43.65,\n    \"G1\": 49,\n    \"A1\": 55,\n    \"C2\": 65.41,\n    \"D2\": 73.42,\n    \"E2\": 82.41,\n    \"F2\": 87.31,\n    \"G2\": 98,\n    \"A2\": 110,\n    \"Bb2\": 116.54,\n    \"B2\": 123.47,\n    \"C3\": 130.81,\n    \"D3\": 146.83,\n    \"E3\": 164.81,\n    \"F3\": 174.61,\n    \"G3\": 196,\n    \"A3\": 220,\n    \"Bb3\": 233.08,\n    \"B3\": 246.94,\n    \"C4\": 261.63,\n    \"D4\": 293.66,\n    \"E4\": 329.63,\n    \"F4\": 349.23,\n    \"G4\": 392,\n    \"A4\": 440,\n    \"B4\": 493.88,\n    \"C5\": 523.25,\n    \"D5\": 587.33\n  },\n  \"chordVoicings\": {\n    \"Dm\": {\n      \"label\": \"Dm\",\n      \"notes\": [\n        \"D3\",\n        \"A3\",\n        \"D4\",\n        \"F4\"\n      ]\n    },\n    \"C\": {\n      \"label\": \"C\",\n      \"notes\": [\n        \"C3\",\n        \"G3\",\n        \"C4\",\n        \"E4\"\n      ]\n    },\n    \"Am\": {\n      \"label\": \"Am\",\n      \"notes\": [\n        \"A2\",\n        \"E3\",\n        \"A3\",\n        \"C4\"\n      ]\n    },\n    \"F\": {\n      \"label\": \"F\",\n      \"notes\": [\n        \"F3\",\n        \"A3\",\n        \"C4\",\n        \"F4\"\n      ]\n    },\n    \"Gm\": {\n      \"label\": \"Gm\",\n      \"notes\": [\n        \"G3\",\n        \"D4\",\n        \"G4\"\n      ]\n    },\n    \"Bb\": {\n      \"label\": \"Bb\",\n      \"notes\": [\n        \"Bb3\",\n        \"D4\",\n        \"F4\"\n      ]\n    }\n  },\n  \"droneVoicings\": [\n    {\n      \"root\": \"D2\",\n      \"fifth\": \"A2\"\n    },\n    {\n      \"root\": \"C3\",\n      \"fifth\": \"G3\"\n    }\n  ],\n  \"velocities\": [\n    0.92,\n    0.28,\n    0.52,\n    0.24,\n    0.88,\n    0.3,\n    0.48,\n    0.22,\n    0.85,\n    0.26,\n    0.5,\n    0.22,\n    0.82,\n    0.28,\n    0.46,\n    0.2\n  ],\n  \"layerIds\": [\n    \"arp\",\n    \"thump\",\n    \"piano\",\n    \"pad\",\n    \"bass\",\n    \"drone\",\n    \"voiceBass\",\n    \"voiceBaritone\",\n    \"voiceTenor\"\n  ],\n  \"layerMix\": {\n    \"arp\": 0.35,\n    \"thump\": 0.65,\n    \"piano\": 0.5,\n    \"pad\": 0.2,\n    \"bass\": 0.25,\n    \"drone\": 0.22,\n    \"voiceBass\": 0.22,\n    \"voiceBaritone\": 0.193,\n    \"voiceTenor\": 0.138\n  },\n  \"layerConfigs\": {\n    \"arp\": {\n      \"stepsPerBar\": 16,\n      \"lfoHz\": 4.8,\n      \"attackSec\": 0.015,\n      \"decayTauMul\": 0.85,\n      \"gainScale\": 0.35\n    },\n    \"thump\": {\n      \"durationSec\": 0.55,\n      \"startHz\": 100,\n      \"endHz\": 42,\n      \"pitchDecay\": 5,\n      \"ampDecay\": 4,\n      \"gainScale\": 0.65\n    },\n    \"piano\": {\n      \"harmonics\": [\n        1,\n        2,\n        3\n      ],\n      \"durationSec\": 2,\n      \"voiceDelaySec\": 0.008,\n      \"gainScale\": 0.5\n    },\n    \"pad\": {\n      \"vibratoHz\": 4,\n      \"vibratoDepth\": 1.5,\n      \"lpfHz\": 480,\n      \"voiceGain\": 0.12,\n      \"gainScale\": 0.2\n    },\n    \"bass\": {\n      \"lpfHz\": 300,\n      \"hpfHz\": 38,\n      \"detuneCents\": -8,\n      \"gainScale\": 0.25\n    },\n    \"drone\": {\n      \"holdBeats\": 16,\n      \"pulseBeats\": 16,\n      \"lpfHz\": 220,\n      \"gainScale\": 0.22\n    },\n    \"voices\": {\n      \"releaseSec\": 2.8,\n      \"vibratoHz\": 3.8,\n      \"formantHz\": 720,\n      \"triggerSteps\": [\n        0,\n        8\n      ]\n    }\n  },\n  \"arpPattern\": [\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"D2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"F2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"C2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"E2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"B2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"C3\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"D3\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"C3\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"A2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"G2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"E2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"D2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"D2\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\",\n    \"-\"\n  ],\n  \"phaseFilterHz\": {\n    \"shanty_call\": 480,\n    \"shanty_response\": 620,\n    \"full_crew\": 780,\n    \"heave_ho\": 980,\n    \"calm_sea\": 400,\n    \"all_hands\": 1100,\n    \"port\": 360\n  },\n  \"phases\": [\n    {\n      \"id\": \"shanty_call\",\n      \"label\": \"Shanty Call\",\n      \"durationBeats\": 32,\n      \"chordSeq\": [\n        \"Dm\",\n        \"Dm\",\n        \"C\",\n        \"C\",\n        \"Dm\",\n        \"Dm\",\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": false,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"F2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"B2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.24,\n        \"thump\": 0.48,\n        \"piano\": 0,\n        \"pad\": 0,\n        \"bass\": 0.18,\n        \"drone\": 0,\n        \"voiceBass\": 0,\n        \"voiceBaritone\": 0,\n        \"voiceTenor\": 0\n      }\n    },\n    {\n      \"id\": \"shanty_response\",\n      \"label\": \"Crew Response\",\n      \"durationBeats\": 32,\n      \"chordSeq\": [\n        \"Dm\",\n        \"Dm\",\n        \"C\",\n        \"C\",\n        \"Dm\",\n        \"Dm\",\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": false,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"F2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"B2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.28,\n        \"thump\": 0.55,\n        \"piano\": 0.4,\n        \"pad\": 0,\n        \"bass\": 0.2,\n        \"drone\": 0,\n        \"voiceBass\": 0.46,\n        \"voiceBaritone\": 0.46,\n        \"voiceTenor\": 0.46\n      }\n    },\n    {\n      \"id\": \"full_crew\",\n      \"label\": \"Full Crew\",\n      \"durationBeats\": 64,\n      \"chordSeq\": [\n        \"Dm\",\n        \"Dm\",\n        \"C\",\n        \"C\",\n        \"Dm\",\n        \"Dm\",\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": false,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"F2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"B2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.31,\n        \"thump\": 0.61,\n        \"piano\": 0.45,\n        \"pad\": 0.18,\n        \"bass\": 0.22,\n        \"drone\": 0,\n        \"voiceBass\": 0.52,\n        \"voiceBaritone\": 0.52,\n        \"voiceTenor\": 0.52\n      }\n    },\n    {\n      \"id\": \"heave_ho\",\n      \"label\": \"Heave Ho!\",\n      \"durationBeats\": 48,\n      \"chordSeq\": [\n        \"Dm\",\n        \"Dm\",\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": true,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"B2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.35,\n        \"thump\": 0.68,\n        \"piano\": 0.5,\n        \"pad\": 0.2,\n        \"bass\": 0.25,\n        \"drone\": 0.22,\n        \"voiceBass\": 0.58,\n        \"voiceBaritone\": 0.58,\n        \"voiceTenor\": 0.58\n      }\n    },\n    {\n      \"id\": \"calm_sea\",\n      \"label\": \"Calm Sea\",\n      \"durationBeats\": 32,\n      \"chordSeq\": [\n        \"Dm\",\n        \"Am\",\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": false,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"F2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.31,\n        \"thump\": 0.61,\n        \"piano\": 0.45,\n        \"pad\": 0.18,\n        \"bass\": 0.22,\n        \"drone\": 0,\n        \"voiceBass\": 0.52,\n        \"voiceBaritone\": 0.52,\n        \"voiceTenor\": 0.52\n      }\n    },\n    {\n      \"id\": \"all_hands\",\n      \"label\": \"All Hands!\",\n      \"durationBeats\": 64,\n      \"chordSeq\": [\n        \"Dm\",\n        \"Dm\",\n        \"C\",\n        \"C\",\n        \"Dm\",\n        \"Dm\",\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": true,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"F2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"B2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"C3\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.28,\n        \"thump\": 0.55,\n        \"piano\": 0.4,\n        \"pad\": 0.16,\n        \"bass\": 0.2,\n        \"drone\": 0.18,\n        \"voiceBass\": 0.46,\n        \"voiceBaritone\": 0.46,\n        \"voiceTenor\": 0.46\n      }\n    },\n    {\n      \"id\": \"port\",\n      \"label\": \"Into Port\",\n      \"durationBeats\": 32,\n      \"chordSeq\": [\n        \"Am\",\n        \"Dm\"\n      ],\n      \"droneMode\": false,\n      \"arpPattern\": [\n        \"A2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"G2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"E2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"D2\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\",\n        \"-\"\n      ],\n      \"lv\": {\n        \"arp\": 0.24,\n        \"thump\": 0.48,\n        \"piano\": 0.35,\n        \"pad\": 0.14,\n        \"bass\": 0.18,\n        \"drone\": 0,\n        \"voiceBass\": 0.4,\n        \"voiceBaritone\": 0.4,\n        \"voiceTenor\": 0.4\n      }\n    }\n  ]\n}");
 
   function deepMerge(a, b) {
     if (!b) return a;
@@ -108,13 +105,18 @@ const ProceduralMusic = (() => {
         if (hz == null) throw new Error(`${ctx}: unknown note key "${name}"`);
         return hz;
       };
-      const ARP = arpPattern.map(name => mapNote(name, 'arpPattern'));
+      const mapArpNote = (name, ctx) => {
+        const hz = mapNote(name, ctx);
+        // Keep the cello melody in one low-mid register family across songs.
+        return hz > 0 ? fitFreqToRange(hz, 65.41, 261.63) : 0; // C2..C4
+      };
+      const ARP = arpPattern.map(name => mapArpNote(name, 'arpPattern'));
       // Build per-phase ARP arrays for phases that define their own arpPattern
       const phaseARP = {};
       if (activePhases) {
         for (const ph of activePhases) {
           if (ph.arpPattern) {
-            phaseARP[ph.id] = ph.arpPattern.map(name => mapNote(name, `phase ${ph.id} arpPattern`));
+            phaseARP[ph.id] = ph.arpPattern.map(name => mapArpNote(name, `phase ${ph.id} arpPattern`));
           }
         }
       }
@@ -142,18 +144,7 @@ const ProceduralMusic = (() => {
         };
       }
 
-      // ── Drone chords: use preset-defined voicings if available, else hardcoded defaults
-      let droneChords;
-      if (presetDroneVoicings) {
-        droneChords = presetDroneVoicings.map(dv => ({
-          r: N[dv.root] ?? N.G1 ?? tn('G1'),
-          f: N[dv.fifth] ?? N.D2 ?? tn('D2'),
-        }));
-      } else {
-        droneChords = [{r:N.G1,f:N.D2},{r:N.Bb2*0.5,f:N.F3*0.5}];
-      }
-
-      return { N, ARP, phaseARP, CHORDS, droneChords };
+      return { N, ARP, phaseARP, CHORDS };
     }
 
     let cachedScaleData = null;
@@ -165,12 +156,138 @@ const ProceduralMusic = (() => {
       cachedScaleData = null;
     }
 
+    function fitFreqToRange(freq, minHz, maxHz) {
+      let out = Number.isFinite(freq) ? freq : minHz;
+      while (out < minHz) out *= 2;
+      while (out > maxHz) out *= 0.5;
+      return out;
+    }
+    function fitFreqToOrderedRange(freq, minHz, maxHz, floorHz=0) {
+      let out = fitFreqToRange(freq, minHz, maxHz);
+      while (floorHz && out <= floorHz * 1.02) out *= 2;
+      while (out > maxHz) out *= 0.5;
+      return Math.max(minHz, out);
+    }
+    const CREW_PARTS = [
+      {
+        id: 'voiceBass',
+        node: 'voiceBassGain',
+        label: 'Crew Bass',
+        noteIndex: 0,
+        minHz: 65.41,   // C2
+        maxHz: 130.81,  // C3
+        formantShift: -120,
+        gainMul: 1.08,
+        vibratoMul: 0.75,
+        breathMul: 0.78,
+        detuneMul: 0.72,
+        maxVoices: 2,
+      },
+      {
+        id: 'voiceBaritone',
+        node: 'voiceBaritoneGain',
+        label: 'Crew Baritone',
+        noteIndex: 1,
+        minHz: 98.0,    // G2
+        maxHz: 196.0,   // G3
+        formantShift: -60,
+        gainMul: 0.94,
+        vibratoMul: 0.88,
+        breathMul: 0.9,
+        detuneMul: 0.86,
+        maxVoices: 2,
+      },
+      {
+        id: 'voiceTenor',
+        node: 'voiceTenorGain',
+        label: 'Crew Tenor',
+        noteIndex: 2,
+        minHz: 146.83,  // D3
+        maxHz: 293.66,  // D4
+        formantShift: 15,
+        gainMul: 0.8,
+        vibratoMul: 1.0,
+        breathMul: 1.0,
+        detuneMul: 1.0,
+        maxVoices: 3,
+      },
+    ];
+    const CREW_PART_MAP = Object.fromEntries(CREW_PARTS.map((part) => [part.id, part]));
+    function getSupportReferenceChord() {
+      const { CHORDS } = getScaleData();
+      const firstPhase = activePhases.find(p => Array.isArray(p.chordSeq) && p.chordSeq.length);
+      const chordId = firstPhase?.chordSeq?.[0];
+      return (chordId && CHORDS[chordId]) || Object.values(CHORDS)[0] || null;
+    }
+    function getPadSupportVoicing(chord) {
+      const notes = chord?.notes || [];
+      return [
+        fitFreqToRange(notes[0] ?? 73.42, 65.41, 110.0),
+        fitFreqToRange(notes[1] ?? notes[0] ?? 110.0, 98.0, 164.81),
+        fitFreqToRange(notes[notes.length - 1] ?? notes[0] ?? 146.83, 130.81, 246.94),
+      ];
+    }
+    function getBassLineVoicing(chord) {
+      const notes = chord?.notes || [];
+      return {
+        // Keep the plucked bass in an actual bass register even when the
+        // shared chord voicing is written up for concertina/choir parts.
+        root: fitFreqToRange(notes[0] ?? 73.42, 41.2, 98.0),
+        fifth: fitFreqToRange(notes[1] ?? notes[0] ?? 110.0, 55.0, 146.83),
+      };
+    }
+    function setPadVoicing(chord, when) {
+      if (!nd.padVoices?.length) return;
+      const t = when ?? actx.currentTime;
+      const voicing = Array.isArray(chord) ? chord : getPadSupportVoicing(chord);
+      nd.padVoices.forEach((voice, idx) => {
+        const freq = voicing[Math.min(idx, voicing.length - 1)];
+        voice.osc.frequency.setTargetAtTime(freq, t, 0.08 + idx * 0.015);
+      });
+    }
+    function getDroneSupportVoicing(chord, leadFifth=false) {
+      const notes = chord?.notes || [];
+      const root = fitFreqToRange(notes[0] ?? 73.42, 41.2, 98.0);
+      const fifth = fitFreqToRange(notes[1] ?? notes[0] ?? 110.0, 55.0, 146.83);
+      return leadFifth
+        ? { main: fifth, support: fitFreqToRange(root, 55.0, 110.0) }
+        : { main: root, support: fifth };
+    }
+    function getCrewVoicing(chord) {
+      const notes = chord?.notes || [];
+      const bassSrc = notes[0] ?? 73.42;
+      const baritoneSrc = notes[1] ?? notes[notes.length - 1] ?? bassSrc * 1.5;
+      const tenorSrc = notes[2] ?? notes[notes.length - 1] ?? baritoneSrc * 1.25;
+      const bass = fitFreqToRange(bassSrc, CREW_PART_MAP.voiceBass.minHz, CREW_PART_MAP.voiceBass.maxHz);
+      const baritone = fitFreqToOrderedRange(
+        baritoneSrc,
+        CREW_PART_MAP.voiceBaritone.minHz,
+        CREW_PART_MAP.voiceBaritone.maxHz,
+        bass,
+      );
+      const tenor = fitFreqToOrderedRange(
+        tenorSrc,
+        CREW_PART_MAP.voiceTenor.minHz,
+        CREW_PART_MAP.voiceTenor.maxHz,
+        baritone,
+      );
+      return {
+        voiceBass: bass,
+        voiceBaritone: baritone,
+        voiceTenor: tenor,
+      };
+    }
+    function setDroneVoicing(mainFreq, supportFreq, when) {
+      if (!actx) return;
+      const t = when ?? actx.currentTime;
+      if (nd.drO1) nd.drO1.frequency.setTargetAtTime(mainFreq, t, 0.03);
+      if (nd.drO2) nd.drO2.frequency.setTargetAtTime(mainFreq, t, 0.04);
+      if (nd.drO3) nd.drO3.frequency.setTargetAtTime(supportFreq, t, 0.05);
+    }
+
     const pianoPartialCache = new Map();
-    const dronePulseCache = new Map();
     let thumpBufferBase = null;
     let thumpBufferSr = 0;
-    let shimmerBuffer = null;
-    let shimmerCacheKey = '';
 
     // ── Pre-rendered breath noise buffer (reused across voice triggers to avoid GC pressure)
     let breathNoiseBuffer = null;
@@ -191,11 +308,8 @@ const ProceduralMusic = (() => {
 
     function invalidateAudioBuffers() {
       pianoPartialCache.clear();
-      dronePulseCache.clear();
       thumpBufferBase = null;
       thumpBufferSr = 0;
-      shimmerBuffer = null;
-      shimmerCacheKey = '';
       breathNoiseBuffer = null;
       breathNoiseSr = 0;
     }
@@ -242,18 +356,14 @@ const ProceduralMusic = (() => {
 
     // User overrides: 0-1 multipliers applied on top of phase lv values
     const layerMult = Object.fromEntries(LAYER_IDS.map(name => [name, 1]));
-    let reverbWet = DEFAULT_PRESET.defaults.reverb;
     let arpFilterOverride = null; // null = auto per phase
     let volumeSetting = 1.0;
 
     let actx=null, nd={}, startTime=0, pausedAt=0, playing=false, streamDest=null;
     let step=0, pianoBarCount=0, crewSyllableIdx=0, currentPhase=null;
-    /** Pending seek target set before actx.resume() completes (play+seek race). */
-    let pendingSeekPhaseId = null;
     /** Next 16th-note event time (AudioContext), used by lookahead scheduler. */
     let nextTickAt = 0;
     let schedulerIntervalId = null;
-    let droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn(layerConfigs.sub.rootNote || 'D2') };
     let lastPlayedChord = null;
     /** Reset step sequencer counters so the arp pattern, groove, and chord
      *  progression start from the top. Call on manual seek and loop-back. */
@@ -262,7 +372,6 @@ const ProceduralMusic = (() => {
       pianoBarCount = 0;
       crewSyllableIdx = 0;
       lastPlayedChord = null;
-      droneState = { mode: 'hold', beatsLeft: 16, chordIdx: 0, pulseFreq: tn(layerConfigs.sub.rootNote || 'D2') };
     }
     let analyser = null;
     let layerAnalysers = {};
@@ -323,17 +432,15 @@ const ProceduralMusic = (() => {
 
     // Layer → node name → scale factor (used by morphTo + per-layer analysers)
     const LAYER_MAP = {
-      arp:      { node:'arpGain',   scale: 0.30 },
-      echo:     { node:'echoGain',  scale: 0.20 },
-      thump:    { node:'thumpGain', scale: 0.85 },
-      piano:    { node:'pianoGain', scale: 0.90 },
-      sub:      { node:'subGain',   scale: 0.05 },   // 1 sine + 0.3× overtone → was 0.13, ÷2.6
-      pad:      { node:'padGain',   scale: 0.20 },
-      bass:     { node:'bassGain',  scale: 0.08 },   // 2 sines through LPF → was 0.22, ÷2.75
-      shim:     { node:'shimGain',  scale: 0.55 },
-      drone:    { node:'droneGain', scale: 0.07 },   // 4 raw sawtooths → was 0.30, ÷4.3
-      beatpulse:{ node:'pulseGain', scale: 0.20 },   // pitched pulse → was 0.55, ÷2.75
-      voices:   { node:'voiceGain', scale: layerConfigs.voices.gainScale },
+      arp:           { node:'arpGain',           scale: 0.30 },
+      thump:         { node:'thumpGain',         scale: 0.85 },
+      piano:         { node:'pianoGain',         scale: 0.90 },
+      pad:           { node:'padGain',           scale: 0.20 },
+      bass:          { node:'bassGain',          scale: 0.08 },   // 2 sines through LPF → was 0.22, ÷2.75
+      drone:         { node:'droneGain',         scale: 0.10 },   // arco support trio through filtered body gain
+      voiceBass:     { node:'voiceBassGain',     scale: 0.22 },
+      voiceBaritone: { node:'voiceBaritoneGain', scale: 0.19 },
+      voiceTenor:    { node:'voiceTenorGain',    scale: 0.14 },
     };
 
     function initAudio() {
@@ -382,26 +489,6 @@ const ProceduralMusic = (() => {
         masterComp.connect(streamDest);
       }
 
-      // Reverb — higher quality IR (longer, stereo decorrelated)
-      const irLen = Math.floor(actx.sampleRate * 2.2);
-      const revBuf = actx.createBuffer(2, irLen, actx.sampleRate);
-      for (let ch = 0; ch < 2; ch++) {
-        const d = revBuf.getChannelData(ch);
-        // Shaped noise with early reflections + smooth tail
-        for (let i = 0; i < d.length; i++) {
-          const t = i / actx.sampleRate;
-          // Multi-stage decay for more realistic room
-          const earlyDecay = t < 0.08 ? 1.0 : Math.exp(-t * 1.8);
-          const lateDecay = Math.pow(1 - i / d.length, 3.2);
-          const env = earlyDecay * 0.4 + lateDecay * 0.6;
-          d[i] = (Math.random() * 2 - 1) * env;
-        }
-      }
-      const rev = actx.createConvolver(); rev.buffer = revBuf;
-      const revG = actx.createGain(); revG.gain.value = reverbWet;
-      rev.connect(revG); revG.connect(master);
-      nd.rev = rev; nd.revG = revG;
-
       function o(type,freq,det=0) { const n=actx.createOscillator(); n.type=type; n.frequency.value=freq; if(det) n.detune.value=det; n.start(); return n; }
       function lpf(f,Q=0.7) { const n=actx.createBiquadFilter(); n.type='lowpass'; n.frequency.value=f; n.Q.value=Q; return n; }
       function hpf(f) { const n=actx.createBiquadFilter(); n.type='highpass'; n.frequency.value=f; return n; }
@@ -417,12 +504,12 @@ const ProceduralMusic = (() => {
         const f2 = actx.createBiquadFilter(); f2.type='bandpass'; f2.frequency.value=1100; f2.Q.value=4;
         const fMix = g(1.0);
         arpG.connect(f1); arpG.connect(f2); f1.connect(fMix); f2.connect(fMix);
-        fMix.connect(master); fMix.connect(nd.rev);
+        fMix.connect(master);
         arpF = f1; // morphTo controls the primary formant center
         nd.arpFilt2 = f2;
       } else {
         arpF = lpf(420, 1.2);
-        arpG.connect(arpF); arpF.connect(master); arpF.connect(nd.rev);
+        arpG.connect(arpF); arpF.connect(master);
       }
       const arpLfoHz = layerConfigs.arp.lfoHz || (arpIsVocal ? 2.5 : 4.8);
       const arpO=o('sawtooth',ARP[0]), arpO2=o('sawtooth',ARP[0]); arpO2.detune.value = arpIsVocal ? 8 : 14;
@@ -443,60 +530,38 @@ const ProceduralMusic = (() => {
       bowSrc.connect(bowBP); bowBP.connect(bowNoiseGain); bowNoiseGain.connect(arpG);
       nd.bowNoiseGain = bowNoiseGain;
 
-      // Echo (delayed concertina copy for width)
-      const dL=actx.createDelay(2); dL.delayTime.value=s16()*layerConfigs.echo.leftDelaySteps;
-      const dR=actx.createDelay(2); dR.delayTime.value=s16()*layerConfigs.echo.rightDelaySteps;
-      const mg=actx.createChannelMerger(2); dL.connect(mg,0,0); dR.connect(mg,0,1);
-      const echoG=g(0); mg.connect(echoG); echoG.connect(master); echoG.connect(nd.rev);
-      arpF.connect(dL); arpF.connect(dR);
-      nd.echoGain=echoG; nd.dL=dL; nd.dR=dR;
-
       // Bodhran stomp
       const thumpG=g(0); thumpG.connect(master); nd.thumpGain=thumpG;
 
       // Chord stabs (concertina chords)
-      const pianoG=g(0); pianoG.connect(master); pianoG.connect(nd.rev); nd.pianoGain=pianoG;
+      const pianoG=g(0); pianoG.connect(master); nd.pianoGain=pianoG;
 
-      // Sub foundation
-      const subRootN = layerConfigs.sub.rootNote || 'D2';
-      const subOvtN = layerConfigs.sub.overtoneNote || 'A2';
-      const subG=g(0); subG.connect(master);
-      // Triangle adds odd harmonics (3rd at 3×, 5th at 5×) making the deep bass
-      // audible on smaller speakers that can't reproduce the pure sine fundamental.
-      const subO1=o('triangle',N[subRootN]||73.42); subO1.connect(subG);
-      const sh=g(layerConfigs.sub.overtoneMix); const subO2=o('triangle',N[subOvtN]||110); subO2.connect(sh); sh.connect(subG);
-      nd.subGain=subG; nd.subO1=subO1; nd.subO2=subO2; nd.subRootN=subRootN; nd.subOvtN=subOvtN;
-
-      // Squeezebox drone pad (sawtooth + heavy LPF for bellows texture)
-      // Route: padG → bellowsMod → master + reverb (bellows breathing amplitude cycle)
+      // Cello support pad — sustained bowed chord tones that follow the harmony
       const padG=g(0);
-      const bellowsLfo = o('sine', layerConfigs.pad.bellowsHz || 0.18);
-      const bellowsDepth = g(layerConfigs.pad.bellowsDepth || 0.15);
-      const bellowsMod = actx.createGain(); bellowsMod.gain.value = 1.0;
-      bellowsLfo.connect(bellowsDepth); bellowsDepth.connect(bellowsMod.gain);
-      padG.connect(bellowsMod); bellowsMod.connect(master); bellowsMod.connect(nd.rev);
-      nd.padOscs = [];
-      const dv0 = (presetDroneVoicings && presetDroneVoicings[0]) || null;
-      const padNotes = dv0
-        ? [[dv0.root, 0], [dv0.fifth, 5], [dv0.root, -3], [dv0.fifth, 3]]
-        : [['D2',0],['A2',5],['D2',-3],['A2',3]];
-      padNotes.forEach(([name,d]) => {
-        const ov=o('sawtooth',N[name]||146.83,d);
-        // Humanize: per-voice vibrato rate variation
-        const vibHz = layerConfigs.pad.vibratoHz * (0.85 + Math.random() * 0.3);
-        const vib=o('sine',vibHz), vg=g(layerConfigs.pad.vibratoDepth); vib.connect(vg); vg.connect(ov.frequency);
-        const lp=lpf(layerConfigs.pad.lpfHz,0.5), gn=g(layerConfigs.pad.voiceGain); ov.connect(lp); lp.connect(gn); gn.connect(padG);
-        // LPF modulation: bellows pressure affects brightness
-        const lpfLfo = o('sine', (layerConfigs.pad.bellowsHz || 0.18) * (0.9 + Math.random() * 0.2));
-        const lpfMod = g(layerConfigs.pad.lpfHz * 0.25); // modulate filter +-25%
-        lpfLfo.connect(lpfMod); lpfMod.connect(lp.frequency);
-        nd.padOscs.push({ osc: ov, name });
+      padG.connect(master);
+      const padHP = hpf(layerConfigs.pad.hpfHz || 90);
+      const padLP = lpf(layerConfigs.pad.lpfHz || 720, 0.8);
+      padHP.connect(padLP); padLP.connect(padG);
+      nd.padVoices = [];
+      const padVoiceGain = layerConfigs.pad.voiceGain || 0.12;
+      const padVibDepth = layerConfigs.pad.vibratoDepth || 1.5;
+      [
+        { type:'triangle', detune:-4, gainMul:1.15, vibMul:0.7 },
+        { type:'sawtooth', detune:3, gainMul:0.85, vibMul:0.45 },
+        { type:'triangle', detune:0, gainMul:0.95, vibMul:0.58 },
+      ].forEach((def) => {
+        const ov=o(def.type, 146.83, def.detune);
+        const vibHz = (layerConfigs.pad.vibratoHz || 3.6) * (0.9 + Math.random() * 0.2);
+        const vib=o('sine',vibHz), vg=g(padVibDepth * def.vibMul); vib.connect(vg); vg.connect(ov.frequency);
+        const gn=g(padVoiceGain * def.gainMul);
+        ov.connect(gn); gn.connect(padHP);
+        nd.padVoices.push({ osc: ov });
       });
       nd.padGain=padG;
 
       // Bass line
       const bassRootN = (presetDroneVoicings && presetDroneVoicings[0]?.root) || 'D2';
-      const bassG=g(0); bassG.connect(master); bassG.connect(nd.rev);
+      const bassG=g(0); bassG.connect(master);
       // Triangle adds odd harmonics for warmth; second sine gives body via detuning
       const bO=o('triangle',N[bassRootN]||73.42), bO2=o('sine',N[bassRootN]||73.42); bO2.detune.value=layerConfigs.bass.detuneCents;
       const bL=lpf(layerConfigs.bass.lpfHz,0.7), bH=hpf(layerConfigs.bass.hpfHz);
@@ -505,22 +570,28 @@ const ProceduralMusic = (() => {
       bO.connect(bL); bO2.connect(bL); bL.connect(bH); bH.connect(bassEnvG); bassEnvG.connect(bassG);
       nd.bassGain=bassG; nd.bassO=bO; nd.bassO2=bO2; nd.bassEnvG=bassEnvG;
 
-      // Ship's bell / ring accent
-      const shimG=g(0); shimG.connect(master); shimG.connect(nd.rev); nd.shimGain=shimG;
-
-      // Drone + pulse (low sustained fifths)
-      const droneG=g(0); droneG.connect(master); droneG.connect(nd.rev); nd.droneGain=droneG;
-      const pulseG=g(0); pulseG.connect(master); nd.pulseGain=pulseG;
+      // Arco support line
+      const droneG=g(0); droneG.connect(master); nd.droneGain=droneG;
+      const droneArticG=g(0); droneArticG.connect(droneG); nd.droneArticG=droneArticG;
       const drRootN = (presetDroneVoicings && presetDroneVoicings[0]?.root) || 'D2';
       const drFifthN = (presetDroneVoicings && presetDroneVoicings[0]?.fifth) || 'A2';
-      const drO1=o('sawtooth',N[drRootN]||73.42), drO2=o('sawtooth',N[drRootN]||73.42); drO2.detune.value=6;
-      const drO3=o('sawtooth',N[drFifthN]||110), drO4=o('sawtooth',N[drFifthN]||110); drO4.detune.value=-4;
-      const drLPF=lpf(layerConfigs.drone.lpfHz,0.5);
-      drO1.connect(drLPF); drO2.connect(drLPF); drO3.connect(drLPF); drO4.connect(drLPF); drLPF.connect(droneG);
-      nd.drO1=drO1; nd.drO2=drO2; nd.drO3=drO3; nd.drO4=drO4;
+      const drO1=o('triangle',N[drRootN]||73.42);
+      const drO2=o('sawtooth',N[drRootN]||73.42,-5);
+      const drO3=o('sine',N[drFifthN]||110,4);
+      const drHPF=hpf(layerConfigs.drone.hpfHz || 40);
+      const drLPF=lpf(layerConfigs.drone.lpfHz || 240,0.8);
+      const drSupportMix=g(layerConfigs.drone.supportMix || 0.55);
+      const drVib=o('sine', layerConfigs.drone.vibratoHz || 2.1);
+      const drVibG=g(layerConfigs.drone.vibratoDepth || 0.7);
+      drVib.connect(drVibG); drVibG.connect(drO1.frequency); drVibG.connect(drO2.frequency);
+      drHPF.connect(drLPF); drLPF.connect(droneArticG);
+      drO1.connect(drHPF); drO2.connect(drHPF); drO3.connect(drSupportMix); drSupportMix.connect(drHPF);
+      nd.drO1=drO1; nd.drO2=drO2; nd.drO3=drO3;
 
-      // Crew chorus
-      const voiceG=g(0); voiceG.connect(master); voiceG.connect(nd.rev); nd.voiceGain=voiceG;
+      // Crew chorus split into bass, baritone, and tenor parts
+      const voiceBassG=g(0); voiceBassG.connect(master); nd.voiceBassGain=voiceBassG;
+      const voiceBaritoneG=g(0); voiceBaritoneG.connect(master); nd.voiceBaritoneGain=voiceBaritoneG;
+      const voiceTenorG=g(0); voiceTenorG.connect(master); nd.voiceTenorGain=voiceTenorG;
 
       // Per-layer analysers for live layer-activity visualization (parallel tap; does not affect mix)
       layerAnalysers = {};
@@ -535,6 +606,7 @@ const ProceduralMusic = (() => {
       }
 
       nd.master=master;
+      retuneContinuousVoices(actx.currentTime);
     }
 
     function phaseFilterFreq(id) {
@@ -564,6 +636,12 @@ const ProceduralMusic = (() => {
       param.setValueAtTime(currentVal, t);
       param.setTargetAtTime(val, t, tau);
     }
+    function snap(param, val, at=undefined) {
+      if (!param) return;
+      const t = at ?? actx.currentTime;
+      param.cancelScheduledValues(t);
+      param.setValueAtTime(val, t);
+    }
     function volumeToGain(v) {
       if (v <= 1) return v * 0.42;
       // Boost range rises faster so "more volume" is clearly audible.
@@ -573,56 +651,55 @@ const ProceduralMusic = (() => {
 
     function morphLayerTau(name) {
       if (name === 'pad') return 2.0;
-      // Echo taps stereo delays — fast ramps dump stored energy and sound like static/grain.
-      if (name === 'echo') return 2.85;
       if (name === 'piano') return 1.4;
       if (name === 'bass') return 1.05;
-      if (name === 'sub') return 0.95;
       return 0.82;
     }
     // Fast taus for user-initiated seeks — layers snap in quickly
     function morphLayerTauFast(name) {
-      if (name === 'echo') return 0.25;
       if (name === 'pad')  return 0.20;
       return 0.10;
     }
 
     /**
      * Cross-fade all layer gains + filter to the target phase.
+     * Newly-entering scheduled layers snap to level at the phase boundary so
+     * their first hit arrives at full strength instead of fading in.
      * @param {object} ph   phase object
      * @param {number} [at] scheduled audio time (pass from tick's `when` in the
-     *   lookahead scheduler; omit for immediate morphs like seekToPhase / play).
-     * @param {boolean} [fast] use fast taus for user-initiated seeks
+     *   lookahead scheduler; omit for immediate morphs like play).
+     * @param {boolean} [fast] use fast taus for immediate user-initiated transitions
      */
-    function morphTo(ph, at, fast=false) {
+    function morphTo(ph, at, fast=false, prevPhase=null) {
       const lv = ph.lv || {};
+      const prevLv = prevPhase?.lv || {};
       ramp(nd.arpFilt.frequency, arpFilterOverride ?? phaseFilterFreq(ph.id), fast ? 0.3 : 2.35, at);
       for (const [name, {node, scale}] of Object.entries(LAYER_MAP)) {
         const phaseVal = lv[name] ?? 0;
+        const prevVal = prevLv[name] ?? 0;
         const mult = layerMult[name] ?? 1;
+        const target = phaseVal * mult * scale;
+        const prevTarget = prevVal * mult * scale;
         const tau = fast ? morphLayerTauFast(name) : morphLayerTau(name);
-        ramp(nd[node]?.gain, phaseVal * mult * scale, tau, at);
+        if (!fast && prevTarget <= 0.0005 && target > 0.0005) {
+          snap(nd[node]?.gain, target, at);
+        } else {
+          ramp(nd[node]?.gain, target, tau, at);
+        }
       }
-      if (!ph.droneMode) ramp(nd.droneGain.gain, fast ? 0.1 : 0.6, at);
     }
 
     function retuneContinuousVoices(when) {
       if (!actx) return;
       const t = when ?? actx.currentTime;
       const { N } = getScaleData();
-      const subR = nd.subRootN || layerConfigs.sub.rootNote || 'D2';
-      const subO = nd.subOvtN || layerConfigs.sub.overtoneNote || 'A2';
-      if (nd.subO1) nd.subO1.frequency.setTargetAtTime(N[subR] || 73.42, t, 0.18);
-      if (nd.subO2) nd.subO2.frequency.setTargetAtTime(N[subO] || 110, t, 0.2);
-      if (nd.padOscs) nd.padOscs.forEach(v => v.osc.frequency.setTargetAtTime(N[v.name] || 146.83, t, 0.2));
-      if (nd.drO1 && nd.drO2 && nd.drO3 && nd.drO4) {
-        const dv = (presetDroneVoicings && presetDroneVoicings[0]) || { root: 'D2', fifth: 'A2' };
-        const drR = N[dv.root] || 73.42;
-        const drF = N[dv.fifth] || 110;
-        nd.drO1.frequency.setTargetAtTime(drR, t, 0.2);
-        nd.drO2.frequency.setTargetAtTime(drR, t, 0.2);
-        nd.drO3.frequency.setTargetAtTime(drF, t, 0.2);
-        nd.drO4.frequency.setTargetAtTime(drF, t, 0.2);
+      const refChord = getSupportReferenceChord();
+      if (refChord) {
+        if (nd.padVoices?.length) setPadVoicing(refChord, t);
+        if (nd.drO1 && nd.drO2 && nd.drO3) {
+          const voicing = getDroneSupportVoicing(refChord);
+          setDroneVoicing(voicing.main, voicing.support, t);
+        }
       }
     }
 
@@ -785,7 +862,7 @@ const ProceduralMusic = (() => {
       // ─── Pitched layers (phase accumulators) ───────────────────────
       let phase1 = 0;  // fundamental
       let phase2 = 0;  // second mode
-      let phase3 = 0;  // sub
+      let phase3 = 0;  // low mode
 
       for (let i = 0; i < d.length; i++) {
         const t = i / sr;
@@ -800,10 +877,10 @@ const ProceduralMusic = (() => {
         phase2 += f2 / sr;
         const mode2 = Math.sin(2 * Math.PI * phase2) * Math.exp(-t * (aDecay * 2.5)) * 0.22;
 
-        // Layer 6 — Sub weight (30–45 Hz, very fast decay)
-        const subHz = endHz * 0.65;
-        phase3 += subHz / sr;
-        const sub = Math.sin(2 * Math.PI * phase3) * Math.exp(-t * (aDecay * 3.0)) * 0.40;
+        // Layer 6 — Low weight (30–45 Hz, very fast decay)
+        const lowHz = endHz * 0.65;
+        phase3 += lowHz / sr;
+        const lowMode = Math.sin(2 * Math.PI * phase3) * Math.exp(-t * (aDecay * 3.0)) * 0.40;
 
         // ── Sum all seven layers ──
         let sample = knuckle[i]
@@ -812,7 +889,7 @@ const ProceduralMusic = (() => {
                    + rattle[i]
                    + fund
                    + mode2
-                   + sub;
+                   + lowMode;
 
         // Anti-click fade envelope
         if (i < fadeInN) sample *= i / fadeInN;
@@ -858,8 +935,14 @@ const ProceduralMusic = (() => {
       src.start(Math.max(when + timeJitter, actx.currentTime));
     }
 
-    function fireBass(when, freq) {
+    function fireBass(when, freq, vel=1.0) {
       if (!nd.bassEnvG) return;
+      const bassCfg = layerConfigs.bass || {};
+      const accentPitchMul = bassCfg.attackPitchMul || 1.55;
+      const accentGlideSec = bassCfg.attackGlideSec || 0.045;
+      const accentDurSec = bassCfg.attackPulseSec || 0.14;
+      const accentMix = bassCfg.attackPulseMix || 1.05;
+
       // Snap frequency immediately (2ms glide avoids click, sounds like a pluck not a slide)
       nd.bassO.frequency.cancelScheduledValues(when);
       nd.bassO.frequency.setTargetAtTime(freq, when, 0.002);
@@ -871,6 +954,26 @@ const ProceduralMusic = (() => {
       env.setValueAtTime(0, when);
       env.linearRampToValueAtTime(1.0 + Math.random() * 0.15, when + 0.010); // 10ms attack, slight velocity jitter
       env.setTargetAtTime(0.001, when + 0.012, 0.28 + Math.random() * 0.06); // decay ~280-340ms tau
+
+      // Fold the old deck-pulse role into bass: a short pitched attack glide
+      // on each root/fifth hit that reinforces the harmonic center.
+      if (nd.bassGain) {
+        const accentOsc = actx.createOscillator();
+        accentOsc.type = 'sine';
+        const accentGain = actx.createGain();
+        const startFreq = Math.max(24, freq * accentPitchMul);
+        const endFreq = Math.max(20, freq);
+        const peakGain = Math.max(0.001, accentMix * vel);
+        accentOsc.frequency.setValueAtTime(startFreq, when);
+        accentOsc.frequency.exponentialRampToValueAtTime(endFreq, when + accentGlideSec);
+        accentGain.gain.setValueAtTime(0.0001, when);
+        accentGain.gain.exponentialRampToValueAtTime(peakGain, when + 0.006);
+        accentGain.gain.exponentialRampToValueAtTime(0.0001, when + accentDurSec);
+        accentOsc.connect(accentGain);
+        accentGain.connect(nd.bassGain);
+        accentOsc.start(when);
+        accentOsc.stop(when + accentDurSec + 0.03);
+      }
     }
 
     function getPianoPartialBuffer(f, ni, harm, amp, dec) {
@@ -942,182 +1045,151 @@ const ProceduralMusic = (() => {
       emit('chord', chord.name);
     }
 
-    function getDronePulseBuffer(freq, vel) {
-      const sr = actx.sampleRate;
-      const key = `${freq.toFixed(3)}|${vel.toFixed(2)}|${sr}`;
-      let buf = dronePulseCache.get(key);
-      if (buf) return buf;
-      const dur = layerConfigs.beatpulse.durationSec;
-      const len = Math.floor(sr * dur);
-      buf = actx.createBuffer(1, len, sr);
-      const d = buf.getChannelData(0);
-      // Anti-click: 1ms fade-in and 5ms fade-out
-      const fadeInSamples = Math.floor(sr * 0.001);
-      const fadeOutSamples = Math.floor(sr * 0.005);
-      for (let i = 0; i < d.length; i++) {
-        const t = i / sr;
-        const f = freq * 1.5 * Math.exp(-t * layerConfigs.beatpulse.pitchGlide) + freq;
-        const env = Math.exp(-t * layerConfigs.beatpulse.ampDecay);
-        let fadeEnv = 1.0;
-        if (i < fadeInSamples) fadeEnv = i / fadeInSamples;
-        if (i > len - fadeOutSamples) fadeEnv = (len - i) / fadeOutSamples;
-        d[i] = Math.sin(2 * Math.PI * f * t) * env * 0.75 * vel * fadeEnv;
-      }
-      // LRU-style eviction instead of wholesale clear
-      if (dronePulseCache.size > 32) {
-        const keys = Array.from(dronePulseCache.keys());
-        for (let i = 0; i < 8 && i < keys.length; i++) {
-          dronePulseCache.delete(keys[i]);
-        }
-      }
-      dronePulseCache.set(key, buf);
-      return buf;
+    function fireDroneSupport(when, chord, targetGain, leadFifth=false, accent=false) {
+      if (!chord || !nd.droneArticG) return;
+      if ((targetGain ?? 0) < 0.012) return;
+      const voicing = getDroneSupportVoicing(chord, leadFifth);
+      setDroneVoicing(voicing.main, voicing.support, when);
+      const env = nd.droneArticG.gain;
+      const current = env.value;
+      const peak = accent ? 0.92 : 0.76;
+      const sustain = accent ? 0.42 : 0.54;
+      const tau = accent ? 0.26 : 0.78;
+      env.cancelScheduledValues(when);
+      env.setValueAtTime(current, when);
+      env.linearRampToValueAtTime(peak, when + 0.05);
+      env.setTargetAtTime(sustain, when + 0.05, tau);
     }
+    const CREW_SYLLABLES = [
+      // "HO" — round punchy call, strong downbeat
+      { f1s:450,  f2s:850,  f3s:2100, f1e:430,  f2e:810,  f3e:2000, q1:12, q2:10, q3:7,  burst:0.09 },
+      // "HAY" — bright diphthong EH→EE, classic shanty response
+      { f1s:600,  f2s:1900, f3s:2700, f1e:320,  f2e:2300, f3e:3000, q1:11, q2:11, q3:8,  burst:0.08 },
+      // "HAUL" — open AH settling into a rounder vowel
+      { f1s:800,  f2s:1200, f3s:2500, f1e:650,  f2e:1050, f3e:2300, q1:12, q2:10, q3:8,  burst:0.07 },
+      // "AWAY" — AH gliding toward EY
+      { f1s:780,  f2s:1200, f3s:2500, f1e:480,  f2e:1800, f3e:2800, q1:11, q2:10, q3:7,  burst:0.05 },
+      // "HEAVE" — EH gliding to EE
+      { f1s:580,  f2s:1850, f3s:2700, f1e:300,  f2e:2350, f3e:3000, q1:12, q2:11, q3:8,  burst:0.08 },
+      // "HMM" — nasal hum (closed mouth, softer phases)
+      { f1s:260,  f2s:1000, f3s:2200, f1e:260,  f2e:1000, f3e:2200, q1:15, q2:11, q3:7,  burst:0.01 },
+      // "OH" — round sustained call
+      { f1s:500,  f2s:900,  f3s:2200, f1e:480,  f2e:870,  f3e:2100, q1:12, q2:10, q3:8,  burst:0.05 },
+      // "HMM" again — hum on every other off-beat keeps it varied
+      { f1s:260,  f2s:1000, f3s:2200, f1e:260,  f2e:1000, f3e:2200, q1:15, q2:11, q3:7,  burst:0.01 },
+    ];
 
-    function fireDronePulse(when, freq, vel=1.0, targetGain=null) {
-      const pv = nd.pulseGain.gain.value;
-      const gate = targetGain != null ? targetGain : pv;
-      if (gate < 0.02) return;
-      const buf = getDronePulseBuffer(freq, vel);
-      const src = actx.createBufferSource(); src.buffer = buf;
-      const pG2 = actx.createGain(); pG2.gain.value = pv > 0.001 ? pv * 0.48 : gate * 0.48;
-      src.connect(pG2); pG2.connect(nd.master); src.start(when);
-    }
-
-    function fireVoices(when, chord, targetGain=null) {
-      if (!chord || !nd.voiceGain) return;
-      // Use targetGain (computed from phase lv) for both gating AND envelope levels.
-      // nd.voiceGain.gain.value is unreliable during morph transitions (may be near 0).
-      const nodeVal = nd.voiceGain.gain.value * (layerMult.voices ?? 1);
+    function fireCrewPart(when, freq, targetGain, part, syllable) {
+      const gainNode = nd[part.node];
+      if (!gainNode || !freq) return;
+      const nodeVal = gainNode.gain.value * (layerMult[part.id] ?? 1);
       const gate = targetGain != null ? targetGain : nodeVal;
-      if (gate < 0.02) return;
-      // Effective level for envelope peaks — use the higher of node value or target
-      // so voices are audible even during the first tick of a morph
+      if (gate < 0.018) return;
       const vv = Math.max(nodeVal, gate);
 
       const vc = layerConfigs.voices;
       const dur = vc.releaseSec;
-      const baseFormant = vc.formantHz;
       const baseVibHz = vc.vibratoHz;
-      const numVoices = vc.voiceCount ?? 2;
-      const detSpread = vc.detuneSpread ?? 15;
-      const breathLvl = vc.breathLevel ?? 0.035;
+      const baseFormantShift = (vc.formantHz ?? 720) - 720;
+      const partVoices = Math.max(1, Math.min(vc.voiceCount ?? 2, part.maxVoices ?? (vc.voiceCount ?? 2)));
+      const detSpread = (vc.detuneSpread ?? 15) * part.detuneMul;
+      const breathLvl = (vc.breathLevel ?? 0.035) * part.breathMul;
 
-      // Sea-shanty crew call syllables — each entry has start (s) and end (e) formants so
-      // the voice glides through the vowel shape, approximating real word sounds.
-      // burst: relative noise level at attack (H-consonant strength; near 0 = hum/closed).
-      // The crew cycles through this sequence so each trigger is a distinct word call.
-      const CREW_SYLLABLES = [
-        // "HO" — round punchy call, strong downbeat
-        { f1s:450,  f2s:850,  f3s:2100, f1e:430,  f2e:810,  f3e:2000, q1:12, q2:10, q3:7,  burst:0.09 },
-        // "HAY" — bright diphthong EH→EE, classic shanty response
-        { f1s:600,  f2s:1900, f3s:2700, f1e:320,  f2e:2300, f3e:3000, q1:11, q2:11, q3:8,  burst:0.08 },
-        // "HAUL" — open AH settling into a rounder vowel
-        { f1s:800,  f2s:1200, f3s:2500, f1e:650,  f2e:1050, f3e:2300, q1:12, q2:10, q3:8,  burst:0.07 },
-        // "AWAY" — AH gliding toward EY
-        { f1s:780,  f2s:1200, f3s:2500, f1e:480,  f2e:1800, f3e:2800, q1:11, q2:10, q3:7,  burst:0.05 },
-        // "HEAVE" — EH gliding to EE
-        { f1s:580,  f2s:1850, f3s:2700, f1e:300,  f2e:2350, f3e:3000, q1:12, q2:11, q3:8,  burst:0.08 },
-        // "HMM" — nasal hum (closed mouth, softer phases)
-        { f1s:260,  f2s:1000, f3s:2200, f1e:260,  f2e:1000, f3e:2200, q1:15, q2:11, q3:7,  burst:0.01 },
-        // "OH" — round sustained call
-        { f1s:500,  f2s:900,  f3s:2200, f1e:480,  f2e:870,  f3e:2100, q1:12, q2:10, q3:8,  burst:0.05 },
-        // "HMM" again — hum on every other off-beat keeps it varied
-        { f1s:260,  f2s:1000, f3s:2200, f1e:260,  f2e:1000, f3e:2200, q1:15, q2:11, q3:7,  burst:0.01 },
-      ];
-      // All voices on this trigger say the same syllable — crew chanting together
-      const syllable = CREW_SYLLABLES[crewSyllableIdx % CREW_SYLLABLES.length];
-      crewSyllableIdx++;
+      for (let vi = 0; vi < partVoices; vi++) {
+        const detCents = (vi - (partVoices - 1) * 0.5) * detSpread / Math.max(1, partVoices - 1) + (Math.random() - 0.5) * 6;
+        const delay = part.noteIndex * 0.022 * (0.8 + Math.random() * 0.35) + vi * (0.02 / Math.max(1, partVoices - 1)) + Math.random() * 0.02;
+        const startAt = when + delay;
 
-      const notes = chord.notes.slice(0, Math.min(4, chord.notes.length));
+        const osc = actx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        osc.detune.value = detCents;
 
-      notes.forEach((freq, ni) => {
-        for (let vi = 0; vi < numVoices; vi++) {
-          const detCents = (vi - (numVoices - 1) * 0.5) * detSpread / Math.max(1, numVoices - 1) + (Math.random() - 0.5) * 8;
-          // Humanize: wider timing scatter for natural choir feel
-          const delay = ni * 0.04 * (0.8 + Math.random() * 0.4) + vi * (0.025 / Math.max(1, numVoices - 1)) + Math.random() * 0.035;
-          const startAt = when + delay;
+        const drift = actx.createOscillator();
+        const driftAmt = actx.createGain();
+        drift.frequency.value = 0.22 + Math.random() * 0.4;
+        driftAmt.gain.value = 3.2 + Math.random() * 2.2;
+        drift.connect(driftAmt); driftAmt.connect(osc.detune);
 
-          const osc = actx.createOscillator();
-          osc.type = 'sawtooth';
-          osc.frequency.value = freq;
-          osc.detune.value = detCents;
-          // Pitch drift: slow random wander +-4 cents over the note
-          const drift = actx.createOscillator();
-          const driftAmt = actx.createGain();
-          drift.frequency.value = 0.3 + Math.random() * 0.5;
-          driftAmt.gain.value = 4 + Math.random() * 3;
-          drift.connect(driftAmt); driftAmt.connect(osc.detune);
+        const vib = actx.createOscillator();
+        const vibAmt = actx.createGain();
+        vib.frequency.value = baseVibHz * part.vibratoMul + vi * 0.22 + (Math.random() - 0.5) * 0.5;
+        vibAmt.gain.value = (3.0 + part.noteIndex * 0.7) * part.vibratoMul * (0.85 + Math.random() * 0.3);
+        vib.connect(vibAmt); vibAmt.connect(osc.frequency);
 
-          const vib = actx.createOscillator();
-          const vibAmt = actx.createGain();
-          vib.frequency.value = baseVibHz + ni * 0.4 + vi * 0.3 + (Math.random() - 0.5) * 0.8;
-          vibAmt.gain.value = (3.5 + ni * 1.2) * (0.8 + Math.random() * 0.4);
-          vib.connect(vibAmt); vibAmt.connect(osc.frequency);
+        const hpPre = actx.createBiquadFilter();
+        hpPre.type = 'highpass';
+        hpPre.frequency.value = part.id === 'voiceBass' ? 85 : (part.id === 'voiceBaritone' ? 100 : 120);
+        hpPre.Q.value = 0.7;
+        osc.connect(hpPre);
 
-          // Pre-shape: gentle highpass removes subsonic buzz from raw sawtooth
-          const hpPre = actx.createBiquadFilter();
-          hpPre.type = 'highpass'; hpPre.frequency.value = 120; hpPre.Q.value = 0.7;
-          osc.connect(hpPre);
+        const formantShift = baseFormantShift + part.formantShift;
+        const f1 = actx.createBiquadFilter();
+        f1.type = 'bandpass';
+        f1.frequency.value = Math.max(180, syllable.f1s + formantShift + vi * 14 + (Math.random() - 0.5) * 22);
+        f1.Q.value = syllable.q1;
+        const f2 = actx.createBiquadFilter();
+        f2.type = 'bandpass';
+        f2.frequency.value = Math.max(500, syllable.f2s + formantShift + vi * 22 + (Math.random() - 0.5) * 40);
+        f2.Q.value = syllable.q2;
+        const f3 = actx.createBiquadFilter();
+        f3.type = 'bandpass';
+        f3.frequency.value = Math.max(1400, syllable.f3s + formantShift + vi * 30 + (Math.random() - 0.5) * 70);
+        f3.Q.value = syllable.q3;
+        f1.frequency.setTargetAtTime(Math.max(180, syllable.f1e + formantShift + vi * 14), startAt + 0.22, dur * 0.35);
+        f2.frequency.setTargetAtTime(Math.max(500, syllable.f2e + formantShift + vi * 22), startAt + 0.22, dur * 0.35);
+        f3.frequency.setTargetAtTime(Math.max(1400, syllable.f3e + formantShift + vi * 30), startAt + 0.22, dur * 0.35);
 
-          // Three-formant vocal tract model using syllable's start positions,
-          // then animate toward end positions to create the vowel glide/diphthong
-          const f1 = actx.createBiquadFilter();
-          f1.type = 'bandpass'; f1.frequency.value = syllable.f1s + vi * 20 + (Math.random() - 0.5) * 30; f1.Q.value = syllable.q1;
-          const f2 = actx.createBiquadFilter();
-          f2.type = 'bandpass'; f2.frequency.value = syllable.f2s + vi * 30 + (Math.random() - 0.5) * 50; f2.Q.value = syllable.q2;
-          const f3 = actx.createBiquadFilter();
-          f3.type = 'bandpass'; f3.frequency.value = syllable.f3s + vi * 40 + (Math.random() - 0.5) * 80; f3.Q.value = syllable.q3;
-          // Glide toward end-of-syllable formant positions — creates vowel movement
-          f1.frequency.setTargetAtTime(syllable.f1e + vi * 20, startAt + 0.25, dur * 0.35);
-          f2.frequency.setTargetAtTime(syllable.f2e + vi * 30, startAt + 0.25, dur * 0.35);
-          f3.frequency.setTargetAtTime(syllable.f3e + vi * 40, startAt + 0.25, dur * 0.35);
+        const fSum = actx.createGain();
+        fSum.gain.value = 1.0;
+        hpPre.connect(f1); hpPre.connect(f2); hpPre.connect(f3);
+        f1.connect(fSum); f2.connect(fSum); f3.connect(fSum);
 
-          const fSum = actx.createGain(); fSum.gain.value = 1.0;
-          hpPre.connect(f1); hpPre.connect(f2); hpPre.connect(f3);
-          f1.connect(fSum); f2.connect(fSum); f3.connect(fSum);
+        const env = actx.createGain();
+        const peakJitter = 0.88 + Math.random() * 0.24;
+        const peak = vv * part.gainMul * (0.19 - vi * (0.014 / Math.max(1, partVoices))) * peakJitter;
+        const attackTime = (0.12 + part.noteIndex * 0.02) * (0.78 + Math.random() * 0.45);
+        env.gain.setValueAtTime(0.0, startAt);
+        env.gain.linearRampToValueAtTime(peak, startAt + attackTime);
+        env.gain.setTargetAtTime(peak * 0.58, startAt + 0.42, dur * 0.36);
+        env.gain.setTargetAtTime(0.001, startAt + dur * 0.55, dur * 0.3);
 
-          const env = actx.createGain();
-          const peakJitter = 0.85 + Math.random() * 0.3;
-          const peak = vv * (0.20 - ni * 0.025 - vi * (0.015 / numVoices)) * peakJitter;
-          const attackTime = (0.12 + ni * 0.025) * (0.7 + Math.random() * 0.6);
-          env.gain.setValueAtTime(0.0, startAt);
-          env.gain.linearRampToValueAtTime(peak, startAt + attackTime);
-          env.gain.setTargetAtTime(peak * 0.55, startAt + 0.45, dur * 0.38);
-          env.gain.setTargetAtTime(0.001, startAt + dur * 0.55, dur * 0.3);
+        fSum.connect(env); env.connect(gainNode);
+        osc.start(startAt); vib.start(startAt); drift.start(startAt);
+        const endAt = startAt + dur + 0.5;
+        osc.stop(endAt); vib.stop(endAt); drift.stop(endAt);
+      }
 
-          fSum.connect(env); env.connect(nd.voiceGain);
-          osc.start(startAt); vib.start(startAt); drift.start(startAt);
-          const endAt = startAt + dur + 0.5;
-          osc.stop(endAt); vib.stop(endAt); drift.stop(endAt);
-        }
-      });
-
-      // Consonant/breath burst — sharp H-attack for call syllables, nearly absent for hums
-      const noiseDur = dur * 0.5;
+      const noiseDur = dur * 0.45;
       const noiseBuf = getBreathNoiseBuffer();
       const noiseSrc = actx.createBufferSource();
       noiseSrc.buffer = noiseBuf;
       const maxOffset = Math.max(0, noiseBuf.duration - noiseDur - 0.2);
       const noiseOffset = Math.random() * maxOffset;
       const noiseBpf = actx.createBiquadFilter();
-      // H-consonant burst is brighter (~3kHz); hum breath stays at 1600Hz
       noiseBpf.type = 'bandpass';
-      noiseBpf.frequency.value = syllable.burst > 0.04 ? 2800 : 1600;
-      noiseBpf.Q.value = syllable.burst > 0.04 ? 1.2 : 1.8;
+      noiseBpf.frequency.value = syllable.burst > 0.04 ? 2600 : 1500;
+      noiseBpf.Q.value = syllable.burst > 0.04 ? 1.2 : 1.9;
       const noiseEnv = actx.createGain();
-      const burstPeak = vv * breathLvl * (syllable.burst / 0.035); // scale relative to default
-      const burstDecay = syllable.burst > 0.04 ? 0.06 : 0.25; // H-burst is short and snappy
+      const burstPeak = vv * breathLvl * (syllable.burst / 0.035);
+      const burstDecay = syllable.burst > 0.04 ? 0.06 : 0.22;
       noiseEnv.gain.setValueAtTime(0, when);
       noiseEnv.gain.linearRampToValueAtTime(burstPeak, when + 0.015);
       noiseEnv.gain.setTargetAtTime(0.001, when + 0.015, burstDecay);
-      noiseSrc.connect(noiseBpf); noiseBpf.connect(noiseEnv); noiseEnv.connect(nd.voiceGain);
+      noiseSrc.connect(noiseBpf); noiseBpf.connect(noiseEnv); noiseEnv.connect(gainNode);
       noiseSrc.start(when, noiseOffset, noiseDur + 0.1);
     }
 
-    function setDroneFreq(f1, f2, when) {
-      nd.drO1.frequency.setTargetAtTime(f1,when,0.15); nd.drO2.frequency.setTargetAtTime(f1,when,0.18);
-      nd.drO3.frequency.setTargetAtTime(f2,when,0.15); nd.drO4.frequency.setTargetAtTime(f2,when,0.18);
+    function fireCrewVoices(when, chord, partTargets) {
+      if (!chord) return;
+      const active = CREW_PARTS.some((part) => (partTargets?.[part.id] ?? 0) > 0.018);
+      if (!active) return;
+      const syllable = CREW_SYLLABLES[crewSyllableIdx % CREW_SYLLABLES.length];
+      crewSyllableIdx++;
+      const voicing = getCrewVoicing(chord);
+      CREW_PARTS.forEach((part) => {
+        fireCrewPart(when, voicing[part.id], partTargets?.[part.id] ?? null, part, syllable);
+      });
     }
 
     const SCHEDULER_INTERVAL_MS = 25;
@@ -1127,61 +1199,6 @@ const ProceduralMusic = (() => {
     const SCHEDULER_MAX_TICKS_PER_WAKE = 512;
     /** Wall-clock ms timestamp of last scheduler tick — used to detect dead timers. */
     let schedulerLastRunMs = 0;
-
-    function getShimmerBuffer() {
-      const sr = actx.sampleRate;
-      const mode = layerConfigs.shim.synthMode || 'bell';
-      const key = `${mode}|${keyId}|${sr}`;
-      if (shimmerBuffer && shimmerCacheKey === key) return shimmerBuffer;
-
-      if (mode === 'clap') {
-        const clapDur = layerConfigs.shim.durationSec || 0.06;
-        const len = Math.floor(sr * clapDur);
-        const shBuf = actx.createBuffer(1, len, sr);
-        const sd = shBuf.getChannelData(0);
-        const bpfCenter = 2400;
-        const bpfQ = 1.5;
-        for (let i = 0; i < len; i++) {
-          const t = i / sr;
-          const noise = Math.random() * 2 - 1;
-          // Double-tap envelope simulates flesh impact
-          const env1 = Math.exp(-t * 80);
-          const env2 = t > 0.008 ? Math.exp(-(t - 0.008) * 60) * 0.7 : 0;
-          const env = env1 + env2;
-          // Simple bandpass approximation via resonant shaping
-          const angle = 2 * Math.PI * bpfCenter * t;
-          const shaped = noise * (0.5 + 0.5 * Math.sin(angle * bpfQ * 0.1));
-          let fadeEnv = 1.0;
-          if (i < 4) fadeEnv = i / 4;
-          if (i > len - 8) fadeEnv = (len - i) / 8;
-          sd[i] = shaped * env * 0.65 * fadeEnv;
-        }
-        shimmerBuffer = shBuf;
-        shimmerCacheKey = key;
-        return shBuf;
-      }
-
-      const shimDur = layerConfigs.shim.durationSec || 0.12;
-      const len = Math.floor(sr * shimDur);
-      const shBuf = actx.createBuffer(1, len, sr);
-      const sd = shBuf.getChannelData(0);
-      const bellHz = tn('A4') * (layerConfigs.shim.octaveMul || 1);
-      const bellHz2 = bellHz * 2.71;
-      const fadeInSamples = Math.floor(sr * 0.0005);
-      const fadeOutSamples = Math.floor(sr * 0.002);
-      for (let i = 0; i < sd.length; i++) {
-        const t = i / sr;
-        const env = Math.exp(-t * (1 / shimDur) * 3.5);
-        let fadeEnv = 1.0;
-        if (i < fadeInSamples) fadeEnv = i / fadeInSamples;
-        if (i > len - fadeOutSamples) fadeEnv = (len - i) / fadeOutSamples;
-        sd[i] = (Math.sin(2 * Math.PI * bellHz * t) * 0.6
-               + Math.sin(2 * Math.PI * bellHz2 * t) * 0.25) * env * 0.5 * fadeEnv;
-      }
-      shimmerBuffer = shBuf;
-      shimmerCacheKey = key;
-      return shBuf;
-    }
 
     function schedulerLoop() {
       if (!playing || !actx) return;
@@ -1215,18 +1232,19 @@ const ProceduralMusic = (() => {
       const el = transportAt(when);
       const ph = getPhase(el);
       const lv = ph.lv || {};
-      const { ARP, phaseARP, CHORDS, droneChords } = getScaleData();
+      const { ARP, phaseARP, CHORDS } = getScaleData();
       const phArp = phaseARP[ph.id] || ARP;
       const idx = step % phArp.length;
       const barIdx = step % 16; // bar position for thump/chord triggers (independent of arp length)
       const arpRotate = ph.randomMod?.arpRotate ?? 0;
 
       if (ph !== currentPhase) {
+        const prevPhase = currentPhase;
         const isWrapBack = currentPhase
           && ph.start < currentPhase.start;
         if (isWrapBack) resetSequencerCounters();
         currentPhase = ph;
-        morphTo(ph, when);
+        morphTo(ph, when, false, prevPhase);
         emit('phase', { id: ph.id, label: ph.label });
       }
 
@@ -1239,7 +1257,7 @@ const ProceduralMusic = (() => {
         phaseEnd: ph.end,
       });
 
-      // Fiddle retrigger — humanized envelope with portamento and bow noise
+      // Cello retrigger — humanized envelope with portamento and bow noise
       const freq=phArp[(idx + arpRotate) % phArp.length], vel=VEL[barIdx % VEL.length], av=(lv.arp||0)*(layerMult.arp??1);
       // Hold marker (freq===0): sustain previous note, skip re-trigger
       if (freq > 0) {
@@ -1293,70 +1311,46 @@ const ProceduralMusic = (() => {
             lastPlayedChord = CHORDS[seq[pianoBarCount % seq.length]];
             // Beat 1: bass plays chord root
             if (lastPlayedChord) {
-              fireBass(when, lastPlayedChord.notes[0]);
+              fireBass(when, getBassLineVoicing(lastPlayedChord).root, 0.9);
             }
           }
           const targetPiano = (lv.piano||0)*(layerMult.piano??1)*LAYER_MAP.piano.scale;
           if (lastPlayedChord && targetPiano > 0.02) {
             firePiano(when, lastPlayedChord, targetPiano);
           }
+          const targetPad = (lv.pad||0)*(layerMult.pad??1);
+          if (lastPlayedChord && targetPad > 0.02) {
+            setPadVoicing(lastPlayedChord, when);
+          }
           pianoBarCount++;
         } else if (barIdx===8 && lastPlayedChord) {
-          // Beat 3: bass walks to the fifth (notes[1]) — root-fifth is the
-          // classic sea-shanty bass pattern (D→A, C→G, Am→E, etc.)
-          const fifth = lastPlayedChord.notes[1] ?? lastPlayedChord.notes[0];
-          fireBass(when, fifth);
+          // Beat 3: bass walks to a fitted fifth in the same low register.
+          fireBass(when, getBassLineVoicing(lastPlayedChord).fifth, 0.82);
         }
 
-        // Drone/pulse state machine
-        const ds = droneState;
-        const targetDrone = (lv.drone||0)*(layerMult.drone??1);
-        const targetPulse = targetDrone * LAYER_MAP.beatpulse.scale;
-        if (ph.droneMode && targetDrone > 0.02) {
-          if (ds.mode==='hold') {
-            if (ds.beatsLeft===16) {
-              const ch=droneChords[ds.chordIdx % droneChords.length];
-              setDroneFreq(ch.r, ch.f, when);
-              ramp(nd.droneGain.gain, targetDrone*0.30, 0.6, when);
-            }
-            ds.beatsLeft--;
-            if (ds.beatsLeft<=0) { ramp(nd.droneGain.gain, 0.02, 0.3, when); ds.mode='pulse'; ds.beatsLeft=16; ds.pulseFreq=droneChords[ds.chordIdx % droneChords.length].r; }
-          } else {
-            fireDronePulse(when, ds.pulseFreq, 0.85, targetPulse);
-            ds.beatsLeft--;
-            if (ds.beatsLeft<=0) { ds.chordIdx++; ds.mode='hold'; ds.beatsLeft=16; }
-          }
-        } else if (!ph.droneMode) {
-          ds.mode='hold'; ds.beatsLeft=16; ds.chordIdx=0;
-          ramp(nd.droneGain.gain, 0, 0.5, when);
+        const targetDrone = (lv.drone||0)*(layerMult.drone??1)*LAYER_MAP.drone.scale;
+        if (lastPlayedChord && targetDrone > 0.012) {
+          fireDroneSupport(when, lastPlayedChord, targetDrone, barIdx===8, ph.droneMode || barIdx===8);
+        } else if (nd.droneArticG) {
+          ramp(nd.droneArticG.gain, 0, 0.18, when);
         }
-      }
 
-      // Ship's bell / ring accent on configured beats
-      // Route directly through shimGain (morphTo controls level) — no per-hit
-      // scaling so the signal isn't double-attenuated to near-inaudible.
-      if (layerConfigs.shim.triggerSteps.includes(barIdx) && (lv.shim||0)*(layerMult.shim??1) > 0.02) {
-        const shBuf = getShimmerBuffer();
-        const shSrc = actx.createBufferSource();
-        shSrc.buffer = shBuf;
-        shSrc.connect(nd.shimGain);
-        shSrc.start(when);
       }
 
       // Crew chorus on configured trigger steps (call-and-response rhythm)
       const voiceTriggers = layerConfigs.voices.triggerSteps || [0, 8];
       if (voiceTriggers.includes(barIdx)) {
-        const targetVoices = (lv.voices||0)*(layerMult.voices??1)*LAYER_MAP.voices.scale;
-        if (lastPlayedChord && targetVoices > 0.02) {
-          fireVoices(when, lastPlayedChord, targetVoices);
+        const crewTargets = {
+          voiceBass: (lv.voiceBass || 0) * (layerMult.voiceBass ?? 1) * LAYER_MAP.voiceBass.scale,
+          voiceBaritone: (lv.voiceBaritone || 0) * (layerMult.voiceBaritone ?? 1) * LAYER_MAP.voiceBaritone.scale,
+          voiceTenor: (lv.voiceTenor || 0) * (layerMult.voiceTenor ?? 1) * LAYER_MAP.voiceTenor.scale,
+        };
+        if (lastPlayedChord && Object.values(crewTargets).some((value) => value > 0.018)) {
+          fireCrewVoices(when, lastPlayedChord, crewTargets);
         }
       }
 
       step++;
-
-      // Update echo delay times to current BPM (smooth ramp prevents zipper noise)
-      nd.dL.delayTime.setTargetAtTime(s16()*layerConfigs.echo.leftDelaySteps, when, 0.15);
-      nd.dR.delayTime.setTargetAtTime(s16()*layerConfigs.echo.rightDelaySteps, when, 0.15);
     }
 
     function beginPlayback() {
@@ -1365,23 +1359,6 @@ const ProceduralMusic = (() => {
       if (schedulerIntervalId !== null) {
         clearTimeout(schedulerIntervalId);
         schedulerIntervalId = null;
-      }
-
-      // If seekToPhase was called while the actx.resume() promise was pending,
-      // honour that seek now that the context is actually running.
-      if (pendingSeekPhaseId !== null) {
-        const seekId = pendingSeekPhaseId;
-        pendingSeekPhaseId = null;
-        // pausedAt was already set by seekToPhase; counters already reset.
-        playing = true;
-        startTime = actx.currentTime;
-        nextTickAt = startTime + 0.01;
-        currentPhase = null;
-        resetPhaseMarkerState();
-        morphTo(getPhase(pausedAt));
-        schedulerIntervalId = 0;
-        schedulerLoop();
-        return;
       }
 
       playing = true;
@@ -1410,7 +1387,6 @@ const ProceduralMusic = (() => {
           if (LAYER_MAP[k]) LAYER_MAP[k].scale = v;
         }
       }
-      LAYER_MAP.voices.scale = layerConfigs.voices.gainScale;
       const d = preset.defaults || {};
       bpmTarget = d.bpm ?? DEFAULT_PRESET.defaults.bpm;
       // Convert durationBeats (quarter-note beats) → seconds using the preset BPM
@@ -1419,7 +1395,6 @@ const ProceduralMusic = (() => {
       PHASES = timelinePhasesFromPreset(preset.phases, bpmTarget);
       if (!playing) bpm = bpmTarget;
       keyId = d.key ?? DEFAULT_PRESET.defaults.key;
-      if (d.reverb != null) reverbWet = d.reverb;
       lastPresetMeta = { id: preset.id || '', name: preset.name || '' };
       disabledPhaseIds.clear();
       rebuildPhaseSchedule();
@@ -1427,7 +1402,6 @@ const ProceduralMusic = (() => {
       invalidateAudioBuffers();
       resetSequencerCounters();
       clampPausedTime();
-      if (nd.revG && actx) ramp(nd.revG.gain, reverbWet, 0.5);
       return true;
     }
 
@@ -1459,7 +1433,7 @@ const ProceduralMusic = (() => {
         }
         if (actx) {
           // Zero all layer gains immediately so resuming the context later
-          // doesn't produce a burst of sound from frozen oscillators / reverb tail.
+          // doesn't produce a burst of sound from frozen oscillators.
           const t = actx.currentTime;
           for (const { node } of Object.values(LAYER_MAP)) {
             const g = nd[node];
@@ -1505,35 +1479,6 @@ const ProceduralMusic = (() => {
         return { ...lastPresetMeta };
       },
 
-      seekToPhase(id) {
-        resetPhaseMarkerState();
-        resetSequencerCounters();
-        for (let i = 0; i < activePhases.length; i++) {
-          if (activePhases[i].id === id) {
-            pausedAt = activePhases[i].start;
-            currentPhase = null;
-            if (playing && actx) {
-              // Immediately silence all layer gains so pre-scheduled old-phase
-              // audio (up to 2s lookahead) doesn't bleed into the new phase
-              for (const {node} of Object.values(LAYER_MAP)) {
-                if (nd[node]?.gain) ramp(nd[node].gain, 0, 0.04);
-              }
-              ramp(nd.droneGain.gain, 0, 0.04);
-              // Short gap for fade-out, then start new phase cleanly on the beat
-              const gapSec = 0.08;
-              startTime = actx.currentTime + gapSec;
-              nextTickAt = actx.currentTime + gapSec;
-              morphTo(activePhases[i], undefined, true);
-            } else {
-              pendingSeekPhaseId = id;
-            }
-            emit('phase', { id: activePhases[i].id, label: activePhases[i].label });
-            flushEvents();
-            return;
-          }
-        }
-      },
-
       setVolume(v) {
         volumeSetting = Math.max(0, Math.min(2, v));
         if (nd.master && actx) {
@@ -1542,7 +1487,7 @@ const ProceduralMusic = (() => {
         }
       },
 
-      // name: 'arp'|'echo'|'thump'|'piano'|'sub'|'pad'|'bass'|'shim'|'drone'|'beatpulse'|'voices'
+      // name: 'arp'|'thump'|'piano'|'pad'|'bass'|'drone'|'voiceBass'|'voiceBaritone'|'voiceTenor'
       // value: 0–2 multiplier on top of the phase's base level (UI allows up to 200%)
       setLayer(name, value) {
         value = Math.max(0, Math.min(2, value));
@@ -1552,7 +1497,7 @@ const ProceduralMusic = (() => {
         if (!map) return;
         const ph = currentPhase || getPhase(elapsed());
         const baseVal = ph?.lv?.[name] ?? 0;
-        ramp(nd[map.node]?.gain, baseVal * value * map.scale, 0.04);
+        snap(nd[map.node]?.gain, baseVal * value * map.scale);
       },
 
       setKey(nextKeyId) {
@@ -1578,14 +1523,6 @@ const ProceduralMusic = (() => {
         if (prev !== bpmTarget && lastPresetPhases) {
           PHASES = timelinePhasesFromPreset(lastPresetPhases, bpmTarget);
           rebuildPhaseSchedule();
-        }
-      },
-
-      setReverb(wet) {
-        reverbWet = Math.max(0, Math.min(0.80, wet));
-        if (nd.revG && actx) {
-          nd.revG.gain.cancelScheduledValues(actx.currentTime);
-          nd.revG.gain.setValueAtTime(reverbWet, actx.currentTime);
         }
       },
 
@@ -1634,7 +1571,6 @@ const ProceduralMusic = (() => {
           phaseLoopId,
           bpm,
           volume: volumeSetting,
-          reverb: reverbWet,
           layers: { ...layerMult },
           phaseLevels: ph?.lv ?? {},
         };
@@ -1650,9 +1586,6 @@ const ProceduralMusic = (() => {
         return { ...(nextPh.lv || {}) };
       },
 
-      getPhases() {
-        return activePhases.map(p => ({ id: p.id, label: p.label }));
-      },
       getKeys() { return Object.keys(KEY_OFFSETS).map(id => ({ id, label: id })); },
       /** Available chord names for the active preset (e.g. ['Gm','Eb','Cm','Bb'] or custom). */
       getChordNames() {
