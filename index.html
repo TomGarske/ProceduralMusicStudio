@@ -1018,7 +1018,7 @@ function renderPlaylist() {
   list.innerHTML = '';
   presetManifestList.forEach((p, i) => {
     const item = document.createElement('div');
-    const songUrl = `/songs/${encodeURIComponent(p.id)}/`;
+    const songUrl = new URL(`songs/${encodeURIComponent(p.id)}/`, window.location.href).href;
     item.className = 'playlist-item';
     item.setAttribute('role', 'listitem');
     item.dataset.file = p.file;
