@@ -16,10 +16,10 @@ The app plays through sea-shanty arrangements made from preset song data. Each p
 The current UI exposes these synthesis layers:
 
 - `Fist Thump`
-- `Bass Line`
-- `Concertina Chords`
-- `Cello Harmony`
-- `Arco Bass`
+- `Plucked Bass`
+- `Concertina Stabs`
+- `Cello Pad`
+- `Arco Bass Support`
 - `Cello Melody`
 - `Crew Bass`
 - `Crew Baritone`

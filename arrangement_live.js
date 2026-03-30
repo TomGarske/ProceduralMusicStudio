@@ -13,7 +13,6 @@
   const MARKER_TEXT = 'rgba(0, 212, 255, 0.98)';
   const PAD_TOP = 4;
   const ROW_H = 5;
-  const EPS = 0.001;
 
   let canvas = null;
   let ctx = null;
@@ -34,19 +33,7 @@
       const ix = layerIds.indexOf(focusLayerId);
       return ix >= 0 ? [ix] : layerIds.map((_, i) => i);
     }
-    const eng = window.__PROC_ENGINE;
-    const st = eng && eng.getState ? eng.getState() : null;
-    if (!st) return layerIds.map((_, i) => i);
-    const lv = st.phaseLevels || {};
-    const mult = st.layers || {};
-    const out = [];
-    for (let i = 0; i < layerIds.length; i++) {
-      const id = layerIds[i];
-      const base = lv[id] ?? 0;
-      const m = mult[id] ?? 1;
-      if (base * m > EPS) out.push(i);
-    }
-    return out;
+    return layerIds.map((_, i) => i);
   }
 
   function rmsFromAnalyser(analyser) {

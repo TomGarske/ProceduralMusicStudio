@@ -194,6 +194,13 @@
       transition: transform 0.1s;
     }
     input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type=range].layer-slider {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 171, 0, 0.38) 0 var(--phase-pct, 0%),
+        var(--border) var(--phase-pct, 0%) 100%
+      );
+    }
     input[type=range].layer-slider::-webkit-slider-thumb { background: var(--layer-color); box-shadow: 0 0 4px rgba(255,171,0,0.22); }
     input[type=range].layer-slider.muted::-webkit-slider-thumb { background: var(--text-dim); box-shadow: none; }
 
@@ -207,7 +214,9 @@
     }
     .playlist-item {
       display: grid;
-      gap: 6px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
       width: 100%;
       padding: 10px 12px;
       border-radius: var(--radius);
@@ -228,7 +237,7 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      width: 100%;
+      min-width: 0;
       text-align: left;
       background: transparent;
       border: 0;
@@ -263,13 +272,16 @@
       overflow: hidden;
     }
     .playlist-item-url {
-      display: inline-block;
-      margin-left: calc(1.5em + 10px);
+      display: inline-flex;
+      align-items: center;
       font-size: 10px;
       line-height: 1.35;
       color: var(--cyan-dim);
       text-decoration: none;
-      word-break: break-all;
+      white-space: nowrap;
+      max-width: min(42vw, 220px);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .playlist-item-url:hover {
       color: var(--cyan);
@@ -367,13 +379,6 @@
       flex-direction: column;
       gap: 7px;
     }
-    .layer-ctrl.inactive-phase {
-      opacity: 0.68;
-    }
-    .layer-ctrl.inactive-toggle {
-      border-color: #3a2f2f;
-      box-shadow: none;
-    }
     .layer-ctrl .layer-header {
       display: flex;
       justify-content: space-between;
@@ -394,6 +399,29 @@
       text-align: right;
     }
     .layer-val.muted { color: var(--text-dim); }
+    .layer-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .layer-meta-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .layer-mix-val {
+      color: var(--cyan);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: normal;
+      text-transform: none;
+    }
+    .layer-mix-val.muted { color: var(--text-dim); }
     .layer-desc {
       font-size: 10px;
       color: var(--text-dim);
@@ -409,25 +437,6 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-right: 4px;
-    }
-    .layer-active-lbl {
-      font-size: 9px;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      cursor: pointer;
-      user-select: none;
-      padding: 2px 5px;
-      border-radius: 3px;
-      border: 1px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .layer-active-lbl.is-active {
-      color: var(--amber);
-      border-color: rgba(255,183,77,0.3);
-    }
-    .layer-active-lbl.is-inactive {
-      color: var(--text-dim);
-      border-color: var(--border);
     }
     .layer-solo-btn {
       background: none;
@@ -567,15 +576,15 @@
 <script>
 // ── Layer definitions (order = rhythm → low end → harmony → melody → texture) ─
 const LAYERS = [
-  { id:'thump',     label:'Fist Thump',     desc:'Knuckle-on-barrel strike on beats 1 & 3', default:50 },
-  { id:'bass',      label:'Bass Line',      desc:'Root-following bass with a pitched attack accent', default:50 },
-  { id:'piano',     label:'Concertina Chords', desc:'Chord stabs on the downbeat', default:50 },
-  { id:'pad',       label:'Cello Harmony',  desc:'Sustained bowed chord tones that follow the bar', default:50 },
-  { id:'drone',     label:'Arco Bass',      desc:'Low supporting root-and-fifth accompaniment', default:50 },
-  { id:'arp',       label:'Cello Melody',   desc:'Bowed cello line in playable range', default:50 },
-  { id:'voiceBass', label:'Crew Bass',      desc:'Lowest chant part, held in a bass tessitura', default:50 },
-  { id:'voiceBaritone', label:'Crew Baritone', desc:'Middle chant part in a steady baritone range', default:50 },
-  { id:'voiceTenor', label:'Crew Tenor',    desc:'Upper chant part kept in a low tenor register', default:50 },
+  { id:'thump',     label:'Fist Thump',        desc:'Layered barrel-hit impact on beats 1 and 3', default:100 },
+  { id:'bass',      label:'Plucked Bass',      desc:'Short low root-and-fifth notes with a pitched attack accent', default:100 },
+  { id:'piano',     label:'Concertina Stabs',  desc:'Rhythmic concertina-style chord stabs on the downbeat', default:100 },
+  { id:'pad',       label:'Cello Pad',         desc:'Sustained bowed cello support that retunes with the harmony', default:100 },
+  { id:'drone',     label:'Arco Bass Support', desc:'Bowed bass root-and-fifth support with gentle swells', default:100 },
+  { id:'arp',       label:'Cello Melody',      desc:'Main bowed cello hook, kept in a playable register', default:100 },
+  { id:'voiceBass', label:'Crew Bass',         desc:'Lowest crew chant part in bass range', default:100 },
+  { id:'voiceBaritone', label:'Crew Baritone', desc:'Middle crew chant part in baritone range', default:100 },
+  { id:'voiceTenor', label:'Crew Tenor',       desc:'Upper crew chant part kept in a low tenor range', default:100 },
 ];
 /** Layers that follow the phase chord progression (shown in the mixer). */
 const CHORD_LAYER_IDS = ['piano', 'bass', 'voiceBass', 'voiceBaritone', 'voiceTenor'];
@@ -588,7 +597,6 @@ const LAYER_MULT_MAX = 2;
 // ── Engine boot ──────────────────────────────────────────────────────────
 let engine = null;
 let scopeRaf = null;
-const layerActive = {};  // active/inactive state per layer
 let soloLayerId = null;  // null = all layers audible per mixer; else only this id is heard
 
 const mediaKeepalive = document.getElementById('media-keepalive');
@@ -745,7 +753,6 @@ document.getElementById('vol-slider').addEventListener('input', e => {
 // ── Layer mixer (flat list, hierarchy order) ───────────────────────────
 const mixerLayersEl = document.getElementById('mixer-layers');
 function getEffectiveLayerValue(layerId, sliderVal) {
-  if (!layerActive[layerId]) return 0;
   if (soloLayerId !== null && layerId !== soloLayerId) return 0;
   return sliderVal;
 }
@@ -766,19 +773,8 @@ function syncLayerToEngine(layerId) {
   if (!engine) return;
   const slider = document.getElementById(`sl-${layerId}`);
   if (!slider) return;
-  const desiredVal = parseInt(slider.value, 10) / 100;
-  const state = engine.getState();
-  const baseVal = state?.phaseLevels?.[layerId] ?? 0;
-  const effectiveVal = getEffectiveLayerValue(layerId, desiredVal);
-  // Phase base 0: ratio is undefined; use 1 when the layer is active so gains follow the
-  // phase once it turns on (otherwise mult stays 0 forever after intro).
-  let mult;
-  if (baseVal > 0) {
-    mult = Math.min(LAYER_MULT_MAX, effectiveVal / baseVal);
-  } else {
-    mult = effectiveVal > 0 ? 1 : 0;
-  }
-  engine.setLayer(layerId, mult);
+  const volumeMult = parseInt(slider.value, 10) / 100;
+  engine.setLayer(layerId, getEffectiveLayerValue(layerId, volumeMult));
 }
 function syncAllLayersToEngine() {
   if (!engine) return;
@@ -788,11 +784,11 @@ const layerDomCache = {};
 function cacheLayerDom() {
   LAYERS.forEach(layer => {
     const slider = document.getElementById(`sl-${layer.id}`);
-    const valEl = document.getElementById(`lv-${layer.id}`);
+    const phaseEl = document.getElementById(`phase-${layer.id}`);
+    const mixEl = document.getElementById(`mix-${layer.id}`);
     const card = slider?.closest('.layer-ctrl');
-    const activeLbl = document.getElementById(`active-${layer.id}`);
-    if (slider && valEl && card) {
-      layerDomCache[layer.id] = { slider, valEl, card, activeLbl };
+    if (slider && phaseEl && mixEl && card) {
+      layerDomCache[layer.id] = { slider, phaseEl, mixEl, card };
     }
   });
 }
@@ -803,35 +799,31 @@ function updateLayerDisplayFromState(state) {
     const layer = LAYERS[i];
     const cached = layerDomCache[layer.id];
     if (!cached) continue;
-    const { slider, valEl, card, activeLbl } = cached;
+    const { slider, phaseEl, mixEl } = cached;
     const base = phaseLevels[layer.id] ?? 0;
-    const effectiveVal = getEffectiveLayerValue(layer.id, base);
-    const on = layerActive[layer.id] !== false;
-    slider.value = Math.round(base * 100);
-    valEl.textContent = base.toFixed(2);
-    valEl.classList.toggle('muted', effectiveVal === 0);
-    slider.classList.toggle('muted', effectiveVal === 0);
-    card.classList.toggle('inactive-phase', !on);
-    if (activeLbl) {
-      activeLbl.textContent = on ? 'Active' : 'Inactive';
-      activeLbl.classList.toggle('is-active', on);
-      activeLbl.classList.toggle('is-inactive', !on);
-    }
+    const volumeMult = parseInt(slider.value, 10) / 100;
+    phaseEl.textContent = base.toFixed(2);
+    mixEl.textContent = volumeMult.toFixed(2);
+    phaseEl.classList.toggle('muted', base === 0);
+    mixEl.classList.toggle('muted', volumeMult === 0);
+    slider.style.setProperty('--phase-pct', `${Math.max(0, Math.min(100, base * 100))}%`);
+    slider.classList.toggle('muted', volumeMult === 0);
   }
 }
 
 function buildLayerCard(layer) {
   const card = document.createElement('div');
   card.className = 'layer-ctrl';
-  const defaultVal = layer.default ?? 50;
+  const defaultVal = layer.default ?? 100;
   const chordBlock = CHORD_LAYER_IDS.includes(layer.id)
     ? `<div class="layer-chords" id="chords-${layer.id}"></div>`
     : '';
   card.innerHTML = `
     <div class="layer-header">
       <span class="layer-name">${layer.label}</span>
-      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end">
-        <span class="layer-val ${defaultVal === 0 ? 'muted' : ''}" id="lv-${layer.id}">${(defaultVal / 100).toFixed(2)}</span>
+      <div class="layer-meta">
+        <span class="layer-meta-row">Phase <span class="layer-val muted" id="phase-${layer.id}">0.00</span></span>
+        <span class="layer-meta-row">Mix <span class="layer-mix-val ${defaultVal === 0 ? 'muted' : ''}" id="mix-${layer.id}">${(defaultVal / 100).toFixed(2)}</span></span>
         <button type="button" class="layer-solo-btn" data-layer="${layer.id}" title="Isolate this layer (solo)">S</button>
       </div>
     </div>
@@ -839,23 +831,19 @@ function buildLayerCard(layer) {
            min="0" max="${LAYER_SLIDER_MAX}" value="${defaultVal}" step="1" data-layer="${layer.id}">
     <div class="layer-desc">${layer.desc}</div>
     ${chordBlock}
-    <div style="display:flex;justify-content:flex-end">
-      <span class="layer-active-lbl is-active" id="active-${layer.id}" data-layer="${layer.id}" title="Toggle layer">Active</span>
-    </div>
   `;
 
   const slider = card.querySelector(`#sl-${layer.id}`);
-  const valEl  = card.querySelector(`#lv-${layer.id}`);
-  const activeLbl = card.querySelector(`#active-${layer.id}`);
-  layerActive[layer.id] = true;
+  const mixEl = card.querySelector(`#mix-${layer.id}`);
   slider.classList.toggle('muted', parseInt(slider.value) === 0);
+  slider.style.setProperty('--phase-pct', '0%');
 
   slider.addEventListener('wheel', e => { e.preventDefault(); }, { passive: false });
   slider.addEventListener('input', e => {
     const v = parseInt(e.target.value, 10) / 100;
-    valEl.textContent = v.toFixed(2);
+    mixEl.textContent = v.toFixed(2);
     syncLayerToEngine(layer.id);
-    valEl.classList.toggle('muted', v === 0);
+    mixEl.classList.toggle('muted', v === 0);
     slider.classList.toggle('muted', v === 0);
   });
 
@@ -864,17 +852,6 @@ function buildLayerCard(layer) {
     soloLayerId = soloLayerId === layer.id ? null : layer.id;
     updateSoloStyles();
     syncAllLayersToEngine();
-    updateLayerDisplayFromState(engine?.getState());
-  });
-
-  activeLbl.addEventListener('click', () => {
-    layerActive[layer.id] = !layerActive[layer.id];
-    const on = layerActive[layer.id];
-    activeLbl.textContent = on ? 'Active' : 'Inactive';
-    activeLbl.classList.toggle('is-active', on);
-    activeLbl.classList.toggle('is-inactive', !on);
-    card.classList.toggle('inactive-toggle', !on);
-    syncLayerToEngine(layer.id);
     updateLayerDisplayFromState(engine?.getState());
   });
   return card;

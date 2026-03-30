@@ -63,6 +63,35 @@ const ProceduralMusic = (() => {
     });
   }
 
+  const MIN_AUDIBLE_LAYER_LEVEL = 0.3;
+
+  function floorPositiveLayerLevel(value) {
+    if (!Number.isFinite(value)) return 0;
+    if (value <= 0) return 0;
+    return Math.max(MIN_AUDIBLE_LAYER_LEVEL, value);
+  }
+
+  function normalizeLayerLevelMap(levels) {
+    const next = {};
+    for (const [key, value] of Object.entries(levels || {})) {
+      next[key] = floorPositiveLayerLevel(value);
+    }
+    return next;
+  }
+
+  function normalizePresetDynamics(preset) {
+    return {
+      ...preset,
+      layerMix: normalizeLayerLevelMap(preset.layerMix),
+      phases: (preset.phases || []).map((phase) => ({
+        ...phase,
+        lv: normalizeLayerLevelMap(phase.lv),
+      })),
+    };
+  }
+
+  const CONCERTINA_GAIN_BOOST = 1.5;
+
   function create(options = {}) {
     let bpm = DEFAULT_PRESET.defaults.bpm;
     let bpmTarget = bpm;
@@ -1014,7 +1043,7 @@ const ProceduralMusic = (() => {
       if (gate < 0.02) return;
       // Use the higher of current node value or target gain so chords are audible
       // even on the first tick of a phase (before the gain node has finished ramping).
-      const effectiveLevel = Math.max(pv, gate);
+      const effectiveLevel = Math.max(pv, gate) * CONCERTINA_GAIN_BOOST;
       const harmonicList = layerConfigs.piano.harmonics || [1, 2, 3];
       const harmonicDefs = harmonicList.map((h, idx) => {
         // Progressive amplitude and decay reduction for higher harmonics
@@ -1374,6 +1403,7 @@ const ProceduralMusic = (() => {
 
     function applyPresetInternal(preset) {
       if (!preset || preset.schemaVersion !== 1) return false;
+      preset = normalizePresetDynamics(preset);
       KEY_OFFSETS = { ...DEFAULT_PRESET.keyOffsets, ...preset.keyOffsets };
       BASE_N = { ...DEFAULT_PRESET.baseNotesHz, ...preset.baseNotesHz };
       VEL = preset.velocities.slice();
