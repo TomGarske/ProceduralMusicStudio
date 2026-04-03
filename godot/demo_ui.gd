@@ -12,10 +12,9 @@ extends Control
 var _is_playing := false
 
 const PRESETS := [
-	"drunken-sailor",
 	"blow-the-man-down",
+	"drunken-sailor",
 	"haul-away-joe",
-	"roll-the-old-chariot",
 	"south-australia",
 	"spanish-ladies",
 	"wellerman",
@@ -28,10 +27,10 @@ func _ready() -> void:
 	vol_slider.value_changed.connect(_on_volume_changed)
 	preset_option.item_selected.connect(_on_preset_selected)
 
-	bpm_slider.min_value = 40
-	bpm_slider.max_value = 200
-	bpm_slider.value = 120
-	bpm_label.text = "120 BPM"
+	bpm_slider.min_value = 90
+	bpm_slider.max_value = 130
+	bpm_slider.value = 115
+	bpm_label.text = "115 BPM"
 
 	vol_slider.min_value = 0
 	vol_slider.max_value = 100
@@ -39,6 +38,9 @@ func _ready() -> void:
 
 	for p: String in PRESETS:
 		preset_option.add_item(p.replace("-", " ").capitalize())
+
+	# Load the first preset so it matches the dropdown
+	music.apply_preset("res://presets/%s.json" % PRESETS[0])
 
 	music.phase_changed.connect(_on_phase_changed)
 

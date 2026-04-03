@@ -11,17 +11,17 @@ var support_mix: float = 0.55
 
 # Config
 var lpf_hz: float = 240.0
-var hpf_hz: float = 40.0
+var hpf_hz: float = 65.0
 var vibrato_hz: float = 2.1
-var vibrato_depth: float = 0.7
+var vibrato_depth: float = 0.0
 
 # Root voice 1 (triangle character): odd harmonics
 const PARTIALS_ROOT1 := [
 	[1.0, 1.00], [3.0, 0.11], [5.0, 0.04],
 ]
-# Root voice 2 (sawtooth character, detuned -5 cents): all harmonics
+# Root voice 2 (detuned -5 cents): fundamental + octave only
 const PARTIALS_ROOT2 := [
-	[1.0, 1.00], [2.0, 0.40], [3.0, 0.22], [4.0, 0.12], [5.0, 0.06],
+	[1.0, 0.80], [2.0, 0.20],
 ]
 # Fifth voice (pure sine, detuned +4 cents)
 # Just fundamental — the fifth should be clean
@@ -39,7 +39,7 @@ var _fifth_detune: float = 1.0  # pow(2, +4/1200)
 func _init(sr: float = 44100.0) -> void:
 	sample_rate = sr
 	vibrato_osc = Oscillator.new(Oscillator.Waveform.SINE, 2.1, sr)
-	hpf = BiquadFilter.new(BiquadFilter.Mode.HIGHPASS, 40.0, 0.7, sr)
+	hpf = BiquadFilter.new(BiquadFilter.Mode.HIGHPASS, 65.0, 0.7, sr)
 	lpf_filter = BiquadFilter.new(BiquadFilter.Mode.LOWPASS, 240.0, 0.8, sr)
 	artic_env = Envelope.new(sr)
 

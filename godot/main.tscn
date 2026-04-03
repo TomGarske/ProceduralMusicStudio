@@ -59,9 +59,9 @@ custom_minimum_size = Vector2(80, 0)
 [node name="BPMSlider" type="HSlider" parent="DemoUI/VBoxContainer/BPMContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 40.0
-max_value = 200.0
-value = 120.0
+min_value = 90.0
+max_value = 130.0
+value = 115.0
 
 [node name="VolumeContainer" type="HBoxContainer" parent="DemoUI/VBoxContainer"]
 layout_mode = 2

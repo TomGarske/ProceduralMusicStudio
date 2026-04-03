@@ -172,6 +172,9 @@ func apply_preset(source) -> bool:
 	# Build phase timeline
 	_build_phases(data.get("phases", []) as Array)
 
+	# Reset all layers (clear stale voices from previous preset)
+	_init_layers()
+
 	# Apply layer configs
 	if _layer_configs.has("arp"):
 		arp.apply_config(_layer_configs["arp"] as Dictionary)
@@ -418,10 +421,17 @@ func _tick() -> void:
 					var bass_voicing := _get_bass_voicing(_last_played_chord)
 					bass.trigger_note(float(bass_voicing["root"]), 0.9)
 
-			# Piano chord stab
+			# Piano chord stab + left-hand root
 			var piano_gain: float = float(lv.get("piano", 0.0)) * float(_layer_mult["piano"]) * float(_layer_scale["piano"])
 			if not _last_played_chord.is_empty() and piano_gain > 0.02:
-				piano_layer.trigger_chord(_last_played_chord["notes"] as Array, piano_gain)
+				var chord_hz: Array = _last_played_chord["notes"] as Array
+				piano_layer.trigger_chord(chord_hz, piano_gain)
+				# Left-hand: root note on beat 1
+				if chord_hz.size() > 0:
+					piano_layer.trigger_left_hand(float(chord_hz[0]), piano_gain * 0.7)
+				# Right-hand: top chord tone on beat 1
+				if chord_hz.size() > 3:
+					piano_layer.trigger_right_hand(float(chord_hz[3]), piano_gain * 0.5)
 
 			# Pad voicing update
 			var pad_gain: float = float(lv.get("pad", 0.0)) * float(_layer_mult["pad"])
@@ -434,6 +444,11 @@ func _tick() -> void:
 			# Bass fifth on beat 3
 			var bass_voicing := _get_bass_voicing(_last_played_chord)
 			bass.trigger_note(float(bass_voicing["fifth"]), 0.82)
+			# Left-hand: fifth on beat 3
+			var piano_gain_b3: float = float(lv.get("piano", 0.0)) * float(_layer_mult["piano"]) * float(_layer_scale["piano"])
+			var chord_hz_b3: Array = _last_played_chord["notes"] as Array
+			if chord_hz_b3.size() > 1 and piano_gain_b3 > 0.02:
+				piano_layer.trigger_left_hand(float(chord_hz_b3[1]), piano_gain_b3 * 0.6)
 
 		# Drone support
 		var drone_gain: float = float(lv.get("drone", 0.0)) * float(_layer_mult["drone"]) * float(_layer_scale["drone"])
@@ -443,6 +458,13 @@ func _tick() -> void:
 			drone.trigger_artic(drone_gain)
 		else:
 			drone.release_artic()
+
+	# ── Piano right-hand melody on beat 2 (bar_idx 4) ──
+	if bar_idx == 4 and not _last_played_chord.is_empty():
+		var piano_gain_b2: float = float(lv.get("piano", 0.0)) * float(_layer_mult["piano"]) * float(_layer_scale["piano"])
+		var chord_hz_b2: Array = _last_played_chord["notes"] as Array
+		if chord_hz_b2.size() > 2 and piano_gain_b2 > 0.02:
+			piano_layer.trigger_right_hand(float(chord_hz_b2[2]), piano_gain_b2 * 0.45)
 
 	# ── Crew voices on trigger steps ──
 	var voices_cfg: Dictionary = _layer_configs.get("voices", {}) as Dictionary
@@ -492,8 +514,8 @@ func _process(_delta: float) -> void:
 		sample += voice_baritone.next_sample()
 		sample += voice_tenor.next_sample()
 
-		# Master gain and compression (soft clip)
-		sample *= _volume_to_gain()
+		# Mix down (9 layers summing) then master volume and soft clip
+		sample *= 0.55 * _volume_to_gain()
 		sample = _soft_clip(sample)
 
 		_playback.push_frame(Vector2(sample, sample))
@@ -517,14 +539,16 @@ func lv_gain(layer_name: String) -> float:
 
 
 func _volume_to_gain() -> float:
-	return _volume * 2.0
+	return _volume
 
 
 func _soft_clip(x: float) -> float:
-	# Tanh soft clipper — prevents harsh digital clipping
-	if absf(x) < 0.5:
+	# Gentle soft clipper — linear below threshold, smooth compression above
+	if absf(x) < 0.8:
 		return x
-	return tanh(x)
+	if x > 0.0:
+		return 0.8 + 0.2 * tanh((x - 0.8) * 2.5)
+	return -0.8 - 0.2 * tanh((-x - 0.8) * 2.5)
 
 
 # ── Public API ──
@@ -532,6 +556,27 @@ func _soft_clip(x: float) -> float:
 func play_music() -> void:
 	if _playing:
 		return
+	# Reset all layers to clear any stale voices
+	_init_layers()
+	# Re-apply current preset configs so layers aren't default
+	if not _preset.is_empty():
+		if _layer_configs.has("arp"):
+			arp.apply_config(_layer_configs["arp"] as Dictionary)
+		if _layer_configs.has("thump"):
+			thump.apply_config(_layer_configs["thump"] as Dictionary)
+		if _layer_configs.has("piano"):
+			piano_layer.apply_config(_layer_configs["piano"] as Dictionary)
+		if _layer_configs.has("pad"):
+			pad.apply_config(_layer_configs["pad"] as Dictionary)
+		if _layer_configs.has("bass"):
+			bass.apply_config(_layer_configs["bass"] as Dictionary)
+		if _layer_configs.has("drone"):
+			drone.apply_config(_layer_configs["drone"] as Dictionary)
+		if _layer_configs.has("voices"):
+			var vc: Dictionary = _layer_configs["voices"] as Dictionary
+			voice_bass.apply_voice_config(vc)
+			voice_baritone.apply_voice_config(vc)
+			voice_tenor.apply_voice_config(vc)
 	_playing = true
 	_sample_pos = 0
 	_step = 0
@@ -541,6 +586,10 @@ func play_music() -> void:
 	_last_played_chord = {}
 	play()
 	_playback = get_stream_playback() as AudioStreamGeneratorPlayback
+	# Pre-fill buffer with silence to avoid initial garbage
+	if _playback:
+		for _j in range(512):
+			_playback.push_frame(Vector2.ZERO)
 
 
 func stop_music() -> void:
@@ -550,7 +599,7 @@ func stop_music() -> void:
 
 
 func set_bpm(new_bpm: float) -> void:
-	_bpm = clampf(new_bpm, 40.0, 200.0)
+	_bpm = clampf(new_bpm, 90.0, 130.0)
 	_build_phases(_preset.get("phases", []) as Array)
 
 

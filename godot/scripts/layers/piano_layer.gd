@@ -1,7 +1,8 @@
 class_name PianoLayer
-## Concertina/plucked chord stab layer.
-## Fires chord notes with sine-wave harmonics, attack/release envelopes,
-## and humanization to match the web audio engine.
+## Piano layer with three components:
+## - Chord stabs (full voicing on beat 1)
+## - Left-hand accompaniment (bass notes on beats 1 and 3)
+## - Right-hand melody (upper chord tones on beats 1 and 2)
 
 var sample_rate: float
 
@@ -11,10 +12,12 @@ var duration_sec: float = 2.2
 var voice_delay_sec: float = 0.004
 var gain_scale: float = 0.5
 
-# Active voices (each is a dict with oscillator and envelope state)
-var _voices: Array = []
+# Three voice arrays
+var _chord_voices: Array = []
+var _lh_voices: Array = []
+var _rh_voices: Array = []
 
-const MAX_VOICES := 24  # Limit to prevent runaway allocation
+const MAX_VOICES := 32
 
 
 func _init(sr: float = 44100.0) -> void:
@@ -29,67 +32,113 @@ func apply_config(config: Dictionary) -> void:
 
 
 func trigger_chord(chord_notes: Array, gain_level: float) -> void:
-	# Clear old voices if at limit
-	while _voices.size() > MAX_VOICES - chord_notes.size() * harmonics.size():
-		_voices.pop_front()
+	# Clear old chord voices if at limit
+	var needed := chord_notes.size() * harmonics.size()
+	while _chord_voices.size() > MAX_VOICES - needed:
+		_chord_voices.pop_front()
 
-	var boost := 1.5  # CONCERTINA_GAIN_BOOST from original
+	var boost := 0.5
 	var total_samples := int(duration_sec * sample_rate)
-	var fade_in_samples := int(sample_rate * 0.004)   # 4ms attack
-	var fade_out_samples := int(sample_rate * 0.008)   # 8ms fade-out
+	var fade_in_samples := int(sample_rate * 0.004)
+	var fade_out_samples := int(sample_rate * 0.008)
 
 	for ni in range(chord_notes.size()):
 		var freq: float = float(chord_notes[ni])
-		# Humanize: per-voice gain jitter +-15%
 		var voice_gain_jitter := 0.85 + randf() * 0.30
-		# Humanize: jitter voice delay +-40% and add small random offset
 		var jittered_delay := voice_delay_sec * (0.6 + randf() * 0.8)
 		var delay_samples := int(ni * jittered_delay * sample_rate + randf() * 0.006 * sample_rate)
 
 		for hi in range(harmonics.size()):
 			var h: int = int(harmonics[hi])
 			var h_freq := freq * float(h)
-			# Skip partials above 8 kHz (matches web)
 			if h_freq > 8000.0:
 				continue
-			# Harmonic amplitude: pow(0.38, idx) matching web
-			var amp: float
-			if hi == 0:
-				amp = 1.0
-			else:
-				amp = pow(0.38, float(hi))
-			# Harmonic decay factor: higher harmonics decay faster (matches web)
-			var dec: float
-			if hi == 0:
-				dec = 0.90
-			else:
-				dec = maxf(0.12, 0.90 - float(hi) * 0.22)
-			# Per-note decay scaling (matches web: 3.5 + ni * 0.4)
-			var decay_rate_per_sample := (3.5 + float(ni) * 0.4) * dec
+			var amp: float = 1.0 if hi == 0 else pow(0.38, float(hi))
+			var dec: float = 0.90 if hi == 0 else maxf(0.12, 0.90 - float(hi) * 0.22)
+			var decay_rate := (3.5 + float(ni) * 0.4) * dec
 			var h_gain := gain_level * boost * 0.65 * amp * voice_gain_jitter
-			# Slight pitch wobble: detune +-3 cents per voice for bellows imperfection
 			var detune_factor := pow(2.0, (randf() - 0.5) * 6.0 / 1200.0)
 
-			var voice := {
+			_chord_voices.append({
 				"phase": 0.0,
 				"freq": h_freq * detune_factor,
 				"gain": h_gain,
-				"decay_rate": decay_rate_per_sample,
+				"decay_rate": decay_rate,
 				"delay": delay_samples,
 				"sample": 0,
 				"total_samples": total_samples,
 				"fade_in_samples": fade_in_samples,
 				"fade_out_samples": fade_out_samples,
-				"alive": true,
-			}
-			_voices.append(voice)
+			})
 
 
-func next_sample() -> float:
+func trigger_left_hand(freq: float, gain_level: float) -> void:
+	# Bass accompaniment: 2 harmonics, 1.5s duration, soft attack
+	while _lh_voices.size() > 8:
+		_lh_voices.pop_front()
+
+	var total_samples := int(1.5 * sample_rate)
+	var fade_in_samples := int(sample_rate * 0.008)
+	var fade_out_samples := int(sample_rate * 0.008)
+	var lh_harmonics := [1, 2]
+
+	for hi in range(lh_harmonics.size()):
+		var h: int = lh_harmonics[hi]
+		var h_freq := freq * float(h)
+		if h_freq > 4000.0:
+			continue
+		var amp: float = 1.0 if hi == 0 else 0.35
+		var h_gain := gain_level * amp * (0.90 + randf() * 0.20)
+
+		_lh_voices.append({
+			"phase": 0.0,
+			"freq": h_freq,
+			"gain": h_gain,
+			"decay_rate": 4.5,
+			"delay": 0,
+			"sample": 0,
+			"total_samples": total_samples,
+			"fade_in_samples": fade_in_samples,
+			"fade_out_samples": fade_out_samples,
+		})
+
+
+func trigger_right_hand(freq: float, gain_level: float) -> void:
+	# Melody: 2 harmonics, 1.2s duration
+	while _rh_voices.size() > 8:
+		_rh_voices.pop_front()
+
+	var total_samples := int(1.2 * sample_rate)
+	var fade_in_samples := int(sample_rate * 0.004)
+	var fade_out_samples := int(sample_rate * 0.006)
+	var rh_harmonics := [1, 2]
+
+	for hi in range(rh_harmonics.size()):
+		var h: int = rh_harmonics[hi]
+		var h_freq := freq * float(h)
+		if h_freq > 8000.0:
+			continue
+		var amp: float = 1.0 if hi == 0 else 0.25
+		var h_gain := gain_level * amp * (0.90 + randf() * 0.20)
+
+		_rh_voices.append({
+			"phase": 0.0,
+			"freq": h_freq,
+			"gain": h_gain,
+			"decay_rate": 5.0,
+			"delay": 0,
+			"sample": 0,
+			"total_samples": total_samples,
+			"fade_in_samples": fade_in_samples,
+			"fade_out_samples": fade_out_samples,
+		})
+
+
+func _process_voices(voices: Array) -> float:
 	var out := 0.0
 	var i := 0
-	while i < _voices.size():
-		var v: Dictionary = _voices[i]
+	while i < voices.size():
+		var v: Dictionary = voices[i]
 		var samp: int = int(v["sample"]) + 1
 		v["sample"] = samp
 
@@ -100,27 +149,22 @@ func next_sample() -> float:
 		var elapsed := samp - int(v["delay"])
 		var total: int = int(v["total_samples"])
 
-		# Remove if past duration
 		if elapsed >= total:
-			_voices.remove_at(i)
+			voices.remove_at(i)
 			continue
 
-		# Sine wave (matches web version - clean tone, no harsh harmonics)
 		var ph: float = float(v["phase"]) + float(v["freq"]) / sample_rate
 		ph -= floorf(ph)
 		v["phase"] = ph
 		var s := sin(ph * TAU)
 
-		# Exponential decay matching web: exp(-t * decay_rate)
 		var t := float(elapsed) / sample_rate
 		var env := exp(-t * float(v["decay_rate"]))
 
-		# Anti-click: 4ms linear attack
 		var fade_in: int = int(v["fade_in_samples"])
 		if elapsed < fade_in:
 			env *= float(elapsed) / float(fade_in)
 
-		# Anti-click: 8ms linear fade-out at buffer end
 		var fade_out: int = int(v["fade_out_samples"])
 		if elapsed > total - fade_out:
 			env *= float(total - elapsed) / float(fade_out)
@@ -128,8 +172,12 @@ func next_sample() -> float:
 		out += s * float(v["gain"]) * env
 
 		if env < 0.0001:
-			_voices.remove_at(i)
+			voices.remove_at(i)
 		else:
 			i += 1
 
 	return out
+
+
+func next_sample() -> float:
+	return _process_voices(_chord_voices) + _process_voices(_lh_voices) + _process_voices(_rh_voices)

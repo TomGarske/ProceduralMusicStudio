@@ -4,7 +4,7 @@
   "name": "South Australia",
   "description": "Capstan shanty in C minor with bold, adventurous character",
   "defaults": {
-    "bpm": 120,
+    "bpm": 115,
     "key": "Cm"
   },
   "keyOffsets": {
@@ -17,31 +17,32 @@
     "Ab": 8
   },
   "baseNotesHz": {
-    "C2": 65.41,
-    "D2": 73.42,
-    "Eb2": 77.78,
-    "E2": 82.41,
-    "F2": 87.31,
-    "G2": 98,
-    "Ab2": 103.83,
-    "A2": 110,
-    "Bb2": 116.54,
-    "B2": 123.47,
-    "C3": 130.81,
-    "D3": 146.83,
-    "Eb3": 155.56,
-    "E3": 164.81,
-    "F3": 174.61,
-    "G3": 196,
-    "Ab3": 207.65,
-    "A3": 220,
-    "Bb3": 233.08,
-    "B3": 246.94,
-    "C4": 261.63,
-    "D4": 293.66,
-    "Eb4": 311.13,
-    "F4": 349.23,
-    "G4": 392
+    "C2": 61.74,
+    "D2": 69.3,
+    "Eb2": 73.41,
+    "E2": 77.78,
+    "F2": 82.41,
+    "G2": 92.5,
+    "Ab2": 98.0,
+    "A2": 103.83,
+    "Bb2": 110.0,
+    "B2": 116.54,
+    "C3": 123.47,
+    "D3": 138.59,
+    "Eb3": 146.83,
+    "E3": 155.56,
+    "F3": 164.81,
+    "G3": 185.0,
+    "Ab3": 196.0,
+    "A3": 207.65,
+    "Bb3": 220.0,
+    "B3": 233.08,
+    "C4": 246.95,
+    "D4": 277.18,
+    "Eb4": 293.67,
+    "F4": 329.63,
+    "G4": 370.0,
+    "G1": 46.25
   },
   "chordVoicings": {
     "Cm": {
@@ -125,15 +126,15 @@
     "voiceTenor"
   ],
   "layerMix": {
-    "arp": 0.172,
-    "thump": 0.052,
-    "piano": 1.805,
-    "pad": 0.248,
-    "bass": 0.115,
-    "drone": 0.069,
-    "voiceBass": 0.325,
-    "voiceBaritone": 0.254,
-    "voiceTenor": 0.139
+    "arp": 0.5,
+    "thump": 0.333,
+    "piano": 0.3,
+    "pad": 0.333,
+    "bass": 0.333,
+    "drone": 0.333,
+    "voiceBass": 0.333,
+    "voiceBaritone": 0.333,
+    "voiceTenor": 0.333
   },
   "layerConfigs": {
     "arp": {
@@ -284,15 +285,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.118,
-        "thump": 0.038,
-        "piano": 1.28,
-        "pad": 0.165,
-        "bass": 0.083,
-        "drone": 0.048,
-        "voiceBass": 0.522,
-        "voiceBaritone": 0.461,
-        "voiceTenor": 0.338
+        "arp": 0.352,
+        "thump": 0.235,
+        "piano": 0.211,
+        "pad": 0.235,
+        "bass": 0.235,
+        "drone": 0.235,
+        "voiceBass": 0.235,
+        "voiceBaritone": 0.235,
+        "voiceTenor": 0.235
       }
     },
     {
@@ -345,15 +346,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.138,
-        "thump": 0.043,
-        "piano": 1.454,
-        "pad": 0.192,
-        "bass": 0.091,
-        "drone": 0.053,
-        "voiceBass": 0.584,
-        "voiceBaritone": 0.515,
-        "voiceTenor": 0.378
+        "arp": 0.399,
+        "thump": 0.266,
+        "piano": 0.239,
+        "pad": 0.266,
+        "bass": 0.266,
+        "drone": 0.266,
+        "voiceBass": 0.266,
+        "voiceBaritone": 0.266,
+        "voiceTenor": 0.266
       }
     },
     {
@@ -426,15 +427,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.156,
-        "thump": 0.049,
-        "piano": 1.629,
-        "pad": 0.221,
-        "bass": 0.104,
-        "drone": 0.064,
-        "voiceBass": 0.666,
-        "voiceBaritone": 0.587,
-        "voiceTenor": 0.43
+        "arp": 0.452,
+        "thump": 0.301,
+        "piano": 0.271,
+        "pad": 0.301,
+        "bass": 0.301,
+        "drone": 0.301,
+        "voiceBass": 0.301,
+        "voiceBaritone": 0.301,
+        "voiceTenor": 0.301
       }
     },
     {
@@ -523,15 +524,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.172,
-        "thump": 0.055,
-        "piano": 1.805,
-        "pad": 0.248,
-        "bass": 0.115,
-        "drone": 0.069,
-        "voiceBass": 0.738,
-        "voiceBaritone": 0.651,
-        "voiceTenor": 0.477
+        "arp": 0.5,
+        "thump": 0.333,
+        "piano": 0.3,
+        "pad": 0.333,
+        "bass": 0.333,
+        "drone": 0.333,
+        "voiceBass": 0.333,
+        "voiceBaritone": 0.333,
+        "voiceTenor": 0.333
       }
     },
     {
@@ -584,15 +585,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.156,
-        "thump": 0.049,
-        "piano": 1.629,
-        "pad": 0.221,
-        "bass": 0.104,
-        "drone": 0.064,
-        "voiceBass": 0.666,
-        "voiceBaritone": 0.587,
-        "voiceTenor": 0.43
+        "arp": 0.452,
+        "thump": 0.301,
+        "piano": 0.271,
+        "pad": 0.301,
+        "bass": 0.301,
+        "drone": 0.301,
+        "voiceBass": 0.301,
+        "voiceBaritone": 0.301,
+        "voiceTenor": 0.301
       }
     },
     {
@@ -665,15 +666,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.138,
-        "thump": 0.043,
-        "piano": 1.454,
-        "pad": 0.192,
-        "bass": 0.091,
-        "drone": 0.053,
-        "voiceBass": 0.584,
-        "voiceBaritone": 0.515,
-        "voiceTenor": 0.378
+        "arp": 0.399,
+        "thump": 0.266,
+        "piano": 0.239,
+        "pad": 0.266,
+        "bass": 0.266,
+        "drone": 0.266,
+        "voiceBass": 0.266,
+        "voiceBaritone": 0.266,
+        "voiceTenor": 0.266
       }
     },
     {
@@ -726,15 +727,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.118,
-        "thump": 0.038,
-        "piano": 1.28,
-        "pad": 0.165,
-        "bass": 0.083,
-        "drone": 0.048,
-        "voiceBass": 0.522,
-        "voiceBaritone": 0.461,
-        "voiceTenor": 0.338
+        "arp": 0.352,
+        "thump": 0.235,
+        "piano": 0.211,
+        "pad": 0.235,
+        "bass": 0.235,
+        "drone": 0.235,
+        "voiceBass": 0.235,
+        "voiceBaritone": 0.235,
+        "voiceTenor": 0.235
       }
     }
   ]

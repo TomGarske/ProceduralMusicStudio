@@ -9,7 +9,7 @@ var gain_env: Envelope
 
 # Config
 var lpf_hz: float = 300.0
-var hpf_hz: float = 38.0
+var hpf_hz: float = 60.0
 var detune_cents: float = -8.0
 
 # Two oscillator groups: main (triangle-like) + detuned (sine)
@@ -31,7 +31,7 @@ var _detune_factor: float = 1.0
 func _init(sr: float = 44100.0) -> void:
 	sample_rate = sr
 	lpf_filter = BiquadFilter.new(BiquadFilter.Mode.LOWPASS, 300.0, 0.7, sr)
-	hpf = BiquadFilter.new(BiquadFilter.Mode.HIGHPASS, 38.0, 0.7, sr)
+	hpf = BiquadFilter.new(BiquadFilter.Mode.HIGHPASS, 60.0, 0.7, sr)
 	gain_env = Envelope.new(sr)
 	_main_phases = PackedFloat32Array()
 	_main_phases.resize(PARTIALS_MAIN.size())
@@ -53,10 +53,10 @@ func trigger_note(freq: float, velocity: float) -> void:
 	_freq = freq
 	# Pluck envelope: fast attack, medium decay
 	gain_env.snap(0.0)
-	gain_env.linear_ramp(velocity * 1.4, 0.008)
-	_attack_samples = int(0.008 * sample_rate)
-	_decay_target = velocity * 0.12
-	_decay_tau = 0.4
+	gain_env.linear_ramp(velocity * 0.45, 0.010)
+	_attack_samples = int(0.010 * sample_rate)
+	_decay_target = velocity * 0.03
+	_decay_tau = 0.35
 
 var _attack_samples: int = 0
 var _decay_target: float = 0.0

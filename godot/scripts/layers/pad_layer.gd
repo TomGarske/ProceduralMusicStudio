@@ -12,7 +12,7 @@ var gain_env: Envelope
 
 # Config
 var vibrato_hz: float = 3.6
-var vibrato_depth: float = 1.5
+var vibrato_depth: float = 0.5
 var voice_gain: float = 0.12
 var lpf_hz: float = 720.0
 var hpf_hz: float = 90.0

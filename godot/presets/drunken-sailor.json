@@ -4,7 +4,7 @@
   "name": "Drunken Sailor",
   "description": "Traditional sea shanty in D minor. Bodhran stomps, concertina drone, crew chorus in call-and-response. Public domain folk song.",
   "defaults": {
-    "bpm": 120,
+    "bpm": 115,
     "key": "Dm"
   },
   "keyOffsets": {
@@ -46,7 +46,9 @@
     "A4": 440,
     "B4": 493.88,
     "C5": 523.25,
-    "D5": 587.33
+    "D5": 587.33,
+    "B1": 61.73,
+    "C1": 32.7
   },
   "chordVoicings": {
     "Dm": {
@@ -142,15 +144,15 @@
     "voiceTenor"
   ],
   "layerMix": {
-    "arp": 0.306,
-    "thump": 0.284,
-    "piano": 1.144,
-    "pad": 0.108,
-    "bass": 0.062,
-    "drone": 0.046,
-    "voiceBass": 0.156,
-    "voiceBaritone": 0.121,
-    "voiceTenor": 0.063
+    "arp": 0.5,
+    "thump": 0.333,
+    "piano": 0.3,
+    "pad": 0.333,
+    "bass": 0.333,
+    "drone": 0.333,
+    "voiceBass": 0.333,
+    "voiceBaritone": 0.333,
+    "voiceTenor": 0.333
   },
   "layerConfigs": {
     "arp": {
@@ -493,11 +495,11 @@
         "-"
       ],
       "lv": {
-        "arp": 0.21,
-        "thump": 0.21,
+        "arp": 0.232,
+        "thump": 0.155,
         "piano": 0.0,
         "pad": 0.0,
-        "bass": 0.045,
+        "bass": 0.155,
         "drone": 0.0,
         "voiceBass": 0.0,
         "voiceBaritone": 0.0,
@@ -650,15 +652,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.244,
-        "thump": 0.24,
-        "piano": 0.915,
+        "arp": 0.486,
+        "thump": 0.324,
+        "piano": 0.292,
         "pad": 0.0,
-        "bass": 0.05,
+        "bass": 0.324,
         "drone": 0.0,
-        "voiceBass": 0.325,
-        "voiceBaritone": 0.287,
-        "voiceTenor": 0.21
+        "voiceBass": 0.324,
+        "voiceBaritone": 0.324,
+        "voiceTenor": 0.324
       }
     },
     {
@@ -807,15 +809,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.27,
-        "thump": 0.266,
-        "piano": 1.029,
-        "pad": 0.098,
-        "bass": 0.055,
+        "arp": 0.497,
+        "thump": 0.331,
+        "piano": 0.298,
+        "pad": 0.331,
+        "bass": 0.331,
         "drone": 0.0,
-        "voiceBass": 0.368,
-        "voiceBaritone": 0.324,
-        "voiceTenor": 0.238
+        "voiceBass": 0.331,
+        "voiceBaritone": 0.331,
+        "voiceTenor": 0.331
       }
     },
     {
@@ -896,15 +898,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.306,
-        "thump": 0.297,
-        "piano": 1.144,
-        "pad": 0.108,
-        "bass": 0.062,
-        "drone": 0.046,
-        "voiceBass": 0.41,
-        "voiceBaritone": 0.362,
-        "voiceTenor": 0.265
+        "arp": 0.5,
+        "thump": 0.333,
+        "piano": 0.3,
+        "pad": 0.333,
+        "bass": 0.333,
+        "drone": 0.333,
+        "voiceBass": 0.333,
+        "voiceBaritone": 0.333,
+        "voiceTenor": 0.333
       }
     },
     {
@@ -985,15 +987,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.27,
-        "thump": 0.266,
-        "piano": 1.029,
-        "pad": 0.098,
-        "bass": 0.055,
+        "arp": 0.497,
+        "thump": 0.331,
+        "piano": 0.298,
+        "pad": 0.331,
+        "bass": 0.331,
         "drone": 0.0,
-        "voiceBass": 0.368,
-        "voiceBaritone": 0.324,
-        "voiceTenor": 0.238
+        "voiceBass": 0.331,
+        "voiceBaritone": 0.331,
+        "voiceTenor": 0.331
       }
     },
     {
@@ -1110,15 +1112,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.244,
-        "thump": 0.24,
-        "piano": 0.915,
-        "pad": 0.086,
-        "bass": 0.05,
-        "drone": 0.037,
-        "voiceBass": 0.325,
-        "voiceBaritone": 0.287,
-        "voiceTenor": 0.21
+        "arp": 0.399,
+        "thump": 0.266,
+        "piano": 0.239,
+        "pad": 0.266,
+        "bass": 0.266,
+        "drone": 0.266,
+        "voiceBass": 0.266,
+        "voiceBaritone": 0.266,
+        "voiceTenor": 0.266
       }
     },
     {
@@ -1165,15 +1167,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.21,
-        "thump": 0.21,
-        "piano": 0.801,
-        "pad": 0.076,
-        "bass": 0.045,
+        "arp": 0.386,
+        "thump": 0.257,
+        "piano": 0.231,
+        "pad": 0.257,
+        "bass": 0.257,
         "drone": 0.0,
-        "voiceBass": 0.283,
-        "voiceBaritone": 0.25,
-        "voiceTenor": 0.183
+        "voiceBass": 0.257,
+        "voiceBaritone": 0.257,
+        "voiceTenor": 0.257
       }
     }
   ]
