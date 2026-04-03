@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "presets": [
+    { "id": "drunken-sailor", "file": "drunken-sailor.json", "name": "Drunken Sailor" },
+    { "id": "blow-the-man-down", "file": "blow-the-man-down.json", "name": "Blow the Man Down" },
+    { "id": "leave-her-johnny", "file": "leave-her-johnny.json", "name": "Leave Her Johnny" },
+    { "id": "haul-away-joe", "file": "haul-away-joe.json", "name": "Haul Away Joe" },
+    { "id": "spanish-ladies", "file": "spanish-ladies.json", "name": "Spanish Ladies" },
+    { "id": "roll-the-old-chariot", "file": "roll-the-old-chariot.json", "name": "Roll the Old Chariot" },
+    { "id": "randy-dandy-oh", "file": "randy-dandy-oh.json", "name": "Randy Dandy Oh" },
+    { "id": "south-australia", "file": "south-australia.json", "name": "South Australia" },
+    { "id": "wellerman", "file": "wellerman.json", "name": "Wellerman" }
+  ]
+}
