@@ -1,6 +1,7 @@
 class_name Oscillator
 ## Phase-accumulator oscillator supporting sine, sawtooth, and triangle waveforms.
-## Replaces Web Audio OscillatorNode.
+## Uses PolyBLEP anti-aliasing for sawtooth and triangle to eliminate harsh aliasing
+## artifacts, matching Web Audio OscillatorNode's band-limited output.
 
 enum Waveform { SINE, SAWTOOTH, TRIANGLE }
 
@@ -12,6 +13,10 @@ var sample_rate: float = 44100.0
 
 # Frequency modulation input (added to frequency each sample, in Hz)
 var fm_input: float = 0.0
+
+# Previous sample for integrated PolyBLEP triangle
+var _last_saw: float = 0.0
+var _tri_state: float = 0.0
 
 
 func _init(wave: Waveform = Waveform.SINE, freq: float = 440.0, sr: float = 44100.0) -> void:
@@ -27,26 +32,48 @@ func get_effective_freq() -> float:
 	return f
 
 
+## PolyBLEP residual — smooths discontinuities to reduce aliasing.
+## t is the phase position, dt is the phase increment per sample.
+func _poly_blep(t: float, dt: float) -> float:
+	if t < dt:
+		# Rising edge at start of period
+		var x := t / dt
+		return x + x - x * x - 1.0
+	elif t > 1.0 - dt:
+		# Falling edge at end of period
+		var x := (t - 1.0) / dt
+		return x * x + x + x + 1.0
+	return 0.0
+
+
 func next_sample() -> float:
 	var f := get_effective_freq()
-	var inc := f / sample_rate
-	phase += inc
+	var dt := f / sample_rate
+	phase += dt
 	phase -= floorf(phase)  # wrap to [0, 1)
 
 	match waveform:
 		Waveform.SINE:
 			return sin(phase * TAU)
 		Waveform.SAWTOOTH:
-			# Naive sawtooth: 1 at phase=0, -1 at phase=1
-			return 2.0 * phase - 1.0
+			# PolyBLEP-corrected sawtooth
+			var s := 2.0 * phase - 1.0
+			s -= _poly_blep(phase, dt)
+			return s
 		Waveform.TRIANGLE:
-			# Triangle: rises 0->1 in first half, falls 1->0 in second half
-			if phase < 0.5:
-				return 4.0 * phase - 1.0
-			else:
-				return 3.0 - 4.0 * phase
+			# Integrated PolyBLEP sawtooth → triangle
+			# First generate anti-aliased sawtooth
+			var saw := 2.0 * phase - 1.0
+			saw -= _poly_blep(phase, dt)
+			# Leaky integrator to convert sawtooth → triangle
+			# The integration constant 4*dt normalizes amplitude
+			_tri_state = _tri_state * 0.998 + saw * 4.0 * dt
+			# Normalize output to [-1, 1] range
+			return _tri_state
 	return 0.0
 
 
 func reset() -> void:
 	phase = 0.0
+	_last_saw = 0.0
+	_tri_state = 0.0

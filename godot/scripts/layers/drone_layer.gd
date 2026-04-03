@@ -1,10 +1,8 @@
 class_name DroneLayer
-## Arco support drone — triangle + sawtooth + sine (fifth), filtered.
+## Arco support drone — additive sine synthesis for root + fifth, filtered.
+## Three voice groups: warm root, rich root (detuned), pure fifth.
 
 var sample_rate: float
-var osc1: Oscillator  # triangle, root
-var osc2: Oscillator  # sawtooth, root, detuned
-var osc3: Oscillator  # sine, fifth
 var vibrato_osc: Oscillator
 var hpf: BiquadFilter
 var lpf_filter: BiquadFilter
@@ -12,27 +10,50 @@ var artic_env: Envelope  # articulation envelope for per-trigger swell
 var support_mix: float = 0.55
 
 # Config
-var lpf_hz: float = 220.0
+var lpf_hz: float = 240.0
 var hpf_hz: float = 40.0
 var vibrato_hz: float = 2.1
 var vibrato_depth: float = 0.7
 
+# Root voice 1 (triangle character): odd harmonics
+const PARTIALS_ROOT1 := [
+	[1.0, 1.00], [3.0, 0.11], [5.0, 0.04],
+]
+# Root voice 2 (sawtooth character, detuned -5 cents): all harmonics
+const PARTIALS_ROOT2 := [
+	[1.0, 1.00], [2.0, 0.40], [3.0, 0.22], [4.0, 0.12], [5.0, 0.06],
+]
+# Fifth voice (pure sine, detuned +4 cents)
+# Just fundamental — the fifth should be clean
+
+var _root1_phases: PackedFloat32Array
+var _root2_phases: PackedFloat32Array
+var _fifth_phase: float = 0.0
+
+var _root_freq: float = 73.42
+var _fifth_freq: float = 110.0
+var _root2_detune: float = 1.0  # pow(2, -5/1200)
+var _fifth_detune: float = 1.0  # pow(2, +4/1200)
+
 
 func _init(sr: float = 44100.0) -> void:
 	sample_rate = sr
-	osc1 = Oscillator.new(Oscillator.Waveform.TRIANGLE, 73.42, sr)
-	osc2 = Oscillator.new(Oscillator.Waveform.SAWTOOTH, 73.42, sr)
-	osc2.detune_cents = -5.0
-	osc3 = Oscillator.new(Oscillator.Waveform.SINE, 110.0, sr)
-	osc3.detune_cents = 4.0
 	vibrato_osc = Oscillator.new(Oscillator.Waveform.SINE, 2.1, sr)
 	hpf = BiquadFilter.new(BiquadFilter.Mode.HIGHPASS, 40.0, 0.7, sr)
-	lpf_filter = BiquadFilter.new(BiquadFilter.Mode.LOWPASS, 220.0, 0.8, sr)
+	lpf_filter = BiquadFilter.new(BiquadFilter.Mode.LOWPASS, 240.0, 0.8, sr)
 	artic_env = Envelope.new(sr)
+
+	_root1_phases = PackedFloat32Array()
+	_root1_phases.resize(PARTIALS_ROOT1.size())
+	_root2_phases = PackedFloat32Array()
+	_root2_phases.resize(PARTIALS_ROOT2.size())
+
+	_root2_detune = pow(2.0, -5.0 / 1200.0)
+	_fifth_detune = pow(2.0, 4.0 / 1200.0)
 
 
 func apply_config(config: Dictionary) -> void:
-	lpf_hz = config.get("lpfHz", 220.0)
+	lpf_hz = config.get("lpfHz", 240.0)
 	hpf_hz = config.get("hpfHz", 40.0)
 	vibrato_hz = config.get("vibratoHz", 2.1)
 	vibrato_depth = config.get("vibratoDepth", 0.7)
@@ -43,9 +64,8 @@ func apply_config(config: Dictionary) -> void:
 
 
 func set_voicing(main_freq: float, support_freq: float) -> void:
-	osc1.frequency = main_freq
-	osc2.frequency = main_freq
-	osc3.frequency = support_freq
+	_root_freq = main_freq
+	_fifth_freq = support_freq
 
 
 func trigger_artic(gain_level: float) -> void:
@@ -58,10 +78,34 @@ func release_artic() -> void:
 
 func next_sample() -> float:
 	var vib := vibrato_osc.next_sample() * vibrato_depth
-	osc1.fm_input = vib
-	osc2.fm_input = vib
 
-	var s := osc1.next_sample() + osc2.next_sample() + osc3.next_sample() * support_mix
+	# Root voice 1 (triangle character) with vibrato
+	var s := 0.0
+	var root1_base := _root_freq + vib
+	for p in range(PARTIALS_ROOT1.size()):
+		var p_freq := root1_base * float(PARTIALS_ROOT1[p][0])
+		if p_freq > sample_rate * 0.45:
+			continue
+		_root1_phases[p] += p_freq / sample_rate
+		_root1_phases[p] -= floorf(_root1_phases[p])
+		s += sin(_root1_phases[p] * TAU) * float(PARTIALS_ROOT1[p][1])
+
+	# Root voice 2 (sawtooth character, detuned) with vibrato
+	var root2_base := (_root_freq + vib) * _root2_detune
+	for p in range(PARTIALS_ROOT2.size()):
+		var p_freq := root2_base * float(PARTIALS_ROOT2[p][0])
+		if p_freq > sample_rate * 0.45:
+			continue
+		_root2_phases[p] += p_freq / sample_rate
+		_root2_phases[p] -= floorf(_root2_phases[p])
+		s += sin(_root2_phases[p] * TAU) * float(PARTIALS_ROOT2[p][1])
+
+	# Fifth voice (pure sine, detuned +4 cents)
+	var fifth_freq := _fifth_freq * _fifth_detune
+	_fifth_phase += fifth_freq / sample_rate
+	_fifth_phase -= floorf(_fifth_phase)
+	s += sin(_fifth_phase * TAU) * support_mix
+
 	s = hpf.process_sample(s)
 	s = lpf_filter.process_sample(s)
 	s *= artic_env.next_sample()

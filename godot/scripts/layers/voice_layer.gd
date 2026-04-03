@@ -1,6 +1,7 @@
 class_name VoiceLayer
 ## Formant-based crew voice part (bass, baritone, or tenor).
-## Each trigger spawns multiple detuned sawtooth voices through 3-formant bandpass filters.
+## Each trigger spawns multiple voices using additive sine harmonics
+## through 3-formant bandpass filters for natural vocal timbre.
 
 var sample_rate: float
 
@@ -31,26 +32,19 @@ var _noise_state: int = 12345
 
 const MAX_ACTIVE := 8
 
+# Number of harmonics for the vocal source (approximates sawtooth richness)
+const NUM_HARMONICS := 10
+
 # Syllable definitions (formant frequencies and Q values)
-# Matches CREW_SYLLABLES from the JS engine
 const SYLLABLES := [
-	# HAH - open vowel
 	{"f1s": 720, "f2s": 1100, "f3s": 2400, "f1e": 600, "f2e": 1000, "f3e": 2300, "q1": 10, "q2": 8, "q3": 6, "burst": 0.035},
-	# OOH - rounded
 	{"f1s": 340, "f2s": 920, "f3s": 2200, "f1e": 300, "f2e": 870, "f3e": 2100, "q1": 12, "q2": 10, "q3": 7, "burst": 0.03},
-	# EH - mid
 	{"f1s": 530, "f2s": 1840, "f3s": 2500, "f1e": 500, "f2e": 1750, "f3e": 2400, "q1": 11, "q2": 9, "q3": 7, "burst": 0.04},
-	# AY - diphthong
 	{"f1s": 660, "f2s": 1720, "f3s": 2400, "f1e": 350, "f2e": 2100, "f3e": 2800, "q1": 10, "q2": 9, "q3": 7, "burst": 0.045},
-	# AW - round open
 	{"f1s": 780, "f2s": 1200, "f3s": 2500, "f1e": 480, "f2e": 1800, "f3e": 2800, "q1": 11, "q2": 10, "q3": 7, "burst": 0.05},
-	# HEAVE - EH to EE
 	{"f1s": 580, "f2s": 1850, "f3s": 2700, "f1e": 300, "f2e": 2350, "f3e": 3000, "q1": 12, "q2": 11, "q3": 8, "burst": 0.08},
-	# HMM - nasal hum
 	{"f1s": 260, "f2s": 1000, "f3s": 2200, "f1e": 260, "f2e": 1000, "f3e": 2200, "q1": 15, "q2": 11, "q3": 7, "burst": 0.01},
-	# OH - round sustained
 	{"f1s": 500, "f2s": 900, "f3s": 2200, "f1e": 480, "f2e": 870, "f3e": 2100, "q1": 12, "q2": 10, "q3": 8, "burst": 0.05},
-	# HMM again
 	{"f1s": 260, "f2s": 1000, "f3s": 2200, "f1e": 260, "f2e": 1000, "f3e": 2200, "q1": 15, "q2": 11, "q3": 7, "burst": 0.01},
 ]
 
@@ -91,7 +85,6 @@ func trigger(freq: float, target_gain: float, note_index: int) -> void:
 	if freq <= 0.0 or target_gain < 0.018:
 		return
 
-	# Remove oldest if at limit
 	while _active.size() >= MAX_ACTIVE:
 		_active.pop_front()
 
@@ -105,9 +98,17 @@ func trigger(freq: float, target_gain: float, note_index: int) -> void:
 	for vi in range(part_voices):
 		var det_cents := (float(vi) - float(part_voices - 1) * 0.5) * det_spread / maxf(1.0, float(part_voices - 1))
 		det_cents += (randf() - 0.5) * 6.0
+		var detune_factor := pow(2.0, det_cents / 1200.0)
 
-		var osc := Oscillator.new(Oscillator.Waveform.SAWTOOTH, freq, sample_rate)
-		osc.detune_cents = det_cents
+		# Additive sine harmonics as vocal source (replaces sawtooth)
+		var phases := PackedFloat32Array()
+		phases.resize(NUM_HARMONICS)
+		# Harmonic amplitudes: 1/n rolloff (sawtooth spectrum) but alias-free
+		var harm_amps := PackedFloat32Array()
+		harm_amps.resize(NUM_HARMONICS)
+		for h in range(NUM_HARMONICS):
+			phases[h] = 0.0
+			harm_amps[h] = 1.0 / float(h + 1)
 
 		var vib := Oscillator.new(Oscillator.Waveform.SINE, vibrato_hz * vibrato_mul + float(vi) * 0.22, sample_rate)
 
@@ -116,7 +117,6 @@ func trigger(freq: float, target_gain: float, note_index: int) -> void:
 		var f2 := BiquadFilter.new(BiquadFilter.Mode.BANDPASS, maxf(500.0, syllable["f2s"] + total_shift), syllable["q2"], sample_rate)
 		var f3 := BiquadFilter.new(BiquadFilter.Mode.BANDPASS, maxf(1400.0, syllable["f3s"] + total_shift), syllable["q3"], sample_rate)
 
-		# Formant glide targets
 		var f1_target := maxf(180.0, syllable["f1e"] + total_shift)
 		var f2_target := maxf(500.0, syllable["f2e"] + total_shift)
 		var f3_target := maxf(1400.0, syllable["f3e"] + total_shift)
@@ -133,7 +133,10 @@ func trigger(freq: float, target_gain: float, note_index: int) -> void:
 		var total_dur_samples := int((release_sec + 0.5) * sample_rate)
 
 		var voice := {
-			"osc": osc,
+			"phases": phases,
+			"harm_amps": harm_amps,
+			"freq": freq,
+			"detune_factor": detune_factor,
 			"vib": vib,
 			"vib_depth": (3.0 + float(note_index) * 0.7) * vibrato_mul * (0.85 + randf() * 0.3),
 			"f1": f1, "f2": f2, "f3": f3,
@@ -147,11 +150,11 @@ func trigger(freq: float, target_gain: float, note_index: int) -> void:
 			"delay": delay_samples,
 			"age": 0,
 			"total_dur": total_dur_samples,
-			"phase": 0,  # 0=delay, 1=attack, 2=sustain, 3=decay
+			"phase": 0,  # 0=attack, 1=sustain, 2=decay
 		}
 		_active.append(voice)
 
-	# Breath noise voice (shared for part)
+	# Breath noise voice
 	var breath_dur := int(release_sec * 0.45 * sample_rate)
 	var burst_peak: float = target_gain * breath_level * breath_mul * (float(syllable["burst"]) / 0.035)
 	_active.append({
@@ -177,7 +180,6 @@ func next_sample() -> float:
 		var v: Dictionary = _active[i]
 
 		if v.get("is_breath", false):
-			# Breath noise voice
 			var age: int = int(v["age"]) + 1
 			v["age"] = age
 			if age > int(v["total_dur"]):
@@ -219,11 +221,21 @@ func next_sample() -> float:
 
 		# Vibrato
 		var vib: Oscillator = v["vib"] as Oscillator
-		var osc: Oscillator = v["osc"] as Oscillator
 		var vib_val: float = vib.next_sample() * float(v["vib_depth"])
-		osc.fm_input = vib_val
 
-		var raw: float = osc.next_sample()
+		# Additive sine harmonics (alias-free vocal source)
+		var base_freq: float = float(v["freq"]) * float(v["detune_factor"]) + vib_val
+		var phases: PackedFloat32Array = v["phases"]
+		var harm_amps: PackedFloat32Array = v["harm_amps"]
+		var raw := 0.0
+		for h in range(NUM_HARMONICS):
+			var h_freq := base_freq * float(h + 1)
+			if h_freq > sample_rate * 0.45:
+				break
+			phases[h] += h_freq / sample_rate
+			phases[h] -= floorf(phases[h])
+			raw += sin(phases[h] * TAU) * harm_amps[h]
+		v["phases"] = phases
 
 		# Sum three formant filters
 		var filtered: float = f1.process_sample(raw) + f2.process_sample(raw) + f3.process_sample(raw)

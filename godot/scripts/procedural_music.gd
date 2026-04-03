@@ -64,8 +64,8 @@ var _layer_mult: Dictionary = {
 
 # Layer scale factors (from preset layerMix)
 var _layer_scale: Dictionary = {
-	"arp": 0.30, "thump": 0.85, "piano": 0.90, "pad": 0.20,
-	"bass": 0.08, "drone": 0.10, "voiceBass": 0.22, "voiceBaritone": 0.19, "voiceTenor": 0.14,
+	"arp": 0.32, "thump": 0.85, "piano": 0.90, "pad": 0.18,
+	"bass": 0.08, "drone": 0.07, "voiceBass": 0.26, "voiceBaritone": 0.22, "voiceTenor": 0.16,
 }
 
 var _playback: AudioStreamGeneratorPlayback
