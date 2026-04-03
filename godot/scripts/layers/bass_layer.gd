@@ -53,9 +53,9 @@ func trigger_note(freq: float, velocity: float) -> void:
 	_freq = freq
 	# Pluck envelope: fast attack, medium decay
 	gain_env.snap(0.0)
-	gain_env.linear_ramp(velocity * 0.7, 0.008)
+	gain_env.linear_ramp(velocity * 1.4, 0.008)
 	_attack_samples = int(0.008 * sample_rate)
-	_decay_target = velocity * 0.05
+	_decay_target = velocity * 0.12
 	_decay_tau = 0.4
 
 var _attack_samples: int = 0

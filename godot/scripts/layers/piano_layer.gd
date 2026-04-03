@@ -66,7 +66,7 @@ func trigger_chord(chord_notes: Array, gain_level: float) -> void:
 				dec = maxf(0.12, 0.90 - float(hi) * 0.22)
 			# Per-note decay scaling (matches web: 3.5 + ni * 0.4)
 			var decay_rate_per_sample := (3.5 + float(ni) * 0.4) * dec
-			var h_gain := gain_level * boost * 0.26 * amp * 0.52 * voice_gain_jitter
+			var h_gain := gain_level * boost * 0.65 * amp * voice_gain_jitter
 			# Slight pitch wobble: detune +-3 cents per voice for bellows imperfection
 			var detune_factor := pow(2.0, (randf() - 0.5) * 6.0 / 1200.0)
 

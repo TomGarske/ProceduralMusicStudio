@@ -122,7 +122,7 @@ func trigger(freq: float, target_gain: float, note_index: int) -> void:
 		var f3_target := maxf(1400.0, syllable["f3e"] + total_shift)
 
 		var peak_jitter := 0.88 + randf() * 0.24
-		var peak := target_gain * gain_mul * (0.19 - float(vi) * 0.014 / maxf(1.0, float(part_voices))) * peak_jitter
+		var peak := target_gain * gain_mul * (0.50 - float(vi) * 0.03 / maxf(1.0, float(part_voices))) * peak_jitter
 		var attack_time := (0.12 + float(note_index) * 0.02) * (0.78 + randf() * 0.45)
 
 		var env := Envelope.new(sample_rate)
@@ -180,12 +180,12 @@ func next_sample() -> float:
 		var v: Dictionary = _active[i]
 
 		if v.get("is_breath", false):
-			var age: int = int(v["age"]) + 1
-			v["age"] = age
-			if age > int(v["total_dur"]):
+			var breath_age: int = int(v["age"]) + 1
+			v["age"] = breath_age
+			if breath_age > int(v["total_dur"]):
 				_active.remove_at(i)
 				continue
-			var t := float(age) / sample_rate
+			var t := float(breath_age) / sample_rate
 			var peak: float = float(v["peak"])
 			var breath_env: float
 			if t < 0.015:

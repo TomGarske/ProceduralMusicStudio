@@ -5,7 +5,6 @@ class_name Envelope
 var value: float = 0.0
 var _target: float = 0.0
 var _rate: float = 0.0  # per-sample coefficient (0 = instant, approaching 1 = slow)
-var _linear_rate: float = 0.0  # samples remaining for linear ramp
 var _linear_start: float = 0.0
 var _linear_end: float = 0.0
 var _linear_samples_total: float = 0.0

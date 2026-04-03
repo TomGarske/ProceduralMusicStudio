@@ -137,15 +137,15 @@
     "voiceTenor"
   ],
   "layerMix": {
-    "arp": 0.35,
-    "thump": 0.65,
-    "piano": 0.45,
-    "pad": 0.18,
-    "bass": 0.22,
-    "drone": 0.18,
-    "voiceBass": 0.272,
-    "voiceBaritone": 0.238,
-    "voiceTenor": 0.17
+    "arp": 0.297,
+    "thump": 0.275,
+    "piano": 0.999,
+    "pad": 0.095,
+    "bass": 0.053,
+    "drone": 0.036,
+    "voiceBass": 0.187,
+    "voiceBaritone": 0.144,
+    "voiceTenor": 0.076
   },
   "layerConfigs": {
     "arp": {
@@ -329,15 +329,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.24,
-        "thump": 0.48,
-        "piano": 0,
-        "pad": 0,
-        "bass": 0.15,
-        "drone": 0,
-        "voiceBass": 0,
-        "voiceBaritone": 0,
-        "voiceTenor": 0
+        "arp": 0.204,
+        "thump": 0.204,
+        "piano": 0.0,
+        "pad": 0.0,
+        "bass": 0.036,
+        "drone": 0.0,
+        "voiceBass": 0.0,
+        "voiceBaritone": 0.0,
+        "voiceTenor": 0.0
       }
     },
     {
@@ -418,15 +418,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.28,
-        "thump": 0.55,
-        "piano": 0.36,
-        "pad": 0.14,
-        "bass": 0.18,
-        "drone": 0,
-        "voiceBass": 0.57,
-        "voiceBaritone": 0.57,
-        "voiceTenor": 0.57
+        "arp": 0.237,
+        "thump": 0.233,
+        "piano": 0.799,
+        "pad": 0.074,
+        "bass": 0.043,
+        "drone": 0.0,
+        "voiceBass": 0.391,
+        "voiceBaritone": 0.345,
+        "voiceTenor": 0.253
       }
     },
     {
@@ -507,15 +507,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.31,
-        "thump": 0.61,
-        "piano": 0.41,
-        "pad": 0.16,
-        "bass": 0.2,
-        "drone": 0,
-        "voiceBass": 0.64,
-        "voiceBaritone": 0.64,
-        "voiceTenor": 0.64
+        "arp": 0.262,
+        "thump": 0.258,
+        "piano": 0.91,
+        "pad": 0.084,
+        "bass": 0.048,
+        "drone": 0.0,
+        "voiceBass": 0.439,
+        "voiceBaritone": 0.387,
+        "voiceTenor": 0.284
       }
     },
     {
@@ -596,15 +596,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.35,
-        "thump": 0.68,
-        "piano": 0.45,
-        "pad": 0.18,
-        "bass": 0.22,
-        "drone": 0.18,
-        "voiceBass": 0.71,
-        "voiceBaritone": 0.71,
-        "voiceTenor": 0.71
+        "arp": 0.297,
+        "thump": 0.289,
+        "piano": 0.999,
+        "pad": 0.095,
+        "bass": 0.053,
+        "drone": 0.036,
+        "voiceBass": 0.487,
+        "voiceBaritone": 0.43,
+        "voiceTenor": 0.315
       }
     },
     {
@@ -650,15 +650,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0,
-        "thump": 0.61,
-        "piano": 0,
-        "pad": 0,
-        "bass": 0,
-        "drone": 0,
-        "voiceBass": 0,
-        "voiceBaritone": 0,
-        "voiceTenor": 0
+        "arp": 0.0,
+        "thump": 0.258,
+        "piano": 0.0,
+        "pad": 0.0,
+        "bass": 0.0,
+        "drone": 0.0,
+        "voiceBass": 0.0,
+        "voiceBaritone": 0.0,
+        "voiceTenor": 0.0
       }
     },
     {
@@ -739,15 +739,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.28,
-        "thump": 0.55,
-        "piano": 0.36,
-        "pad": 0.14,
-        "bass": 0.18,
-        "drone": 0.14,
-        "voiceBass": 0.57,
-        "voiceBaritone": 0.57,
-        "voiceTenor": 0.57
+        "arp": 0.237,
+        "thump": 0.233,
+        "piano": 0.799,
+        "pad": 0.074,
+        "bass": 0.043,
+        "drone": 0.028,
+        "voiceBass": 0.391,
+        "voiceBaritone": 0.345,
+        "voiceTenor": 0.253
       }
     },
     {
@@ -794,15 +794,15 @@
         "-"
       ],
       "lv": {
-        "arp": 0.24,
-        "thump": 0.48,
-        "piano": 0.32,
-        "pad": 0.13,
-        "bass": 0.15,
-        "drone": 0,
-        "voiceBass": 0.5,
-        "voiceBaritone": 0.5,
-        "voiceTenor": 0.5
+        "arp": 0.204,
+        "thump": 0.204,
+        "piano": 0.71,
+        "pad": 0.069,
+        "bass": 0.036,
+        "drone": 0.0,
+        "voiceBass": 0.343,
+        "voiceBaritone": 0.303,
+        "voiceTenor": 0.222
       }
     }
   ]

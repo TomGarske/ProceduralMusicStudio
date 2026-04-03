@@ -36,7 +36,7 @@ var _chord_voicings: Dictionary = {}
 var _drone_voicings: Array = []
 var _layer_configs: Dictionary = {}
 var _phase_filter_hz: Dictionary = {}
-var _layer_mix: Dictionary = {}
+
 
 # ── Phase timeline ──
 var _phases: Array = []  # processed phase objects with start/end in samples
@@ -62,10 +62,10 @@ var _layer_mult: Dictionary = {
 	"bass": 1.0, "drone": 1.0, "voiceBass": 1.0, "voiceBaritone": 1.0, "voiceTenor": 1.0,
 }
 
-# Layer scale factors (from preset layerMix)
+# Layer scale factors (loaded from preset layerMix — defaults are neutral)
 var _layer_scale: Dictionary = {
-	"arp": 0.32, "thump": 0.85, "piano": 0.90, "pad": 0.18,
-	"bass": 0.08, "drone": 0.07, "voiceBass": 0.26, "voiceBaritone": 0.22, "voiceTenor": 0.16,
+	"arp": 1.0, "thump": 1.0, "piano": 1.0, "pad": 1.0,
+	"bass": 1.0, "drone": 1.0, "voiceBass": 1.0, "voiceBaritone": 1.0, "voiceTenor": 1.0,
 }
 
 var _playback: AudioStreamGeneratorPlayback
@@ -214,8 +214,8 @@ func _convert_arp_pattern(raw: Array) -> Array:
 	return result
 
 
-func _note_hz(name: String) -> float:
-	var base: float = float(_base_notes_hz.get(name, 0.0))
+func _note_hz(note_name: String) -> float:
+	var base: float = float(_base_notes_hz.get(note_name, 0.0))
 	return base * _key_ratio()
 
 
@@ -294,15 +294,15 @@ func _get_phase_at(sample: int) -> Dictionary:
 
 # ── Chord resolution ──
 
-func _resolve_chord(name: String) -> Dictionary:
-	var voicing: Dictionary = _chord_voicings.get(name, {}) as Dictionary
+func _resolve_chord(chord_name: String) -> Dictionary:
+	var voicing: Dictionary = _chord_voicings.get(chord_name, {}) as Dictionary
 	if voicing.is_empty():
 		return {}
 	var notes: Array = voicing.get("notes", []) as Array
 	var hz_notes := []
 	for n: Variant in notes:
 		hz_notes.append(_note_hz(str(n)))
-	return {"name": voicing.get("label", name), "notes": hz_notes}
+	return {"name": voicing.get("label", chord_name), "notes": hz_notes}
 
 
 func _get_pad_voicing(chord: Dictionary) -> Array:
@@ -517,10 +517,7 @@ func lv_gain(layer_name: String) -> float:
 
 
 func _volume_to_gain() -> float:
-	if _volume <= 1.0:
-		return _volume * 0.42
-	var boost := minf(1.0, _volume - 1.0)
-	return 0.42 + boost * 0.50
+	return _volume * 2.0
 
 
 func _soft_clip(x: float) -> float:
@@ -574,7 +571,7 @@ func set_key(key: String) -> void:
 
 
 func set_volume(v: float) -> void:
-	_volume = clampf(v, 0.0, 2.0)
+	_volume = clampf(v, 0.0, 1.0)
 
 
 func set_layer(layer_name: String, value: float) -> void:

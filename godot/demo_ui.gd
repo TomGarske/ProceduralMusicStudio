@@ -15,8 +15,6 @@ const PRESETS := [
 	"drunken-sailor",
 	"blow-the-man-down",
 	"haul-away-joe",
-	"leave-her-johnny",
-	"randy-dandy-oh",
 	"roll-the-old-chariot",
 	"south-australia",
 	"spanish-ladies",
@@ -36,7 +34,7 @@ func _ready() -> void:
 	bpm_label.text = "120 BPM"
 
 	vol_slider.min_value = 0
-	vol_slider.max_value = 200
+	vol_slider.max_value = 100
 	vol_slider.value = 100
 
 	for p: String in PRESETS:
@@ -73,7 +71,7 @@ func _on_preset_selected(idx: int) -> void:
 		music.play_music()
 
 
-func _on_phase_changed(id: String, label: String) -> void:
+func _on_phase_changed(_id: String, label: String) -> void:
 	phase_label.text = label
 
 
